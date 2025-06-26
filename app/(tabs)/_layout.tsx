@@ -11,7 +11,7 @@ import CommunityIcon from "@/assets/images/community.svg";
 import HomeIcon from "@/assets/images/home.svg";
 import SimulateIcon from "@/assets/images/ic_invest.svg";
 import NewsroomIcon from "@/assets/images/ic_newganl.svg";
-import ProfileIcon from "@/assets/images/icn_profile.svg";
+import ProfileIcon from "@/assets/images/ic_profile.svg";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
