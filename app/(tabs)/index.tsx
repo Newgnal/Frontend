@@ -1,5 +1,6 @@
 import FilterChipList from "@/components/ui/FilterChipList";
 import HeaderIcons from "@/components/ui/HeaderIcons";
+import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Line } from "react-native-svg";
@@ -21,9 +22,10 @@ export default function HomeScreen() {
         <HeaderIcons />
       </View>
 
-      <View
+      {/* <View
         style={{ height: 1.5, backgroundColor: "#E4E6E7", width: "100%" }}
-      />
+      /> */}
+      <HorizontalLine />
       <View style={{ paddingTop: 8 }}>
         <FilterChipList />
       </View>
