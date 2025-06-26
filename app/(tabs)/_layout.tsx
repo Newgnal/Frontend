@@ -9,9 +9,9 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 
 import CommunityIcon from "@/assets/images/community.svg";
 import HomeIcon from "@/assets/images/home.svg";
-import NewsroomIcon from "@/assets/images/newsroom.svg";
-import SettingIcon from "@/assets/images/setting.svg";
-import SimulateIcon from "@/assets/images/simulate.svg";
+import SimulateIcon from "@/assets/images/ic_invest.svg";
+import NewsroomIcon from "@/assets/images/ic_newganl.svg";
+import ProfileIcon from "@/assets/images/icn_profile.svg";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -29,9 +29,9 @@ export default function TabLayout() {
             position: "absolute",
           },
           default: {
-            backgrounColor: "white",
+            backgroundColor: "white",
             borderTopWidth: 1,
-            borderTopColot: "#030712",
+            borderTopColor: "#030712",
             elevation: 0,
           },
         }),
@@ -45,7 +45,8 @@ export default function TabLayout() {
             <HomeIcon
               width={28.103}
               height={28.103}
-              stroke={focused ? "#414141" : "#D9D9D9"}
+              // stroke={focused ? "#414141" : "#D9D9D9"}
+              stroke="currentColor"
             />
           ),
           tabBarLabelStyle: {
@@ -69,6 +70,7 @@ export default function TabLayout() {
               width={28.103}
               height={28.103}
               stroke={focused ? "#414141" : "#D9D9D9"}
+              // stroke="currentColor"
             />
           ),
           tabBarLabelStyle: {
@@ -134,11 +136,11 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="setting"
+        name="mypage"
         options={{
-          title: "설정",
+          title: "프로필",
           tabBarIcon: ({ focused }) => (
-            <SettingIcon
+            <ProfileIcon
               width={28.103}
               height={28.103}
               stroke={focused ? "#414141" : "#D9D9D9"}
