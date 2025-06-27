@@ -4,9 +4,8 @@ import IcThemeModalActive from "@/assets/images/ic_them_modal-1.svg";
 import IcThemeModal from "@/assets/images/ic_them_modal.svg";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useState } from "react";
 import {
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,72 +16,77 @@ import DraggableFlatList, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
 import Modal from "react-native-modal";
+import Animated from "react-native-reanimated";
 
 const initialChipOptions = [
-  "반도체/AI",
-  "IT/인터넷",
-  "금융/보험",
-  "모빌리티",
-  "방산/항공우주",
-  "2차전지/친환경E",
-  "부동산/리츠",
-  "채권/금리",
-  "헬스케어/바이오",
-  "환율/외환",
-  "원자재/귀금속",
-  "기타",
+  { key: "semiconductor", label: "반도체/AI" },
+  { key: "it", label: "IT/인터넷" },
+  { key: "finance", label: "금융/보험" },
+  { key: "mobility", label: "모빌리티" },
+  { key: "defense", label: "방산/항공우주" },
+  { key: "green", label: "2차전지/친환경E" },
+  { key: "realestate", label: "부동산/리츠" },
+  { key: "bond", label: "채권/금리" },
+  { key: "health", label: "헬스케어/바이오" },
+  { key: "forex", label: "환율/외환" },
+  { key: "commodity", label: "원자재/귀금속" },
+  { key: "etc", label: "기타" },
 ];
 
 const routeMap: Record<string, string> = {
-  "반도체/AI": "/category/semiconductor",
-  "IT/인터넷": "/category/it",
-  "금융/보험": "/category/finance",
-  모빌리티: "/category/mobility",
-  "방산/항공우주": "/category/defense",
-  "2차전지/친환경E": "/category/green",
-  "부동산/리츠": "/category/realestate",
-  "채권/금리": "/category/bond",
-  "헬스케어/바이오": "/category/health",
-  "환율/외환": "/category/forex",
-  "원자재/귀금속": "/category/commodity",
-  기타: "/category/etc",
+  semiconductor: "/category/semiconductor",
+  it: "/category/it",
+  finance: "/category/finance",
+  mobility: "/category/mobility",
+  defense: "/category/defense",
+  green: "/category/green",
+  realestate: "/category/realestate",
+  bond: "/category/bond",
+  health: "/category/health",
+  forex: "/category/forex",
+  commodity: "/category/commodity",
+  etc: "/category/etc",
 };
 
 export default function FilterChipList() {
-  const [selected, setSelected] = useState<string>("반도체/AI");
+  const router = useRouter();
+  const [chips, setChips] = useState(initialChipOptions);
+  const [selected, setSelected] = useState("반도체/AI");
   const [isModalVisible, setModalVisible] = useState(false);
   const [isSortMode, setSortMode] = useState(false);
-  const [chips, setChips] = useState(initialChipOptions);
-  const router = useRouter();
 
   const handleSelect = (label: string) => {
     setSelected(label);
     setModalVisible(false);
-    if (routeMap[label]) {
-      router.push(routeMap[label]);
+    const matched = chips.find((item) => item.label === label);
+    if (matched?.key && routeMap[matched.key]) {
+      router.push(routeMap[matched.key]);
     }
   };
 
   return (
-    <View style={{ paddingHorizontal: 20, marginTop: 12 }}>
+    <View style={{ marginTop: 12 }}>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 8 }}
       >
-        {chips.slice(0, 4).map((label) => (
+        {chips.slice(0, 4).map((item) => (
           <TouchableOpacity
-            key={label}
-            onPress={() => handleSelect(label)}
-            style={[styles.chip, selected === label && styles.selectedChip]}
+            key={item.key}
+            onPress={() => handleSelect(item.label)}
+            style={[
+              styles.chip,
+              selected === item.label && styles.selectedChip,
+            ]}
           >
             <Text
               style={[
                 styles.chipText,
-                selected === label && styles.selectedChipText,
+                selected === item.label && styles.selectedChipText,
               ]}
             >
-              {label}
+              {item.label}
             </Text>
           </TouchableOpacity>
         ))}
@@ -100,6 +104,8 @@ export default function FilterChipList() {
         onBackdropPress={() => setModalVisible(false)}
         onSwipeComplete={() => setModalVisible(false)}
         swipeDirection="down"
+        propagateSwipe
+        useNativeDriver={false}
         style={styles.modal}
       >
         <View style={styles.modalContent}>
@@ -128,39 +134,43 @@ export default function FilterChipList() {
 
           <DraggableFlatList
             data={chips}
-            keyExtractor={(item) => item}
-            onDragEnd={({ data }) => setChips([...data])}
+            keyExtractor={(item) => item.key}
+            onDragEnd={({ data }) => setChips(data)}
+            activationDistance={10}
             ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
             contentContainerStyle={{ paddingTop: 24 }}
-            renderItem={({ item, drag, isActive }) => (
+            renderItem={({ item, drag }) => (
               <ScaleDecorator>
-                <Pressable
-                  onLongPress={isSortMode ? drag : undefined}
-                  onPress={() => !isSortMode && handleSelect(item)}
-                  style={styles.modalItem}
-                >
-                  <Text
-                    style={[
-                      styles.modalItemText,
-                      isSortMode && styles.boldModalItemText,
-                      selected === item &&
-                        !isSortMode &&
-                        styles.selectedModalItemText,
-                    ]}
+                <Animated.View style={styles.modalItem}>
+                  <TouchableOpacity
+                    style={{ flex: 1 }}
+                    disabled={isSortMode}
+                    onPress={() => !isSortMode && handleSelect(item.label)}
                   >
-                    {item}
-                  </Text>
-
+                    <Text
+                      style={[
+                        styles.modalItemText,
+                        isSortMode && styles.boldModalItemText,
+                        selected === item.label &&
+                          !isSortMode &&
+                          styles.selectedModalItemText,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                  </TouchableOpacity>
                   {isSortMode ? (
-                    <IcMoveActive width={16} height={16} />
+                    <TouchableOpacity onPressIn={drag} hitSlop={10}>
+                      <IcMoveActive width={16} height={16} />
+                    </TouchableOpacity>
                   ) : (
                     <Ionicons
                       name="checkmark"
                       size={16}
-                      color={selected === item ? "#0E0F15" : "#D5DADD"}
+                      color={selected === item.label ? "#0E0F15" : "#D5DADD"}
                     />
                   )}
-                </Pressable>
+                </Animated.View>
               </ScaleDecorator>
             )}
           />

@@ -5,6 +5,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Line } from "react-native-svg";
 import { typography } from "../../styles/typography";
+import HomeMain from "../home_main";
 
 export default function HomeScreen() {
   return (
@@ -22,13 +23,13 @@ export default function HomeScreen() {
         <HeaderIcons />
       </View>
 
-      {/* <View
-        style={{ height: 1.5, backgroundColor: "#E4E6E7", width: "100%" }}
-      /> */}
       <HorizontalLine />
-      <View style={{ paddingTop: 8 }}>
+
+      <View style={{ paddingTop: 8, paddingHorizontal: 20, marginBottom: 4 }}>
         <FilterChipList />
       </View>
+
+      <HomeMain />
     </SafeAreaView>
   );
 }
