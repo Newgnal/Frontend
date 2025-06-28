@@ -15,8 +15,63 @@ import {
 import DraggableFlatList, {
   ScaleDecorator,
 } from "react-native-draggable-flatlist";
+import {
+  gestureHandlerRootHOC,
+  GestureHandlerRootView,
+} from "react-native-gesture-handler";
 import Modal from "react-native-modal";
 import Animated from "react-native-reanimated";
+
+const DraggableChipItem = gestureHandlerRootHOC(function DraggableChipItem({
+  item,
+  drag,
+  isActive,
+  selected,
+  isSortMode,
+  handleSelect,
+}: {
+  item: { key: string; label: string };
+  drag: () => void;
+  isActive: boolean;
+  selected: string;
+  isSortMode: boolean;
+  handleSelect: (label: string) => void;
+}) {
+  return (
+    <ScaleDecorator>
+      <Animated.View style={styles.modalItem}>
+        <TouchableOpacity
+          onLongPress={drag}
+          style={{ flex: 1 }}
+          disabled={isActive}
+          onPress={() => !isSortMode && handleSelect(item.label)}
+        >
+          <Text
+            style={[
+              styles.modalItemText,
+              styles.boldModalItemText,
+              selected === item.label && styles.selectedModalItemText,
+            ]}
+          >
+            {item.label}
+          </Text>
+        </TouchableOpacity>
+
+        {isSortMode ? (
+          <TouchableOpacity onPressIn={drag} hitSlop={10}>
+            <IcMoveActive width={16} height={16} />
+          </TouchableOpacity>
+        ) : (
+          <Ionicons
+            name="checkmark"
+            size={16}
+            color={selected === item.label ? "#0E0F15" : "#D5DADD"}
+          />
+        )}
+      </Animated.View>
+    </ScaleDecorator>
+  );
+});
 
 const initialChipOptions = [
   { key: "semiconductor", label: "반도체/AI" },
@@ -108,73 +163,51 @@ export default function FilterChipList() {
         useNativeDriver={false}
         style={styles.modal}
       >
-        <View style={styles.modalContent}>
-          <View style={styles.modalHeaderRow}>
-            <View style={styles.modalTextGroup}>
-              <Text style={styles.modalTitle}>
-                {isSortMode ? "순서 변경" : "메뉴"}
-              </Text>
-              <Text style={styles.modalSubtitle}>
-                {isSortMode
-                  ? "길게 눌러 드래그로 순서를 바꿔보세요"
-                  : "보고 싶은 카테고리를 선택해 주세요"}
-              </Text>
+        <GestureHandlerRootView style={styles.modalContent}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeaderRow}>
+              <View style={styles.modalTextGroup}>
+                <Text style={styles.modalTitle}>
+                  {isSortMode ? "순서 변경" : "메뉴"}
+                </Text>
+                <Text style={styles.modalSubtitle}>
+                  {isSortMode
+                    ? "길게 눌러 드래그로 순서를 바꿔보세요"
+                    : "보고 싶은 카테고리를 선택해 주세요"}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setSortMode((prev) => !prev)}
+                style={styles.iconButton}
+              >
+                {isSortMode ? (
+                  <IcThemeModal width={32} height={32} />
+                ) : (
+                  <IcThemeModalActive width={32} height={32} />
+                )}
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity
-              onPress={() => setSortMode((prev) => !prev)}
-              style={styles.iconButton}
-            >
-              {isSortMode ? (
-                <IcThemeModal width={32} height={32} />
-              ) : (
-                <IcThemeModalActive width={32} height={32} />
-              )}
-            </TouchableOpacity>
-          </View>
 
-          <DraggableFlatList
-            data={chips}
-            keyExtractor={(item) => item.key}
-            onDragEnd={({ data }) => setChips(data)}
-            activationDistance={10}
-            ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
-            contentContainerStyle={{ paddingTop: 24 }}
-            renderItem={({ item, drag }) => (
-              <ScaleDecorator>
-                <Animated.View style={styles.modalItem}>
-                  <TouchableOpacity
-                    style={{ flex: 1 }}
-                    disabled={isSortMode}
-                    onPress={() => !isSortMode && handleSelect(item.label)}
-                  >
-                    <Text
-                      style={[
-                        styles.modalItemText,
-                        isSortMode && styles.boldModalItemText,
-                        selected === item.label &&
-                          !isSortMode &&
-                          styles.selectedModalItemText,
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                  {isSortMode ? (
-                    <TouchableOpacity onPressIn={drag} hitSlop={10}>
-                      <IcMoveActive width={16} height={16} />
-                    </TouchableOpacity>
-                  ) : (
-                    <Ionicons
-                      name="checkmark"
-                      size={16}
-                      color={selected === item.label ? "#0E0F15" : "#D5DADD"}
-                    />
-                  )}
-                </Animated.View>
-              </ScaleDecorator>
-            )}
-          />
-        </View>
+            <DraggableFlatList
+              data={chips}
+              keyExtractor={(item) => item.key}
+              onDragEnd={({ data }) => setChips(data)}
+              activationDistance={0}
+              ItemSeparatorComponent={() => <View style={{ height: 20 }} />}
+              contentContainerStyle={{ paddingTop: 24 }}
+              renderItem={({ item, drag, isActive }) => (
+                <DraggableChipItem
+                  item={item}
+                  drag={drag}
+                  isActive={isActive}
+                  selected={selected}
+                  isSortMode={isSortMode}
+                  handleSelect={handleSelect}
+                />
+              )}
+            />
+          </View>
+        </GestureHandlerRootView>
       </Modal>
     </View>
   );

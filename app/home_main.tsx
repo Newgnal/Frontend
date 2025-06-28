@@ -94,8 +94,8 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   newsImage: {
-    flex: 1,
     height: 90,
+    width: 170,
     backgroundColor: "#dcdcdc",
     borderRadius: 4,
     marginBottom: 8,
