@@ -41,10 +41,7 @@ const DraggableChipItem = gestureHandlerRootHOC(function DraggableChipItem({
     <ScaleDecorator>
       <Animated.View style={styles.modalItem}>
         <TouchableOpacity
-          onLongPress={() => {
-            console.log("drag triggered");
-            drag();
-          }}
+          onLongPress={drag}
           style={{ flex: 1 }}
           disabled={isActive}
           onPress={() => !isSortMode && handleSelect(item.label)}
