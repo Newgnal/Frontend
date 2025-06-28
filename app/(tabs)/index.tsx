@@ -12,6 +12,7 @@ import HomeMain from "../home/home_theme";
 
 export default function HomeScreen() {
   const [selectedTab, setSelectedTab] = useState<"theme" | "all">("theme");
+  const [order, setOrder] = useState<"latest" | "views">("latest");
 
   return (
     <SafeAreaView style={{ backgroundColor: "#FFFFFF", paddingVertical: 20 }}>
@@ -52,10 +53,17 @@ export default function HomeScreen() {
       {selectedTab === "all" && (
         <View style={styles.infoRow}>
           <Text style={styles.timestamp}>18:49 기준</Text>
-          <View style={styles.orderRow}>
-            <Text style={styles.orderText}>최신순</Text>
+          <TouchableOpacity
+            style={styles.orderRow}
+            onPress={() =>
+              setOrder((prev) => (prev === "latest" ? "views" : "latest"))
+            }
+          >
+            <Text style={styles.orderText}>
+              {order === "latest" ? "최신순" : "조회순"}
+            </Text>
             <IcOrderChange width={24} height={24} style={styles.orderIcon} />
-          </View>
+          </TouchableOpacity>
         </View>
       )}
 
@@ -65,7 +73,7 @@ export default function HomeScreen() {
         </View>
       )}
 
-      {selectedTab === "theme" ? <HomeMain /> : <HomeAll />}
+      {selectedTab === "theme" ? <HomeMain /> : <HomeAll order={order} />}
     </SafeAreaView>
   );
 }
