@@ -34,32 +34,7 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "extraMavenRepos": [
-              "https://devrepo.kakao.com/nexus/content/groups/public/"
-            ],
-            "newArchEnabled": true
-          },
-          "ios": {
-            "newArchEnabled": true
-          }
-        }
-      ],
-      [
-        "@react-native-kakao/core",
-        {
-          "nativeAppKey": "874e11dff95cc5879de696573bab2afe",
-          "android": {
-            "authCodeHandlerActivity": true
-          },
-          "ios": {
-            "handleKakaoOpenUrl": true
-          }
-        }
-      ]
+      "expo-build-properties"
     ],
     "experiments": {
       "typedRoutes": true
