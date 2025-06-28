@@ -1,4 +1,5 @@
 import CategoryInfoBox from "@/components/CategoryInfoBox";
+import { useRouter } from "expo-router";
 import {
   FlatList,
   StyleSheet,
@@ -21,6 +22,7 @@ const dummyNews = [
 ];
 
 export default function HomeMain() {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <View style={{ marginTop: 4 }}>
@@ -30,7 +32,9 @@ export default function HomeMain() {
       <View style={styles.sectionContainer}>
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>주요 뉴스</Text>
-          <TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => router.push("/category/semiconductor")}
+          >
             <Text style={styles.moreText}>더 보기 &gt;</Text>
           </TouchableOpacity>
         </View>
