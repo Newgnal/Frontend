@@ -115,7 +115,7 @@ export default function FilterChipList() {
     setModalVisible(false);
     const matched = chips.find((item) => item.label === label);
     if (matched?.key && routeMap[matched.key]) {
-      router.push(routeMap[matched.key]);
+      router.push(routeMap[matched.key] as any);
     }
   };
 

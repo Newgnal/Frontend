@@ -34,6 +34,7 @@ const styles = StyleSheet.create({
     lineHeight: 30,
   },
   changeBox: {
+    marginLeft: 8,
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 8,

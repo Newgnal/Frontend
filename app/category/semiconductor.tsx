@@ -86,6 +86,7 @@ export default function SemiconductorScreen() {
           <IcOrderChange width={24} height={24} />
         </TouchableOpacity>
       ),
+      headerTitleAlign: "center",
       headerStyle: {
         height: 80,
       },
@@ -151,7 +152,10 @@ export default function SemiconductorScreen() {
   };
 
   return (
-    <SafeAreaView style={{ backgroundColor: "#fff", flex: 1 }}>
+    <SafeAreaView
+      style={{ backgroundColor: "#fff", flex: 1 }}
+      edges={["left", "right", "bottom"]}
+    >
       <FlatList
         data={sortedNews}
         keyExtractor={(item) => item.id}
@@ -168,40 +172,54 @@ export default function SemiconductorScreen() {
 
 const styles = StyleSheet.create({
   centerContainer: {
+    flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
   },
   topTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     color: "#000",
+    textAlign: "center",
   },
   timeText: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#888",
     marginTop: 2,
   },
   sortButton: {
     flexDirection: "row",
     alignItems: "center",
-    marginRight: 16,
-    gap: 4,
+    marginRight: 4,
+    marginBottom: 13,
+    marginTop: 16,
+    gap: 0,
   },
   sortText: {
-    fontSize: 14,
+    fontSize: 12,
     color: "#484F56",
+    marginRight: 2,
   },
   card: {
-    minHeight: 136,
+    minHeight: 120,
+    minWidth: "100%",
     justifyContent: "space-between",
-    marginBottom: 16,
+    paddingTop: 16,
+
+    paddingBottom: 0,
+    flexDirection: "column",
+    alignItems: "flex-start",
+    gap: 8,
+    alignSelf: "stretch",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 8,
   },
   header: {
     flexDirection: "row",
     alignItems: "center",
     flexWrap: "wrap",
     gap: 8,
-    marginBottom: 4,
+    marginBottom: 8,
   },
   category: {
     fontSize: 12,
@@ -228,7 +246,7 @@ const styles = StyleSheet.create({
   textContent: {
     flex: 1,
     flexDirection: "column",
-    gap: 8,
+    gap: 4,
   },
   title: {
     ...typography.body_b1_16_medium,
@@ -240,7 +258,7 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 13,
   },
   iconWithText: {
     flexDirection: "row",
@@ -252,8 +270,8 @@ const styles = StyleSheet.create({
     color: "#777",
   },
   imagePlaceholder: {
-    width: 60,
-    height: 60,
+    width: 76,
+    height: 76,
     backgroundColor: "#dcdcdc",
     borderRadius: 4,
   },
