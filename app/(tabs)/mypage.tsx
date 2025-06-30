@@ -31,7 +31,7 @@ export default function MyPageScreen() {
             알림잇슈지킴이
           </Text>
           <Pressable
-            onPress={() => router.push("/mypage/edit")}
+            onPress={() => router.push("/mp/edit")}
             style={({ pressed }) => [
               {
                 backgroundColor: pressed ? "#E0E1E2" : "#F4F5F7", // 눌렀을 때 더 진한 색

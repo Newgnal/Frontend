@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
 
-export default function MyPageLayout() {
+export default function MPLayout() {
   return <Stack screenOptions={{ headerShown: false }} />;
 }
