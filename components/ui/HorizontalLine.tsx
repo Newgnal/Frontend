@@ -1,4 +1,3 @@
-import React from "react";
 import { DimensionValue, StyleSheet, View, ViewStyle } from "react-native";
 
 type HorizontalLineProps = {
@@ -9,7 +8,7 @@ type HorizontalLineProps = {
 };
 
 export function HorizontalLine({
-  color = "#E4E6E7",
+  color = "#EDEEEF",
   height = 1.5,
   width = "100%",
   style,
