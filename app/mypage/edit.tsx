@@ -1,7 +1,9 @@
+import KakaoIcon from "@/assets/images/ic_kakao.svg";
 import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
 import PlusIcon from "@/assets/images/icn_plus.svg";
 import ProfileIcon from "@/assets/images/icn_profile.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
+import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
@@ -14,15 +16,16 @@ export default function ProfileEditScreen() {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()}>
-            <NextLgIcon />
-          </Pressable>
-          <Text style={[typography.title_t2_18_semi_bold]}>내 정보</Text>
-          <View style={{ width: 30 }} />
-        </View>
+        <Header
+          title="내 정보"
+          leftSlot={
+            <Pressable onPress={() => router.back()}>
+              <NextLgIcon />
+            </Pressable>
+          }
+        />
 
-        <HorizontalLine width="100%" style={{ marginBottom: 32 }} />
+        {/* <HorizontalLine width="100%" style={{ marginBottom: 32 }} /> */}
 
         <View style={styles.contents}>
           {/* 프로필 아이콘 감싸는 상대 위치 컨테이너 */}
@@ -48,14 +51,17 @@ export default function ProfileEditScreen() {
             >
               닉네임
             </Text>
-            <View style={styles.rowRight}>
+            <Pressable
+              style={styles.rowRight}
+              onPress={() => router.push("/mp/nickname")}
+            >
               <Text
                 style={[typography.body_b3_14_regular, { color: "#5E6974" }]}
               >
                 알림잇슈지킴이
               </Text>
               <NextSmIcon />
-            </View>
+            </Pressable>
           </View>
           <HorizontalLine />
         </View>
@@ -109,7 +115,12 @@ export default function ProfileEditScreen() {
             >
               로그인 방식
             </Text>
-            <Text style={typography.body_b2_15_medium}>카카오</Text>
+            <View style={{ flexDirection: "row" }}>
+              <View style={{ paddingRight: 5 }}>
+                <KakaoIcon />
+              </View>
+              <Text style={typography.body_b2_15_medium}>카카오</Text>
+            </View>
           </View>
           <HorizontalLine />
         </View>
@@ -174,17 +185,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 15,
-  },
+  // header: {
+  //   flexDirection: "row",
+  //   justifyContent: "space-between",
+  //   width: "100%",
+  //   alignItems: "center",
+  //   paddingHorizontal: 12,
+  //   paddingVertical: 15,
+  // },
   contents: {
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 32,
     // alignSelf: "center",
   },
   rowRight: {
@@ -205,3 +217,8 @@ const styles = StyleSheet.create({
     right: 0,
   },
 });
+
+export const options = {
+  headerShown: false,
+  tabBarStyle: { display: "none" },
+};
