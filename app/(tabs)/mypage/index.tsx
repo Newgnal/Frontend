@@ -1,7 +1,7 @@
 import ProfileIcon from "@/assets/images/icn_profile.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import SettingIcon from "@/assets/images/setting.svg";
-import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import { Header } from "@/components/ui/Header";
 import { MyPageRow } from "@/components/ui/mypage/MyPageRow";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
@@ -13,15 +13,19 @@ export default function MyPageScreen() {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
-          <Pressable onPress={() => router.back()}>
-            <NextLgIcon />
-          </Pressable>
-          <Text style={[typography.title_t2_18_semi_bold]}>마이페이지</Text>
-          <SettingIcon />
-        </View>
-
-        <HorizontalLine width="100%" style={{ marginBottom: 32 }} />
+        <Header
+          title="마이페이지"
+          leftSlot={
+            <Pressable onPress={() => router.back()}>
+              <NextLgIcon />
+            </Pressable>
+          }
+          rightSlot={
+            <>
+              <SettingIcon />
+            </>
+          }
+        />
 
         <View style={styles.contents}>
           <ProfileIcon />
@@ -31,7 +35,7 @@ export default function MyPageScreen() {
             알림잇슈지킴이
           </Text>
           <Pressable
-            onPress={() => router.push("/mypage/edit")}
+            onPress={() => router.push("/mp/edit")}
             style={({ pressed }) => [
               {
                 backgroundColor: pressed ? "#E0E1E2" : "#F4F5F7", // 눌렀을 때 더 진한 색
@@ -60,17 +64,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "white",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 15,
-  },
+
   contents: {
     justifyContent: "center",
     alignItems: "center",
+    marginTop: 32,
     // alignSelf: "center",
   },
 });

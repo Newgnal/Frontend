@@ -31,6 +31,7 @@ export default function RootLayout() {
               title: "",
             }}
           />
+          <Stack.Screen name="mp" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
