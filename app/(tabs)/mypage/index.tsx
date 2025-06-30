@@ -49,10 +49,22 @@ export default function MyPageScreen() {
               프로필 수정
             </Text>
           </Pressable>
-          <MyPageRow label="알림 설정" />
-          <MyPageRow label="공지사항" />
-          <MyPageRow label="자주 묻는 질문" />
-          <MyPageRow label="1:1문의" />
+          <MyPageRow
+            label="알림 설정"
+            onPress={() => router.push("/mp/alarm")}
+          />
+          <MyPageRow
+            label="공지사항"
+            onPress={() => router.push("/mp/notice")}
+          />
+          <MyPageRow
+            label="자주 묻는 질문"
+            onPress={() => router.push("/mp/question")}
+          />
+          <MyPageRow
+            label="1:1문의"
+            onPress={() => router.push("/mp/contact")}
+          />
         </View>
       </SafeAreaView>
     </>
