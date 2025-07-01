@@ -1,6 +1,8 @@
 import VerDotIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import { Header } from "@/components/ui/Header";
+import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -9,7 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function QuestionScreen() {
   const router = useRouter();
 
-  const [openedIndex, setOpenedIndex] = useState<number | null>(null);
+  const [openedStates, setOpenedStates] = useState<boolean[]>([]);
 
   const questions = [
     {
@@ -29,8 +31,17 @@ export default function QuestionScreen() {
     },
   ];
 
+  // 초기 상태를 질문 수만큼 false로 초기화
+  useState(() => {
+    setOpenedStates(new Array(questions.length).fill(false));
+  });
+
   const toggleQuestion = (index: number) => {
-    setOpenedIndex((prev) => (prev === index ? null : index));
+    setOpenedStates((prev) => {
+      const updated = [...prev];
+      updated[index] = !updated[index]; // 해당 index만 토글
+      return updated;
+    });
   };
 
   return (
@@ -45,14 +56,35 @@ export default function QuestionScreen() {
         rightSlot={<VerDotIcon />}
       />
 
-      <View style={styles.content}>
+      <View>
         {questions.map((q, index) => (
-          <View key={index} style={styles.questionBox}>
+          <View key={index}>
             <Pressable onPress={() => toggleQuestion(index)}>
-              <Text style={styles.question}>Q. {q.title}</Text>
+              <View style={[styles.content, { flexDirection: "row", gap: 8 }]}>
+                <Text style={[typography.subtitle_s3_15_semi_bold]}>Q.</Text>
+                <Text style={[typography.subtitle_s3_15_semi_bold]}>
+                  {q.title}
+                </Text>
+              </View>
             </Pressable>
-            {openedIndex === index && (
-              <Text style={styles.answer}>{q.content}</Text>
+            <HorizontalLine
+              style={{ marginHorizontal: 20, backgroundColor: "#DEDEDE" }}
+            />
+            {openedStates[index] && (
+              <>
+                <Text
+                  style={[
+                    styles.content,
+                    typography.body_b3_14_regular,
+                    { color: "#717D89" },
+                  ]}
+                >
+                  {q.content}
+                </Text>
+                <HorizontalLine
+                  style={{ marginHorizontal: 20, backgroundColor: "#DEDEDE" }}
+                />
+              </>
             )}
           </View>
         ))}
