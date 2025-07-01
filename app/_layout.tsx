@@ -10,6 +10,7 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
+import SearchBar from "@/components/ui/HeaderIcon/searchBar";
 import "react-native-reanimated";
 
 export default function RootLayout() {
@@ -31,6 +32,17 @@ export default function RootLayout() {
               title: "",
             }}
           />
+          <Stack.Screen
+            name="header/search"
+            options={{ headerTitle: () => <SearchBar />, headerShown: true }}
+          />
+          <Stack.Screen
+            name="header/alarm"
+            options={{
+              headerShown: false,
+            }}
+          />
+
           <Stack.Screen name="mp" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>

@@ -1,13 +1,9 @@
-import IcSearch from "@/assets/images/ic_search.svg";
 import { useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 const initialKeywords = [
   "반도체",
@@ -20,6 +16,7 @@ const initialKeywords = [
 ];
 
 export default function SearchScreen() {
+  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState("");
   const [keywords, setKeywords] = useState(initialKeywords);
 
@@ -28,30 +25,26 @@ export default function SearchScreen() {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.searchBar}>
-        <IcSearch width={18} height={18} />
-        <TextInput
-          style={styles.input}
-          placeholder="어떤 테마가 궁금하신가요?"
-          value={query}
-          onChangeText={setQuery}
-          placeholderTextColor="#aaa"
-        />
-      </View>
-
-      <Text style={styles.recentTitle}>최근 검색어</Text>
-      <View style={styles.tagContainer}>
-        {keywords.map((word) => (
-          <View key={word} style={styles.tag}>
-            <Text style={styles.tagText}>{word}</Text>
-            <Pressable onPress={() => removeKeyword(word)}>
-              <Text style={styles.tagX}>×</Text>
-            </Pressable>
-          </View>
-        ))}
-      </View>
-    </ScrollView>
+    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <ScrollView
+        contentContainerStyle={[
+          styles.container,
+          { paddingTop: insets.top + 16 },
+        ]}
+      >
+        <Text style={styles.recentTitle}>최근 검색어</Text>
+        <View style={styles.tagContainer}>
+          {keywords.map((word) => (
+            <View key={word} style={styles.tag}>
+              <Text style={styles.tagText}>{word}</Text>
+              <Pressable onPress={() => removeKeyword(word)}>
+                <Text style={styles.tagX}>×</Text>
+              </Pressable>
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
@@ -59,7 +52,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-    paddingTop: 60,
+
     paddingHorizontal: 20,
   },
   searchBar: {
