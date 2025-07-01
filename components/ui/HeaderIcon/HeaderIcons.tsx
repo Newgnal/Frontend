@@ -1,19 +1,20 @@
 import AlarmIcon from "@/assets/images/ic_alarm.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
-import React from "react";
+import { useRouter } from "expo-router";
 import { StyleSheet, TouchableOpacity, View } from "react-native";
 
 export default function HeaderIcons() {
+  const router = useRouter();
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        onPress={() => console.log("검색 tapped")}
+        onPress={() => router.push("/search")}
         style={styles.searchButton}
       >
         <SearchIcon width={24} height={24} />
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => console.log("알림 tapped")}
+        onPress={() => router.push("/alarm")}
         style={styles.alarmButton}
       >
         <AlarmIcon width={24} height={24} />

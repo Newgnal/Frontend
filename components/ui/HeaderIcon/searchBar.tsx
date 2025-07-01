@@ -6,10 +6,7 @@ export default function SearchBar() {
   const router = useRouter();
 
   return (
-    <Pressable
-      style={styles.searchBar}
-      onPress={() => router.push("/(tabs)/search")}
-    >
+    <Pressable style={styles.searchBar} onPress={() => router.push("/search")}>
       <IcSearch width={18} height={18} />
       <Text style={styles.placeholder}>어떤 테마가 궁금하신가요?</Text>
     </Pressable>
