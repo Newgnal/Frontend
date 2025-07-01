@@ -21,10 +21,27 @@ export default function NoticeScreen() {
           }
           rightSlot={<VerDotIcon />}
         />
+        <Notice
+          title="개인정보 처리 방침 개정 안내"
+          date="2025.05.28"
+          onPress={() => router.push("/mp/noticeDetail")}
+        />
+        <Notice
+          title="개인정보 처리 방침 개정 안내"
+          date="2025.05.28"
+          onPress={() => router.push("/mp/noticeDetail")}
+        />
+        <Notice
+          title="개인정보 처리 방침 개정 안내"
+          date="2025.05.28"
+          onPress={() => router.push("/mp/noticeDetail")}
+        />
+        <Notice
+          title="개인정보 처리 방침 개정 안내"
+          date="2025.05.28"
+          onPress={() => router.push("/mp/noticeDetail")}
+        />
       </SafeAreaView>
-      <Notice title="개인정보 처리 방침 개정 안내" date="2025.05.28" />
-      <Notice title="개인정보 처리 방침 개정 안내" date="2025.05.28" />
-      <Notice title="개인정보 처리 방침 개정 안내" date="2025.05.28" />
     </>
   );
 }

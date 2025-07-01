@@ -1,23 +1,28 @@
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 
 interface NoticeProps {
   title: string;
   date: string;
+  onPress: () => void;
 }
 
-export const Notice = ({ title, date }: NoticeProps) => {
+export const Notice = ({ title, date, onPress }: NoticeProps) => {
   return (
-    <View style={styles.content}>
-      <Text style={[typography.subtitle_s3_15_semi_bold, { paddingBottom: 4 }]}>
-        {title}
-      </Text>
-      <Text style={[typography.caption_c2_12_regular, { paddingBottom: 4 }]}>
-        {date}
-      </Text>
-      <HorizontalLine />
-    </View>
+    <>
+      <Pressable style={styles.content} onPress={onPress}>
+        <Text
+          style={[typography.subtitle_s3_15_semi_bold, { paddingBottom: 4 }]}
+        >
+          {title}
+        </Text>
+        <Text style={[typography.caption_c2_12_regular, { paddingBottom: 4 }]}>
+          {date}
+        </Text>
+      </Pressable>
+      <HorizontalLine style={{ marginHorizontal: 20 }} />
+    </>
   );
 };
 
