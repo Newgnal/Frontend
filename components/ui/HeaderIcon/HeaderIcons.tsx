@@ -8,13 +8,13 @@ export default function HeaderIcons() {
   return (
     <View style={styles.wrapper}>
       <TouchableOpacity
-        onPress={() => router.push("/search")}
+        onPress={() => router.push("/header/search")}
         style={styles.searchButton}
       >
         <SearchIcon width={24} height={24} />
       </TouchableOpacity>
       <TouchableOpacity
-        onPress={() => router.push("/alarm")}
+        onPress={() => router.push("/header/alarm")}
         style={styles.alarmButton}
       >
         <AlarmIcon width={24} height={24} />
