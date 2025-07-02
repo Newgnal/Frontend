@@ -14,24 +14,24 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AlarmScreen() {
   const router = useRouter();
-  const [newsTime, setNewsTime] = useState(() => {
-    const date = new Date();
-    date.setHours(8);
-    date.setMinutes(0);
-    return date;
-  });
+  // const [newsTime, setNewsTime] = useState(() => {
+  //   const date = new Date();
+  //   date.setHours(8);
+  //   date.setMinutes(0);
+  //   return date;
+  // });
 
   const [dndStart, setDndStart] = useState(() => {
     const date = new Date();
-    date.setHours(22);
+    date.setHours(9);
     date.setMinutes(0);
     return date;
   });
 
   const [dndEnd, setDndEnd] = useState(() => {
     const date = new Date();
-    date.setHours(7);
-    date.setMinutes(0);
+    date.setHours(21);
+    date.setMinutes(20);
     return date;
   });
 
@@ -74,10 +74,10 @@ export default function AlarmScreen() {
                 <ToggleSwitch />
               </View>
             </View>
-            <View style={styles.option}>
+            {/* <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>뉴스 알림 시간</Text>
               <TimePickerBox value={newsTime} onChange={setNewsTime} />
-            </View>
+            </View> */}
             <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>방해 금지 시간</Text>
               <View
