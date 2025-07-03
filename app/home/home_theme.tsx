@@ -26,30 +26,17 @@ const dummyNews = [
   },
 ];
 
-const sentimentData = [0.6, 0.8, 0.3, 0.5, 0.9, 0.7, 0.6, 0.2, 0.4, 0.5];
-const sentimentLabels = [
-  "05.01",
-  "05.02",
-  "05.03",
-  "05.04",
-  "05.05",
-  "05.06",
-  "05.07",
-  "05.08",
-  "05.09",
-  "05.10",
+const sentimentData = [
+  0.2, 0.5, 0.6, 0.3, 0.4, 0.7, 0.9, 0.6, 0.5, 0.4, 0.6, 0.7, 0.8, 0.5, 0.7,
+  0.6, 0.8, 0.9, 0.7, 0.6, 0.5, 0.6, 0.7, 0.8, 0.6, 0.7, 0.5, 0.6, 0.7, 0.6,
 ];
-const newsVolumeData = [20, 50, 33, 27, 44, 38, 61, 48];
-const newsVolumeLabels = [
-  "05.01",
-  "05.02",
-  "05.03",
-  "05.04",
-  "05.05",
-  "05.06",
-  "05.07",
-  "05.08",
+const sentimentLabels = ["05.01", "05.08", "05.15", "05.22", "05.31"];
+
+const newsVolumeData = [
+  20, 30, 28, 25, 22, 40, 35, 31, 30, 26, 28, 23, 32, 38, 34, 37, 33, 28, 25,
+  29, 27, 31, 34, 36, 30, 29, 32, 33, 35, 37,
 ];
+const newsVolumeLabels = sentimentLabels;
 
 export default function HomeMain() {
   const router = useRouter();
@@ -94,53 +81,74 @@ export default function HomeMain() {
           <IcVector width={14} height={14} style={{ marginLeft: 4 }} />
         </View>
 
-        <LineChart
-          data={{
-            labels: sentimentLabels,
-            datasets: [{ data: sentimentData }],
-          }}
-          width={screenWidth - 40}
-          height={180}
-          yAxisSuffix=""
-          yAxisInterval={1}
-          chartConfig={{
-            backgroundColor: "#f5f5f5",
-            backgroundGradientFrom: "#f5f5f5",
-            backgroundGradientTo: "#f5f5f5",
-            decimalPlaces: 1,
-            color: (opacity = 1) => `rgba(0, 122, 255, ${opacity})`,
-            labelColor: () => "#666",
-            propsForDots: {
-              r: "4",
-              strokeWidth: "2",
-              stroke: "#007AFF",
-            },
-          }}
-          bezier
-          style={styles.chartStyle}
-        />
+        <View style={styles.chartBox}>
+          <LineChart
+            data={{
+              labels: sentimentLabels,
+              datasets: [{ data: sentimentData }],
+              legend: [],
+            }}
+            width={screenWidth - 40}
+            height={180}
+            withDots={false}
+            withShadow={false}
+            withInnerLines={false}
+            withOuterLines={false}
+            withVerticalLines={true}
+            withHorizontalLines={false}
+            withHorizontalLabels={true}
+            yLabelsOffset={10}
+            chartConfig={{
+              backgroundColor: "#ffffff",
+              backgroundGradientFrom: "#ffffff",
+              backgroundGradientTo: "#ffffff",
+              decimalPlaces: 1,
+              color: () => "#F99426",
+              labelColor: () => "#666",
+              propsForDots: { r: "0" },
+            }}
+            formatYLabel={(value) => {
+              if (value === "1") return "+1";
+              if (value === "0") return "0";
+              if (value === "-1") return "-1";
+              return "";
+            }}
+            segments={2}
+            style={styles.chartStyle}
+          />
 
-        <Text style={[styles.sectionTitle, { marginTop: 12 }]}>뉴스 수</Text>
+          <View style={styles.labelBox}>
+            {sentimentLabels.map((label, idx) => (
+              <Text key={idx} style={styles.labelText}>
+                {label}
+              </Text>
+            ))}
+          </View>
 
-        <BarChart
-          data={{
-            labels: newsVolumeLabels,
-            datasets: [{ data: newsVolumeData }],
-          }}
-          width={screenWidth - 40}
-          height={100}
-          chartConfig={{
-            backgroundColor: "#f5f5f5",
-            backgroundGradientFrom: "#f5f5f5",
-            backgroundGradientTo: "#f5f5f5",
-            decimalPlaces: 0,
-            color: () => `rgba(0, 122, 255, 1)`,
-            labelColor: () => "#666",
-          }}
-          style={styles.chartStyle}
-          yAxisLabel={""}
-          yAxisSuffix={""}
-        />
+          <BarChart
+            data={{
+              labels: newsVolumeLabels,
+              datasets: [{ data: newsVolumeData }],
+            }}
+            width={screenWidth - 40}
+            height={100}
+            fromZero
+            withInnerLines={false}
+            withHorizontalLabels={false}
+            showValuesOnTopOfBars={false}
+            chartConfig={{
+              backgroundColor: "#ffffff",
+              backgroundGradientFrom: "#ffffff",
+              backgroundGradientTo: "#ffffff",
+              decimalPlaces: 0,
+              barPercentage: 0.4,
+              color: () => "#F99426",
+            }}
+            style={styles.chartStyle}
+            yAxisLabel=""
+            yAxisSuffix=""
+          />
+        </View>
       </View>
     </View>
   );
@@ -199,8 +207,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 5.33,
   },
-  chartStyle: {
+  chartBox: {
     marginTop: 8,
+    backgroundColor: "#F7F7F7", // 전체 틀 배경
     borderRadius: 8,
+    paddingVertical: 8,
+  },
+  chartStyle: {
+    marginVertical: 4,
+    borderRadius: 8,
+  },
+  labelBox: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 10,
+    backgroundColor: "#EAEAEA",
+    paddingVertical: 4,
+    borderRadius: 4,
+    marginTop: -8,
+  },
+  labelText: {
+    fontSize: 12,
+    color: "#333",
   },
 });
