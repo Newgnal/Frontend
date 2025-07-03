@@ -26,12 +26,7 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <ScrollView
-        contentContainerStyle={[
-          styles.container,
-          { paddingTop: insets.top + 16 },
-        ]}
-      >
+      <ScrollView contentContainerStyle={[styles.container]}>
         <Text style={styles.recentTitle}>최근 검색어</Text>
         <View style={styles.tagContainer}>
           {keywords.map((word) => (
@@ -52,7 +47,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
-
+    marginTop: 18,
     paddingHorizontal: 20,
   },
   searchBar: {
@@ -73,10 +68,10 @@ const styles = StyleSheet.create({
     color: "#000",
   },
   recentTitle: {
-    fontSize: 14,
+    fontSize: 18,
     fontWeight: "bold",
     color: "#111",
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tagContainer: {
     flexDirection: "row",
@@ -94,8 +89,8 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   tagText: {
-    fontSize: 13,
-    color: "#333",
+    fontSize: 14,
+    color: "#484F56",
     marginRight: 4,
   },
   tagX: {
