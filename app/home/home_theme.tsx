@@ -65,7 +65,6 @@ export default function HomeMain() {
             <Text style={styles.moreText}>더 보기 &gt;</Text>
           </TouchableOpacity>
         </View>
-
         <FlatList
           horizontal
           data={dummyNews}
@@ -73,13 +72,22 @@ export default function HomeMain() {
           ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
           showsHorizontalScrollIndicator={false}
           renderItem={({ item }) => (
-            <View style={styles.newsCard}>
-              <View style={styles.newsImage} />
-              <Text numberOfLines={2} style={styles.newsTitle}>
-                {item.title}
-              </Text>
-              <Text style={styles.newsMeta}>{item.date}</Text>
-            </View>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/news/[id]",
+                  params: { id: item.id },
+                })
+              }
+            >
+              <View style={styles.newsCard}>
+                <View style={styles.newsImage} />
+                <Text numberOfLines={2} style={styles.newsTitle}>
+                  {item.title}
+                </Text>
+                <Text style={styles.newsMeta}>{item.date}</Text>
+              </View>
+            </TouchableOpacity>
           )}
         />
       </View>

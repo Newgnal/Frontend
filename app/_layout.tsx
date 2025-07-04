@@ -42,7 +42,7 @@ export default function RootLayout() {
               headerShown: false,
             }}
           />
-
+          <Stack.Screen name="news/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="mp" options={{ headerShown: false }} />
           <Stack.Screen name="+not-found" />
         </Stack>
