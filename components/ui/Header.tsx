@@ -12,13 +12,15 @@ export const Header = ({ title, leftSlot, rightSlot }: HeaderProps) => {
   return (
     <>
       <View style={styles.header}>
-        <View style={styles.leftContainer}>
+        <View style={styles.sideContainer}>
           {leftSlot ?? <View style={{ width: 30 }} />}
         </View>
 
-        <Text style={[typography.title_t2_18_semi_bold]}>{title}</Text>
+        <View style={styles.titleContainer}>
+          <Text style={[typography.title_t2_18_semi_bold]}>{title}</Text>
+        </View>
 
-        <View style={styles.rightContainer}>
+        <View style={styles.sideContainer}>
           {rightSlot ?? <View style={{ width: 30 }} />}
         </View>
       </View>
@@ -32,18 +34,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 12,
+    paddingHorizontal: 20,
     paddingVertical: 15,
     width: "100%",
   },
-  leftContainer: {
+  sideContainer: {
+    width: 60, // 아이콘 2개 들어가도 충분한 고정값
     flexDirection: "row",
     alignItems: "center",
-    gap: 8,
+    justifyContent: "flex-start",
+    gap: 12,
   },
-  rightContainer: {
-    flexDirection: "row",
+  titleContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
     alignItems: "center",
-    gap: 8,
   },
 });
