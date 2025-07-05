@@ -1,11 +1,12 @@
 import PlusIcon from "@/assets/images/ic_add.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
 import FireIcon from "@/assets/images/mingcute_fire-fill.svg";
+import HotTopicList from "@/components/ui/community/HotTopicList";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
 // import { useRouter } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function MyPageScreen() {
@@ -57,6 +58,7 @@ export default function MyPageScreen() {
               </View>
             </View>
             <View style={{ paddingTop: 20 }}>
+              <HotTopicList />
               <Text
                 style={[
                   typography.subtitle_s2_16_semi_bold,
@@ -65,15 +67,17 @@ export default function MyPageScreen() {
               >
                 지금 뜨는 이야기
               </Text>
-              <View>
-                <Text>1</Text>
-              </View>
-              <View>
-                <Text>2</Text>
-              </View>
-              <View>
-                <Text>3</Text>
-              </View>
+              <ScrollView horizontal={true}>
+                <View>
+                  <Text>11111111111</Text>
+                </View>
+                <View>
+                  <Text>2</Text>
+                </View>
+                <View>
+                  <Text>3</Text>
+                </View>
+              </ScrollView>
             </View>
           </View>
         </View>
