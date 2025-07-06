@@ -1,16 +1,19 @@
 import PlusIcon from "@/assets/images/ic_add.svg";
+import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
 import FireIcon from "@/assets/images/mingcute_fire-fill.svg";
 import HotTopicList from "@/components/ui/community/HotTopicList";
+import TopicList from "@/components/ui/community/TopicList";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
-// import { useRouter } from "expo-router";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function MyPageScreen() {
-  // const router = useRouter();
+export default function CommunityScreen() {
+  const router = useRouter();
+
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -25,8 +28,8 @@ export default function MyPageScreen() {
           }
         />
 
-        <View style={styles.contents}>
-          <View>
+        <ScrollView contentContainerStyle={{ justifyContent: "center" }}>
+          <View style={{ padding: 20 }}>
             <View style={{ flexDirection: "row", paddingBottom: 8 }}>
               <FireIcon />
               <Text style={typography.subtitle_s2_16_semi_bold}>인기 테마</Text>
@@ -80,24 +83,71 @@ export default function MyPageScreen() {
               </ScrollView>
             </View>
           </View>
-        </View>
-        <HorizontalLine color={"#F4F5F7"} height={8} />
-        <View style={styles.contents}>
-          <Text
-            style={[typography.subtitle_s2_16_semi_bold, { paddingBottom: 16 }]}
-          >
-            방금 올라온 글
-          </Text>
-          <View>
-            <Text>게시글 1</Text>
+          <HorizontalLine color={"#F4F5F7"} height={8} />
+          <View style={{ paddingTop: 20, paddingHorizontal: 20 }}>
+            <View
+              style={{
+                marginBottom: 16,
+
+                paddingVertical: 4,
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <Text style={[typography.subtitle_s2_16_semi_bold]}>
+                방금 올라온 글
+              </Text>
+              <Pressable
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                }}
+                onPress={() => {
+                  router.push("/(tabs)/community/detail");
+                }}
+              >
+                <Text
+                  style={[
+                    typography.caption_c2_12_regular,
+                    { color: "#5E6974", alignSelf: "center" },
+                  ]}
+                >
+                  더 보기
+                </Text>
+                <View style={{ paddingTop: 2 }}>
+                  <NextSmIcon />
+                </View>
+              </Pressable>
+            </View>
+            <TopicList order="latest" />
           </View>
-          <View>
-            <Text>게시글 2</Text>
+          <HorizontalLine
+            color={"#F4F5F7"}
+            height={8}
+            style={{ marginTop: 5 }}
+          />
+          <View style={styles.more}>
+            <Text
+              style={[
+                typography.caption_c2_12_regular,
+                { color: "#717D89", paddingBottom: 16 },
+              ]}
+            >
+              더 많은 테마 이야기가 궁금하신가요?
+            </Text>
+            <View style={{ backgroundColor: "#2E3439", borderRadius: 12 }}>
+              <Text
+                style={[
+                  typography.subtitle_s3_15_semi_bold,
+                  { padding: 16, color: "#F4F5F7" },
+                ]}
+              >
+                궁금한 테마 보러가기
+              </Text>
+            </View>
           </View>
-          <View>
-            <Text>게시글 3</Text>
-          </View>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     </>
   );
@@ -107,12 +157,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-  },
-
-  contents: {
-    justifyContent: "center",
-
-    padding: 20,
   },
 
   rankbox: {
@@ -132,5 +176,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     color: "#FFF",
     textAlign: "center",
+  },
+  more: {
+    paddingHorizontal: 36,
+    paddingVertical: 24,
+    alignItems: "center",
   },
 });
