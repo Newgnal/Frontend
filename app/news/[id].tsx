@@ -18,7 +18,7 @@ export default function NewsDetail() {
 
   const comments = Array.from({ length: 10 }, (_, i) => ({
     id: i.toString(),
-    user: "테이피",
+    user: "테이비",
     time: "16시간 전",
     content:
       "유기농 아빠를 맡은 아는 분들이 이 시대는 많지 않았습니다. 유기농 아빠를 맡은 아는 분들이 이 시대는 많지 않았습니다.",
@@ -64,7 +64,6 @@ export default function NewsDetail() {
           </Text>
         </View>
 
-        {/* 본문 */}
         <Text style={styles.content}>
           식품의약품안전처(식약처)가 식품제조·가공업체 한살림우리밀(경기 고양시
           소재)이 제조한 ‘고구마케이크’에서 식중독균인 ‘리스테리아
@@ -84,6 +83,8 @@ export default function NewsDetail() {
         <Text style={styles.imageLabel}>
           한살림/식약관리원이 확인한 ‘고구마케이크’ 1판. 식약처제공
         </Text>
+
+        <Text>댓글</Text>
       </ScrollView>
     </SafeAreaView>
   );
