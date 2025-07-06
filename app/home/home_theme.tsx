@@ -34,6 +34,9 @@ const displayLabels = allLabels.map((label, i) => (i % 7 === 0 ? label : ""));
 
 const fullLength = lastDate;
 
+const isPositive = sentimentData.reduce((sum, v) => sum + v, 0) >= 0;
+const sentimentColor = isPositive ? "#F63D55" : "#497AFA";
+
 const dummyNews = [
   {
     id: "1",
@@ -142,7 +145,7 @@ export default function HomeMain() {
                 backgroundGradientFrom: "#ffffff",
                 backgroundGradientTo: "#ffffff",
                 decimalPlaces: 1,
-                color: () => "#F99426",
+                color: () => sentimentColor,
                 labelColor: () => "#666",
                 propsForDots: { r: "0" },
               }}
@@ -194,8 +197,8 @@ export default function HomeMain() {
               backgroundGradientTo: "#ffffff",
               decimalPlaces: 0,
               barPercentage: 0.4,
-              color: () => "#F99426",
-              fillShadowGradient: "#F99426",
+              color: () => sentimentColor,
+              fillShadowGradient: sentimentColor,
               fillShadowGradientOpacity: 1,
               propsForBackgroundLines: {
                 strokeWidth: 0,
