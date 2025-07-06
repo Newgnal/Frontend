@@ -7,6 +7,12 @@ import { typography } from "@/styles/typography";
 import { StyleSheet, Text, View } from "react-native";
 import { HorizontalLine } from "../HorizontalLine";
 
+type OrderType = "latest" | "views";
+
+interface TopciListProps {
+  order: OrderType;
+}
+
 const dummyData = [
   {
     id: 1,
@@ -19,6 +25,7 @@ const dummyData = [
     likes: 10,
     views: 10,
     comments: 10,
+    date: "2025.05.30",
   },
   {
     id: 2,
@@ -31,6 +38,7 @@ const dummyData = [
     likes: 8,
     views: 25,
     comments: 3,
+    date: "2025.05.26",
   },
   {
     id: 3,
@@ -41,15 +49,23 @@ const dummyData = [
     content:
       "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.",
     likes: 10,
-    views: 10,
-    comments: 10,
+    views: 30,
+    comments: 35,
+    date: "2025.05.24",
   },
 ];
 
-export default function LatestTopicList() {
+export default function TopicList({ order }: TopciListProps) {
+  const sortedData = [...dummyData].sort((a, b) => {
+    if (order === "views") {
+      return b.views - a.views;
+    } else {
+      return new Date(b.date).getTime() - new Date(a.date).getTime();
+    }
+  });
   return (
     <>
-      {dummyData.map((item, index) => (
+      {sortedData.map((item, index) => (
         <View key={item.id}>
           <View>
             <View style={styles.header}>

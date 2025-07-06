@@ -1,22 +1,35 @@
 import PlusIcon from "@/assets/images/ic_add.svg";
-import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
+import OrderChangeIcon from "@/assets/images/ic_orderchange.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
-import FireIcon from "@/assets/images/mingcute_fire-fill.svg";
-import HotTopicList from "@/components/ui/community/HotTopicList";
+import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import LatestTopicList from "@/components/ui/community/LatestTopicList";
 import { Header } from "@/components/ui/Header";
-import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useRouter } from "expo-router";
+import { useState } from "react";
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ComDetailScreen() {
+  const router = useRouter();
+  const [order, setOrder] = useState<"latest" | "views">("latest");
   return (
     <>
       <SafeAreaView style={styles.container}>
         <Header
           title="전체"
-          leftSlot={<View />}
+          leftSlot={
+            <Pressable onPress={() => router.back()}>
+              <NextLgIcon />
+            </Pressable>
+          }
           rightSlot={
             <>
               <SearchIcon />
@@ -25,126 +38,30 @@ export default function ComDetailScreen() {
           }
         />
 
-        <ScrollView
-          contentContainerStyle={{ justifyContent: "center" }} // ✅ 여기로 옮기기
+        <TouchableOpacity
+          onPress={() =>
+            setOrder((prev) => (prev === "latest" ? "views" : "latest"))
+          }
+          style={{
+            paddingBottom: 4,
+            paddingHorizontal: 20,
+            paddingTop: 10,
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "flex-end",
+          }}
         >
-          <View style={{ padding: 20 }}>
-            <View style={{ flexDirection: "row", paddingBottom: 8 }}>
-              <FireIcon />
-              <Text style={typography.subtitle_s2_16_semi_bold}>인기 테마</Text>
-            </View>
-            <View style={styles.rankbox}>
-              <View style={styles.rankdetail}>
-                <Text>1위</Text>
-                <Text
-                  style={[styles.rankname, typography.caption_c2_12_regular]}
-                >
-                  반도체/AI
-                </Text>
-              </View>
-              <View style={styles.rankdetail}>
-                <Text>2위</Text>
-                <Text
-                  style={[styles.rankname, typography.caption_c2_12_regular]}
-                >
-                  IT/인터넷
-                </Text>
-              </View>
-              <View style={styles.rankdetail}>
-                <Text>3위</Text>
-                <Text
-                  style={[styles.rankname, typography.caption_c2_12_regular]}
-                >
-                  모빌리티
-                </Text>
-              </View>
-            </View>
-            <View style={{ paddingTop: 20 }}>
-              <HotTopicList />
-              <Text
-                style={[
-                  typography.subtitle_s2_16_semi_bold,
-                  { paddingBottom: 16 },
-                ]}
-              >
-                지금 뜨는 이야기
-              </Text>
-              <ScrollView horizontal={true}>
-                <View>
-                  <Text>11111111111</Text>
-                </View>
-                <View>
-                  <Text>2</Text>
-                </View>
-                <View>
-                  <Text>3</Text>
-                </View>
-              </ScrollView>
-            </View>
-          </View>
-          <HorizontalLine color={"#F4F5F7"} height={8} />
-          <View style={{ paddingTop: 20, paddingHorizontal: 20 }}>
-            <View
-              style={{
-                marginBottom: 16,
+          <Text
+            style={[typography.caption_c2_12_regular, { color: "#484F56" }]}
+          >
+            {order === "latest" ? "최신순" : "조회순"}
+          </Text>
+          <OrderChangeIcon />
+        </TouchableOpacity>
 
-                paddingVertical: 4,
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <Text style={[typography.subtitle_s2_16_semi_bold]}>
-                방금 올라온 글
-              </Text>
-              <Pressable
-                style={{
-                  flexDirection: "row",
-                  alignItems: "center",
-                }}
-                onPress={() => {
-                  router.push("/(tabs)/community/detail");
-                }}
-              >
-                <Text
-                  style={[
-                    typography.caption_c2_12_regular,
-                    { color: "#5E6974", alignSelf: "center" },
-                  ]}
-                >
-                  더 보기
-                </Text>
-                <View style={{ paddingTop: 2 }}>
-                  <NextSmIcon />
-                </View>
-              </Pressable>
-            </View>
+        <ScrollView contentContainerStyle={{ justifyContent: "center" }}>
+          <View style={{ paddingHorizontal: 20 }}>
             <LatestTopicList />
-          </View>
-          <HorizontalLine
-            color={"#F4F5F7"}
-            height={8}
-            style={{ marginTop: 5 }}
-          />
-          <View style={styles.more}>
-            <Text
-              style={[
-                typography.caption_c2_12_regular,
-                { color: "#717D89", paddingBottom: 16 },
-              ]}
-            >
-              더 많은 테마 이야기가 궁금하신가요?
-            </Text>
-            <View style={{ backgroundColor: "#2E3439", borderRadius: 12 }}>
-              <Text
-                style={[
-                  typography.subtitle_s3_15_semi_bold,
-                  { padding: 16, color: "#F4F5F7" },
-                ]}
-              >
-                궁금한 테마 보러가기
-              </Text>
-            </View>
           </View>
         </ScrollView>
       </SafeAreaView>

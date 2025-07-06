@@ -3,7 +3,7 @@ import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
 import FireIcon from "@/assets/images/mingcute_fire-fill.svg";
 import HotTopicList from "@/components/ui/community/HotTopicList";
-import LatestTopicList from "@/components/ui/community/LatestTopicList";
+import TopicList from "@/components/ui/community/TopicList";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CommunityScreen() {
   const router = useRouter();
+
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -27,9 +28,7 @@ export default function CommunityScreen() {
           }
         />
 
-        <ScrollView
-          contentContainerStyle={{ justifyContent: "center" }} // ✅ 여기로 옮기기
-        >
+        <ScrollView contentContainerStyle={{ justifyContent: "center" }}>
           <View style={{ padding: 20 }}>
             <View style={{ flexDirection: "row", paddingBottom: 8 }}>
               <FireIcon />
@@ -121,7 +120,7 @@ export default function CommunityScreen() {
                 </View>
               </Pressable>
             </View>
-            <LatestTopicList />
+            <TopicList order="latest" />
           </View>
           <HorizontalLine
             color={"#F4F5F7"}
