@@ -6,17 +6,19 @@ import MessageIcon from "@/assets/images/ic_message.svg";
 import { typography } from "@/styles/typography";
 import { StyleSheet, Text, View } from "react-native";
 import { HorizontalLine } from "../HorizontalLine";
+import News from "./News";
 
 type OrderType = "latest" | "views";
 
 interface TopciListProps {
   order: OrderType;
+  hasNews: boolean;
 }
 
 const dummyData = [
   {
     id: 1,
-    username: "테이비",
+    username: "가나다",
     time: "16시간 전",
     category: "반도체/AI",
     title: "반도체에 대해 어떻게 생각하세요?",
@@ -55,7 +57,8 @@ const dummyData = [
   },
 ];
 
-export default function TopicList({ order }: TopciListProps) {
+// state가 홈이면 News 렌더링 안하고 전체면 News 렌더링하게 만들기
+export default function TopicList({ order, hasNews }: TopciListProps) {
   const sortedData = [...dummyData].sort((a, b) => {
     if (order === "views") {
       return b.views - a.views;
@@ -120,6 +123,11 @@ export default function TopicList({ order }: TopciListProps) {
                 {item.content}
               </Text>
             </View>
+            {hasNews && (
+              <View style={{ marginTop: 12 }}>
+                <News />
+              </View>
+            )}
             <View style={styles.buttonContainer}>
               <View style={{ flexDirection: "row", alignItems: "center" }}>
                 <HeartIcon />
