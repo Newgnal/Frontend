@@ -120,7 +120,7 @@ export default function CommunityScreen() {
                 </View>
               </Pressable>
             </View>
-            <TopicList order="latest" />
+            <TopicList order="latest" hasNews={false} />
           </View>
           <HorizontalLine
             color={"#F4F5F7"}

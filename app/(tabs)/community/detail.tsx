@@ -2,7 +2,7 @@ import PlusIcon from "@/assets/images/ic_add.svg";
 import OrderChangeIcon from "@/assets/images/ic_orderchange.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
-import LatestTopicList from "@/components/ui/community/LatestTopicList";
+import TopicList from "@/components/ui/community/TopicList";
 import { Header } from "@/components/ui/Header";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
@@ -61,7 +61,7 @@ export default function ComDetailScreen() {
 
         <ScrollView contentContainerStyle={{ justifyContent: "center" }}>
           <View style={{ paddingHorizontal: 20 }}>
-            <LatestTopicList />
+            <TopicList order={order} hasNews={true} />
           </View>
         </ScrollView>
       </SafeAreaView>
