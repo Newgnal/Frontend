@@ -1,3 +1,4 @@
+import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import IcEtc from "@/assets/images/ic_cmnt_etc.svg";
 import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcHeader from "@/assets/images/ic_header.svg";
@@ -55,13 +56,53 @@ export default function NewsDetail() {
     "강한 긍정",
   ];
   const pollResults = [15, 20, 50, 30, 15];
-  const opinionColors: Record<string, string> = {
-    "강한 부정": "#F99426",
-    "약한 부정": "#FCCE8B",
-    중립: "#E4E6E7",
-    "약한 긍정": "#B0FFE1",
-    "강한 긍정": "#04E38F",
+  const opinionTheme: Record<
+    string,
+    {
+      dotColor: string;
+      labelColor: string;
+      barColor: string;
+      tagBgColor: string;
+      tagTextColor: string;
+    }
+  > = {
+    "강한 부정": {
+      dotColor: "#F99426",
+      labelColor: "#F99426",
+      barColor: "#F99426",
+      tagBgColor: "#FFF3E0",
+      tagTextColor: "#F99426",
+    },
+    "약한 부정": {
+      dotColor: "#FCCE8B",
+      labelColor: "#F99426",
+      barColor: "#FCCE8B",
+      tagBgColor: "#FFF3E0",
+      tagTextColor: "#F99426",
+    },
+    중립: {
+      dotColor: "#5E6974",
+      labelColor: "#484F56",
+      barColor: "#E4E6E7",
+      tagBgColor: "#E4E6E7",
+      tagTextColor: "#484F56",
+    },
+    "약한 긍정": {
+      dotColor: "#73FFCB",
+      labelColor: "#04E38F",
+      barColor: "#B0FFE1",
+      tagBgColor: "#E0FFF3",
+      tagTextColor: "#00BD73",
+    },
+    "강한 긍정": {
+      dotColor: "#04E38F",
+      labelColor: "#04E38F",
+      barColor: "#04E38F",
+      tagBgColor: "#D6FFEF",
+      tagTextColor: "#00BD73",
+    },
   };
+
   const pollBgColor = "#F4F5F7";
 
   const comments = Array.from({ length: 10 }, (_, i) => ({
@@ -85,14 +126,7 @@ export default function NewsDetail() {
         time: "16시간 전",
         content:
           "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
-        opinion: "약한 긍정",
-      },
-      {
-        id: `${i}-r3`,
-        user: "테이비",
-        time: "16시간 전",
-        content: "솔직히 맛 차이 잘 모르겠던데요?",
-        opinion: "중립",
+        opinion: "강한 긍정",
       },
     ],
   }));
@@ -100,8 +134,8 @@ export default function NewsDetail() {
   const opinionBgColors: Record<string, string> = {
     "강한 부정": "#FFF1E6",
     "약한 부정": "#FFF7E8",
-    중립: "#F6F7F8",
-    "약한 긍정": "#E5FFF7",
+    중립: "#E4E6E7",
+    "약한 긍정": "#E0FFF3",
     "강한 긍정": "#D6FFEF",
   };
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
@@ -158,7 +192,7 @@ export default function NewsDetail() {
         <View
           style={{
             height: 8,
-            width: 411,
+            width: "100%",
             backgroundColor: "#F4F5F7",
             marginTop: 20,
             marginBottom: 20,
@@ -194,7 +228,9 @@ export default function NewsDetail() {
                       height: 12,
                       borderRadius: 6,
                       backgroundColor:
-                        selectedPoll === idx ? opinionColors[label] : "#CBD5E1",
+                        selectedPoll === idx
+                          ? opinionTheme[label].dotColor
+                          : "#CBD5E1",
                       transform: selectedPoll === idx ? [{ scale: 2.5 }] : [],
                     }}
                   />
@@ -217,7 +253,7 @@ export default function NewsDetail() {
                     styles.pollLabel,
                     selectedPoll === idx && {
                       fontWeight: "bold",
-                      color: opinionColors[label],
+                      color: opinionTheme[label].labelColor,
                     },
                   ]}
                 >
@@ -278,7 +314,7 @@ export default function NewsDetail() {
                       style={{
                         height: 6,
                         borderRadius: 4,
-                        backgroundColor: opinionColors[label],
+                        backgroundColor: opinionTheme[label].barColor,
                         width: `${pollResults[idx]}%`,
                       }}
                     />
@@ -295,10 +331,10 @@ export default function NewsDetail() {
         <View
           style={{
             height: 8,
-            width: 411,
+            width: "100%",
             backgroundColor: "#F4F5F7",
             marginTop: 20,
-            marginBottom: 20,
+            marginBottom: 12,
           }}
         />
 
@@ -308,35 +344,52 @@ export default function NewsDetail() {
           {comments.map((comment) => (
             <View key={comment.id} style={styles.commentBox}>
               <View style={styles.commentHeader}>
-                <View style={styles.commentUserIcon} />
-                <View>
-                  <Text style={styles.commentUser}>{comment.user}</Text>
-                  <Text style={styles.commentTime}>{comment.time}</Text>
-                </View>
                 <View
-                  style={[
-                    styles.positiveTag,
-                    {
-                      backgroundColor:
-                        opinionBgColors[comment.opinion] || pollBgColor,
-                    },
-                  ]}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    flex: 1,
+                  }}
                 >
-                  <Text
-                    style={{
-                      color: opinionColors[comment.opinion],
-                      fontSize: 10,
-                      fontWeight: "bold",
-                    }}
+                  <View style={styles.commentUserIcon} />
+                  <View>
+                    <Text style={styles.commentUser}>{comment.user}</Text>
+                    <Text style={styles.commentTime}>{comment.time}</Text>
+                  </View>
+
+                  <View
+                    style={[
+                      styles.positiveTag,
+                      {
+                        backgroundColor:
+                          opinionBgColors[comment.opinion] || pollBgColor,
+                      },
+                    ]}
                   >
-                    {comment.opinion}
-                  </Text>
+                    <Text
+                      style={{
+                        color: opinionTheme[comment.opinion].tagTextColor,
+                        fontSize: 12,
+                        fontWeight: "400",
+                        fontFamily: "Pretendard",
+                        lineHeight: 14,
+                      }}
+                    >
+                      {comment.opinion}
+                    </Text>
+                  </View>
+
+                  <TouchableOpacity style={{ marginTop: 4 }}>
+                    <IcComntEtc width={20} height={20} />
+                  </TouchableOpacity>
                 </View>
               </View>
 
-              <Text style={styles.commentContent}>{comment.content}</Text>
+              <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
+                {comment.content}
+              </Text>
 
-              <View style={styles.commentActions}>
+              <View style={[styles.commentActions, { paddingLeft: 40 }]}>
                 <View style={styles.iconWithText}>
                   <IcHeart
                     width={24}
@@ -353,57 +406,78 @@ export default function NewsDetail() {
                 </View>
               </View>
 
-              {comment.replies &&
-                comment.replies.length > 0 &&
-                comment.replies.map((reply) => (
-                  <View key={reply.id} style={styles.replyBox}>
-                    <View style={styles.commentHeader}>
-                      <View style={styles.commentUserIcon} />
-                      <View>
-                        <Text style={styles.commentUser}>{reply.user}</Text>
-                        <Text style={styles.commentTime}>{reply.time}</Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.positiveTag,
-                          {
-                            backgroundColor:
-                              opinionBgColors[reply.opinion] || pollBgColor,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={{
-                            color: opinionColors[reply.opinion],
-                            fontSize: 10,
-                            fontWeight: "bold",
-                          }}
+              {comment.replies && comment.replies.length > 0 && (
+                <View
+                  style={{
+                    backgroundColor: "#F4F5F7",
+                    borderRadius: 4,
+                    paddingHorizontal: 16,
+                    paddingTop: 16,
+                    paddingBottom: 12,
+                    marginTop: 12,
+                  }}
+                >
+                  {comment.replies.map((reply) => (
+                    <View key={reply.id} style={styles.replyBox}>
+                      <View style={styles.commentHeader}>
+                        <View style={styles.commentUserIcon} />
+                        <View>
+                          <Text style={styles.commentUser}>{reply.user}</Text>
+                          <Text style={styles.commentTime}>{reply.time}</Text>
+                        </View>
+                        <View
+                          style={[
+                            styles.positiveTag,
+                            {
+                              backgroundColor:
+                                opinionBgColors[reply.opinion] || pollBgColor,
+                            },
+                          ]}
                         >
-                          {reply.opinion}
-                        </Text>
+                          <Text
+                            style={{
+                              color: opinionTheme[reply.opinion].tagTextColor,
+                              fontSize: 12,
+                              fontWeight: "400",
+                              fontFamily: "Pretendard",
+                              lineHeight: 14,
+                            }}
+                          >
+                            {reply.opinion}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <Text
+                        style={[styles.commentContent, { paddingLeft: 40 }]}
+                      >
+                        {reply.content}
+                      </Text>
+
+                      <View style={styles.commentActions}>
+                        <View
+                          style={[styles.iconWithText, { paddingLeft: 36 }]}
+                        >
+                          <IcHeart
+                            width={24}
+                            height={24}
+                            stroke={
+                              likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"
+                            }
+                          />
+
+                          <Text style={styles.commentActionText}>
+                            {likedComments[reply.id] ? 11 : 10}
+                          </Text>
+                        </View>
+                        <TouchableOpacity style={{ marginLeft: "auto" }}>
+                          <IcComntEtc width={20} height={20} />
+                        </TouchableOpacity>
                       </View>
                     </View>
-
-                    <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
-                      {reply.content}
-                    </Text>
-
-                    <View style={styles.commentActions}>
-                      <View style={[styles.iconWithText, { paddingLeft: 36 }]}>
-                        <IcHeart
-                          width={24}
-                          height={24}
-                          stroke={
-                            likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"
-                          }
-                        />
-                        <Text style={styles.commentActionText}>
-                          {likedComments[reply.id] ? 11 : 10}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                ))}
+                  ))}
+                </View>
+              )}
             </View>
           ))}
         </View>
@@ -459,9 +533,9 @@ const styles = StyleSheet.create({
   summaryText: { fontSize: 14, lineHeight: 22, color: "#444" },
   reactionText: { fontSize: 14, color: "#6B7280" },
   pollBox: {
-    padding: 20,
+    padding: 0,
     borderRadius: 12,
-    marginTop: 24,
+    marginTop: 0,
   },
   pollContainer: {
     backgroundColor: "#F4F5F7",
@@ -506,8 +580,8 @@ const styles = StyleSheet.create({
   },
   pollLabel: { fontSize: 10, color: "#4B5563", textAlign: "center" },
   commentSection: {
-    marginTop: 32,
-    paddingTop: 16,
+    marginTop: 8,
+    paddingTop: 8,
   },
   commentCount: {
     fontSize: 13,
@@ -517,8 +591,11 @@ const styles = StyleSheet.create({
     lineHeight: 13,
   },
   commentBox: {
+    marginTop: 12,
     marginBottom: 24,
     paddingBottom: 16,
+    borderBottomColor: "rgba(244, 245, 247, 1)",
+    borderBottomWidth: 2,
   },
   commentHeader: {
     flexDirection: "row",
@@ -537,8 +614,13 @@ const styles = StyleSheet.create({
   positiveTag: {
     marginLeft: "auto",
     borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingHorizontal: 4,
+    paddingVertical: 4,
+    width: 55,
+    height: 22,
+    justifyContent: "center",
+    alignItems: "center",
+    flexDirection: "row",
   },
   commentContent: { fontSize: 14, color: "#333", lineHeight: 20 },
   commentActions: {
@@ -560,7 +642,7 @@ const styles = StyleSheet.create({
   iconWithText: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: 0,
   },
 
   commentActionText: {
@@ -570,7 +652,6 @@ const styles = StyleSheet.create({
   replyContainer: {
     marginTop: 12,
     paddingLeft: 12,
-
     gap: 12,
   },
   replyBox: {
