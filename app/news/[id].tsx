@@ -4,6 +4,7 @@ import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcHeader from "@/assets/images/ic_header.svg";
 import IcHeart from "@/assets/images/ic_hrt.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
+import IcSend from "@/assets/images/ic_send.svg";
 import IcComment from "@/assets/images/material-symbols-light_reply-rounded.svg";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -12,6 +13,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -167,7 +169,7 @@ export default function NewsDetail() {
         <View style={styles.reactions}>
           <View style={styles.reactionItem}>
             <IcComnt width={16} height={16} style={{ marginRight: 4 }} />
-            <Text style={styles.reactionText}>234</Text>
+            <Text style={styles.reactionText}>10</Text>
           </View>
           <View style={styles.reactionItem}>
             <IcPoll width={16} height={16} style={{ marginRight: 4 }} />
@@ -378,10 +380,6 @@ export default function NewsDetail() {
                       {comment.opinion}
                     </Text>
                   </View>
-
-                  <TouchableOpacity style={{ marginTop: 4 }}>
-                    <IcComntEtc width={20} height={20} />
-                  </TouchableOpacity>
                 </View>
               </View>
 
@@ -390,20 +388,25 @@ export default function NewsDetail() {
               </Text>
 
               <View style={[styles.commentActions, { paddingLeft: 40 }]}>
-                <View style={styles.iconWithText}>
-                  <IcHeart
-                    width={24}
-                    height={24}
-                    stroke={likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"}
-                  />
-                  <Text style={styles.commentActionText}>
-                    {likedComments[comment.id] ? 11 : 10}
-                  </Text>
+                <View style={{ flexDirection: "row", gap: 12 }}>
+                  <View style={styles.iconWithText}>
+                    <IcHeart
+                      width={24}
+                      height={24}
+                      stroke={likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"}
+                    />
+                    <Text style={styles.commentActionText}>
+                      {likedComments[comment.id] ? 11 : 10}
+                    </Text>
+                  </View>
+                  <View style={styles.iconWithText}>
+                    <IcComment width={24} height={24} />
+                    <Text style={styles.commentActionText}>답글 달기</Text>
+                  </View>
                 </View>
-                <View style={styles.iconWithText}>
-                  <IcComment width={24} height={24} />
-                  <Text style={styles.commentActionText}>답글 달기</Text>
-                </View>
+                <TouchableOpacity style={{ marginLeft: "auto" }}>
+                  <IcComntEtc width={20} height={20} />
+                </TouchableOpacity>
               </View>
 
               {comment.replies && comment.replies.length > 0 && (
@@ -482,6 +485,22 @@ export default function NewsDetail() {
           ))}
         </View>
       </ScrollView>
+      <View style={styles.commentInputContainer}>
+        <View style={styles.commentInputWrapper}>
+          <View style={styles.commentInputBox}>
+            <View style={styles.avatarCircle} />
+            <TextInput
+              style={styles.textInput}
+              placeholder="댓글을 입력하세요"
+              placeholderTextColor="#9CA3AF"
+            />
+          </View>
+
+          <TouchableOpacity style={styles.sendButton}>
+            <IcSend width={20} height={20} />
+          </TouchableOpacity>
+        </View>
+      </View>
     </SafeAreaView>
   );
 }
@@ -659,7 +678,64 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     paddingTop: 16,
     paddingBottom: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 0,
     marginLeft: 0,
+  },
+  commentInputContainer: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: "#F0F0F0",
+    backgroundColor: "#FFFFFF",
+  },
+  commentInputWrapper: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    width: "100%",
+    gap: 8,
+  },
+
+  commentInputBox: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: 9999,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    justifyContent: "space-between",
+    borderColor: "#E4E6E7",
+    borderWidth: 1,
+    width: 324,
+    height: 40,
+    paddingLeft: 8,
+    paddingRight: 16,
+  },
+  sendButton: {
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  commentPlaceholder: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    flex: 1,
+  },
+  avatarCircle: {
+    width: 24,
+    height: 24,
+    borderRadius: 16,
+    backgroundColor: "#F2F3F5",
+    marginLeft: 0,
+  },
+
+  textInput: {
+    flex: 1,
+    fontSize: 14,
+    paddingVertical: 0,
+    paddingRight: 12,
+    fontWeight: "400",
+    color: "#89939F",
   },
 });
