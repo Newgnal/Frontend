@@ -33,7 +33,12 @@ export default function ComDetailScreen() {
           rightSlot={
             <>
               <SearchIcon />
-              <PlusIcon />
+
+              <Pressable
+                onPress={() => router.push("/(tabs)/community/writeForm")}
+              >
+                <PlusIcon />
+              </Pressable>
             </>
           }
         />
