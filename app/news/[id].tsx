@@ -21,6 +21,31 @@ export default function NewsDetail() {
   const router = useRouter();
   const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
+  const [likedComments, setLikedComments] = useState<{
+    [key: string]: boolean;
+  }>({});
+  const toggleLike = (commentId: string) => {
+    setLikedComments((prev) => ({
+      ...prev,
+      [commentId]: !prev[commentId],
+    }));
+  };
+
+  const dummyNewsData = [
+    {
+      id: "1",
+      title: "한살림 고구마 케이크서 식중독균 검출",
+      content:
+        "식품의약품안전처(식약처)가 식품제조·가공업체 한살림우리밀제과가 제조하고, 유통전문판매업체 한살림사업연합이 판매한 '고구마케이크 1호'에서 중독균인 황색포도상구균이 검출돼 판매를 중단하고 회수 조치한다고 20일 밝혔다.\n\n회수 대상은 제조 일자가 '2025. 6. 12.'로 표시된 제품이다.\n\n식약처는 안성시청이 해당 제품을 신속히 회수 조치하도록 했으며, 해당 제품을 구매한 소비자에게 섭취를 중단하고 구입처에 반품해 달라고 당부했다고 알렸다.\n\n식품 관련 불법 행위를 목격한 경우 불량식품 신고 전화(☎ 1399)로 신고하거나 스마트폰 '내손안' 애플리케이션을 이용해 신고할 수 있다.",
+      date: "2025.06.20",
+    },
+    {
+      id: "2",
+      title: "삼성전자, AI 반도체 공개",
+      content: "삼성전자가 차세대 AI 반도체를 공개했다.",
+      date: "2025.06.21",
+    },
+  ];
 
   const pollLabels = [
     "강한 부정",
@@ -46,7 +71,32 @@ export default function NewsDetail() {
     content:
       "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.",
     opinion: "강한 긍정",
+    replies: [
+      {
+        id: `${i}-r1`,
+        user: "테이비",
+        time: "16시간 전",
+        content: "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
+        opinion: "강한 긍정",
+      },
+      {
+        id: `${i}-r2`,
+        user: "테이비",
+        time: "16시간 전",
+        content:
+          "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
+        opinion: "약한 긍정",
+      },
+      {
+        id: `${i}-r3`,
+        user: "테이비",
+        time: "16시간 전",
+        content: "솔직히 맛 차이 잘 모르겠던데요?",
+        opinion: "중립",
+      },
+    ],
   }));
+
   const opinionBgColors: Record<string, string> = {
     "강한 부정": "#FFF1E6",
     "약한 부정": "#FFF7E8",
@@ -55,6 +105,8 @@ export default function NewsDetail() {
     "강한 긍정": "#D6FFEF",
   };
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
+  const news = dummyNewsData.find((n) => n.id === id);
+  if (!news) return <Text>뉴스를 찾을 수 없습니다</Text>;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -96,10 +148,7 @@ export default function NewsDetail() {
           </Text>
         </View>
 
-        <Text style={styles.content}>
-          식약처가 한살림우리밀이 제조한 ‘고구마케이크’에서 식중독균이 검출돼
-          판매를 중단하고 회수 조치 중이다.
-        </Text>
+        <Text style={styles.content}>{news.content}</Text>
 
         <View style={styles.imageBox}></View>
         <Text style={styles.imageLabel}>
@@ -255,6 +304,7 @@ export default function NewsDetail() {
 
         <View style={styles.commentSection}>
           <Text style={styles.commentCount}>댓글 {comments.length}</Text>
+
           {comments.map((comment) => (
             <View key={comment.id} style={styles.commentBox}>
               <View style={styles.commentHeader}>
@@ -288,14 +338,72 @@ export default function NewsDetail() {
 
               <View style={styles.commentActions}>
                 <View style={styles.iconWithText}>
-                  <IcHeart width={16} height={16} />
-                  <Text style={styles.commentActionText}>10</Text>
+                  <IcHeart
+                    width={24}
+                    height={24}
+                    stroke={likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"}
+                  />
+                  <Text style={styles.commentActionText}>
+                    {likedComments[comment.id] ? 11 : 10}
+                  </Text>
                 </View>
                 <View style={styles.iconWithText}>
-                  <IcComment width={16} height={16} />
+                  <IcComment width={24} height={24} />
                   <Text style={styles.commentActionText}>답글 달기</Text>
                 </View>
               </View>
+
+              {comment.replies &&
+                comment.replies.length > 0 &&
+                comment.replies.map((reply) => (
+                  <View key={reply.id} style={styles.replyBox}>
+                    <View style={styles.commentHeader}>
+                      <View style={styles.commentUserIcon} />
+                      <View>
+                        <Text style={styles.commentUser}>{reply.user}</Text>
+                        <Text style={styles.commentTime}>{reply.time}</Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.positiveTag,
+                          {
+                            backgroundColor:
+                              opinionBgColors[reply.opinion] || pollBgColor,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            color: opinionColors[reply.opinion],
+                            fontSize: 10,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          {reply.opinion}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
+                      {reply.content}
+                    </Text>
+
+                    <View style={styles.commentActions}>
+                      <View style={[styles.iconWithText, { paddingLeft: 36 }]}>
+                        <IcHeart
+                          width={24}
+                          height={24}
+                          stroke={
+                            likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"
+                          }
+                        />
+                        <Text style={styles.commentActionText}>
+                          {likedComments[reply.id] ? 11 : 10}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                ))}
             </View>
           ))}
         </View>
@@ -401,7 +509,13 @@ const styles = StyleSheet.create({
     marginTop: 32,
     paddingTop: 16,
   },
-  commentCount: { fontSize: 16, fontWeight: "bold", marginBottom: 12 },
+  commentCount: {
+    fontSize: 13,
+    fontWeight: "500",
+    fontFamily: "Pretendard",
+    color: "#40454A",
+    lineHeight: 13,
+  },
   commentBox: {
     marginBottom: 24,
     paddingBottom: 16,
@@ -452,5 +566,19 @@ const styles = StyleSheet.create({
   commentActionText: {
     fontSize: 12,
     color: "#6B7280",
+  },
+  replyContainer: {
+    marginTop: 12,
+    paddingLeft: 12,
+
+    gap: 12,
+  },
+  replyBox: {
+    backgroundColor: "#F4F5F7",
+    borderRadius: 4,
+    paddingTop: 16,
+    paddingBottom: 12,
+    paddingHorizontal: 16,
+    marginLeft: 0,
   },
 });
