@@ -26,6 +26,8 @@ export default function WriteFormScreen() {
   const router = useRouter();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [voteEnabled, setVoteEnabled] = useState(false);
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
 
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
@@ -57,7 +59,10 @@ export default function WriteFormScreen() {
             rightSlot={
               <>
                 <Text
-                  style={[typography.label_l1_14_regular, { color: "#89939F" }]}
+                  style={[
+                    typography.label_l1_14_regular,
+                    { color: title && content ? "#111" : "#89939F" },
+                  ]}
                 >
                   등록
                 </Text>
@@ -75,6 +80,8 @@ export default function WriteFormScreen() {
                   padding: 0,
                 },
               ]}
+              value={title}
+              onChangeText={setTitle}
             />
 
             <HorizontalLine style={{ marginVertical: 12 }} />
@@ -91,6 +98,8 @@ export default function WriteFormScreen() {
                   textAlignVertical: "top",
                 },
               ]}
+              value={content}
+              onChangeText={setContent}
             />
           </View>
 
