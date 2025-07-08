@@ -1,43 +1,55 @@
 import { typography } from "@/styles/typography";
 import { StyleSheet, Text, View } from "react-native";
 
-export default function News() {
-  return (
-    <>
-      <View style={styles.container}>
-        <View style={styles.leftContent}>
-          <View style={styles.header}>
-            <View style={styles.category}>
-              <Text
-                style={[
-                  typography.caption_c2_12_regular,
-                  { color: "#F4F5F7", lineHeight: 17 },
-                ]}
-              >
-                반도체/AI
-              </Text>
-            </View>
-            <Text style={styles.sentiment}>+0.8</Text>
-          </View>
+type NewsProps = {
+  id: string;
+  title: string;
+  date: string;
+  category: string;
+  sentiment: string;
+  views: number;
+};
 
-          <View style={styles.contentRow}>
-            <View style={styles.textContent}>
-              <Text style={styles.title}>
-                삼성, 2028년부터 반도체 유리기판 쏜다
-              </Text>
-              <View
-                style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
-              >
-                <Text style={styles.subtitle}>매일 경제</Text>
-                <Text style={styles.subtitle}>|</Text>
-                <Text style={styles.subtitle}>2025.05.28</Text>
-              </View>
+export default function News({
+  id,
+  title,
+  date,
+  category,
+  sentiment,
+  views,
+}: NewsProps) {
+  return (
+    <View style={styles.container}>
+      <View style={styles.leftContent}>
+        <View style={styles.header}>
+          <View style={styles.category}>
+            <Text
+              style={[
+                typography.caption_c2_12_regular,
+                { color: "#F4F5F7", lineHeight: 17 },
+              ]}
+            >
+              {category}
+            </Text>
+          </View>
+          <Text style={styles.sentiment}>{sentiment}</Text>
+        </View>
+
+        <View style={styles.contentRow}>
+          <View style={styles.textContent}>
+            <Text style={styles.title}>{title}</Text>
+            <View
+              style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
+            >
+              <Text style={styles.subtitle}>매일 경제</Text>
+              <Text style={styles.subtitle}>|</Text>
+              <Text style={styles.subtitle}>{date}</Text>
             </View>
           </View>
         </View>
-        <View style={styles.imagePlaceholder} />
       </View>
-    </>
+      <View style={styles.imagePlaceholder} />
+    </View>
   );
 }
 
@@ -93,9 +105,11 @@ const styles = StyleSheet.create({
     color: "#484F56",
   },
   imagePlaceholder: {
-    width: 76,
-    height: 76,
+    width: 58,
+    height: 58,
     backgroundColor: "#dcdcdc",
     borderRadius: 4,
+    marginRight: 9,
+    marginVertical: 4,
   },
 });

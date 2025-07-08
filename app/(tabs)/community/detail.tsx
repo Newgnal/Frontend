@@ -1,3 +1,4 @@
+import CategoryModal from "@/app/CategoryModal";
 import PlusIcon from "@/assets/images/ic_add.svg";
 import OrderChangeIcon from "@/assets/images/ic_orderchange.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
@@ -5,8 +6,10 @@ import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import TopicList from "@/components/ui/community/TopicList";
 import { Header } from "@/components/ui/Header";
 import { typography } from "@/styles/typography";
+import BottomSheet from "@gorhom/bottom-sheet";
+
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -19,7 +22,16 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ComDetailScreen() {
   const router = useRouter();
+  const sheetRef = useRef<BottomSheet>(null);
   const [order, setOrder] = useState<"latest" | "views">("latest");
+  const [isVisible, setIsVisible] = useState(false);
+  const handleCategorySelect = (category: string) => {
+    setIsVisible(false);
+    router.push({
+      pathname: "/(tabs)/community/writeForm",
+      params: { category },
+    });
+  };
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -34,9 +46,7 @@ export default function ComDetailScreen() {
             <>
               <SearchIcon />
 
-              <Pressable
-                onPress={() => router.push("/(tabs)/community/writeForm")}
-              >
+              <Pressable onPress={() => setIsVisible(true)}>
                 <PlusIcon />
               </Pressable>
             </>
@@ -70,6 +80,11 @@ export default function ComDetailScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
+      <CategoryModal
+        isVisible={isVisible}
+        onClose={() => setIsVisible(false)}
+        onSelect={handleCategorySelect}
+      />
     </>
   );
 }
