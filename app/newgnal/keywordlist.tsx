@@ -1,12 +1,39 @@
 import Icadd from "@/assets/images/Group (1).svg";
+import IcAlarm from "@/assets/images/ic_alarm (1).svg";
 import Icfix from "@/assets/images/ic_fix.svg";
-import AddKeywordModal from "@/components/ui/newgnal/AddKeywordModal";
-import { useState } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+
+const dummyKeywords = [
+  {
+    id: "1",
+    name: "엔비디아",
+    hasNewNews: false,
+    newsCount: 354,
+    alertOn: true,
+  },
+  {
+    id: "2",
+    name: "삼성전자",
+    hasNewNews: true,
+    newsCount: 120,
+    alertOn: true,
+  },
+  {
+    id: "3",
+    name: "네이버",
+    hasNewNews: false,
+    newsCount: 98,
+    alertOn: false,
+  },
+];
 
 export default function MyNewgnalScreen() {
-  const [isModalVisible, setModalVisible] = useState(false);
-
   return (
     <View style={styles.container}>
       <View style={styles.header}>
@@ -15,11 +42,12 @@ export default function MyNewgnalScreen() {
           <TouchableOpacity>
             <Icfix width={24} height={24} />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <TouchableOpacity>
             <Icadd width={24} height={24} />
           </TouchableOpacity>
         </View>
       </View>
+
       <View style={styles.divider} />
 
       <Text style={styles.sectionTitle}>실시간 인기 키워드</Text>
@@ -36,38 +64,36 @@ export default function MyNewgnalScreen() {
       </View>
 
       <Text style={styles.sectionTitle}>내 뉴그널</Text>
-      <View style={styles.noticeBox}>
-        <TouchableOpacity onPress={() => setModalVisible(true)}>
-          <Icadd width={24} height={24} />
-        </TouchableOpacity>
-
-        <Text style={styles.noticeText}>
-          관심 키워드를 등록하면,{"\n"}뉴그널이 관련 뉴스를 실시간으로
-          알려드려요!
-        </Text>
-      </View>
+      <FlatList
+        data={dummyKeywords}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => (
+          <TouchableOpacity style={styles.keywordItem}>
+            <View style={styles.keywordLeft}>
+              <Text style={styles.keywordHash}># {item.name}</Text>
+              {item.hasNewNews && (
+                <View style={styles.alertBadge}>
+                  <Text style={styles.alertText}>2</Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.keywordRight}>
+              <Text style={styles.newsCount}>총 {item.newsCount}개</Text>
+              <IcAlarm width={20} height={20} />
+            </View>
+          </TouchableOpacity>
+        )}
+        style={styles.keywordList}
+      />
 
       <Text style={styles.captionText}>
         키워드 설정은 최대 3개까지 가능합니다
       </Text>
-      <AddKeywordModal
-        isVisible={isModalVisible}
-        onClose={() => setModalVisible(false)}
-        onConfirm={(keyword) => {
-          console.log("입력된 키워드:", keyword);
-          setModalVisible(false);
-        }}
-      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  divider: {
-    height: 1,
-    backgroundColor: "#EDEEEF",
-    marginTop: 13,
-  },
   container: {
     flex: 1,
     paddingTop: 60,
@@ -87,6 +113,11 @@ const styles = StyleSheet.create({
   headerIcons: {
     flexDirection: "row",
     gap: 12,
+  },
+  divider: {
+    height: 1,
+    backgroundColor: "#EDEEEF",
+    marginTop: 13,
   },
   sectionTitle: {
     fontSize: 15,
@@ -124,24 +155,50 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: "400",
   },
-  noticeBox: {
-    width: 325,
-    height: 158,
-    backgroundColor: "#F4F5F7",
-    paddingTop: 20,
-    paddingBottom: 20,
-    paddingHorizontal: 10,
-    borderRadius: 16,
+  keywordList: {
+    marginTop: 4,
+  },
+  keywordItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderColor: "#E5E7EB",
+    height: 85,
+  },
+  keywordLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  keywordHash: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: "#0E0F15",
+  },
+  keywordRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  newsCount: {
+    fontSize: 14,
+    color: "#555",
+  },
+  alertBadge: {
+    backgroundColor: "#00E58F",
+    borderRadius: 999,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    marginLeft: 6,
+    minWidth: 20,
     alignItems: "center",
     justifyContent: "center",
-    alignSelf: "center",
   },
-  noticeText: {
-    textAlign: "center",
-    color: "#484F56",
-    fontSize: 15,
-    marginTop: 20,
-    fontWeight: "600",
+  alertText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "bold",
   },
   captionText: {
     textAlign: "center",

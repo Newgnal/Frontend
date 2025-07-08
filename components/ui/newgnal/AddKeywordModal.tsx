@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   StyleSheet,
@@ -19,6 +20,7 @@ export default function AddKeywordModal({
 }) {
   const [keyword, setKeyword] = useState("");
   const maxLength = 10;
+  const router = useRouter();
 
   return (
     <Modal isVisible={isVisible} onBackdropPress={onClose} style={styles.modal}>
@@ -51,6 +53,8 @@ export default function AddKeywordModal({
             onPress={() => {
               onConfirm(keyword);
               setKeyword("");
+              //UI 확인용
+              router.push("/newgnal/keywordlist");
             }}
           >
             <Text style={styles.confirmText}>확인</Text>
