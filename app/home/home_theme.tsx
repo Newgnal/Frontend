@@ -18,24 +18,30 @@ const year = 2025;
 const month = 5;
 const lastDate = new Date(year, month, 0).getDate();
 
-const sentimentData = Array(lastDate)
-  .fill(0)
-  .map(() => parseFloat((Math.random() * 2 - 1).toFixed(2)));
+const sentimentData = Array.from({ length: lastDate }, () =>
+  parseFloat((Math.random() * 2 - 1).toFixed(2))
+);
 
-const newsVolumeData = Array(lastDate)
-  .fill(0)
-  .map(() => Math.floor(Math.random() * 1400));
+const newsVolumeData = Array.from({ length: lastDate }, () =>
+  Math.floor(Math.random() * 1400)
+);
 
-const allLabels = Array.from(
+const labels = Array.from(
   { length: lastDate },
   (_, i) => `06.${String(i + 1).padStart(2, "0")}`
 );
-const displayLabels = allLabels.map((label, i) => (i % 7 === 0 ? label : ""));
 
+const displayLabels = labels.map((label, i) => (i % 7 === 0 ? label : ""));
+
+const averageSentiment =
+  sentimentData.reduce((sum, val) => sum + val, 0) / sentimentData.length;
+const sentimentColor = averageSentiment >= 0 ? "#F63D55" : "#497AFA";
 const fullLength = lastDate;
 
-const isPositive = sentimentData.reduce((sum, v) => sum + v, 0) >= 0;
-const sentimentColor = isPositive ? "#F63D55" : "#497AFA";
+const roundedSentiment = parseFloat(averageSentiment.toFixed(1));
+const sentimentDisplay = `${
+  roundedSentiment >= 0 ? "+" : ""
+}${roundedSentiment}`;
 
 const dummyNews = [
   {
@@ -56,7 +62,11 @@ export default function HomeMain() {
   return (
     <View style={styles.container}>
       <View style={{ marginTop: 20 }}>
-        <CategoryInfoBox category="반도체/AI" change="+0.8" />
+        <CategoryInfoBox
+          category="반도체/AI"
+          change={sentimentDisplay}
+          color={sentimentColor}
+        />
       </View>
 
       <View style={styles.sectionContainer}>
@@ -72,15 +82,13 @@ export default function HomeMain() {
           horizontal
           data={dummyNews}
           keyExtractor={(item) => item.id}
+          contentContainerStyle={{ paddingLeft: 0, paddingRight: 12 }}
           ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
           showsHorizontalScrollIndicator={false}
           renderItem={({ item }) => (
             <TouchableOpacity
               onPress={() =>
-                router.push({
-                  pathname: "/news/[id]",
-                  params: { id: item.id },
-                })
+                router.push({ pathname: "/news/[id]", params: { id: item.id } })
               }
             >
               <View style={styles.newsCard}>
@@ -105,15 +113,15 @@ export default function HomeMain() {
           />
         </View>
 
-        <View style={styles.chartBox}>
+        <View style={[styles.chartBox, { paddingRight: 12 }]}>
           <View style={styles.fullOverlay}>
-            <Svg height="126" width="100%">
+            <Svg height="126" width="100%" style={{ position: "absolute" }}>
               {[...Array(fullLength)].map((_, i) => (
                 <Line
                   key={i}
-                  x1={`${(100 / (fullLength - 1)) * i}%`}
+                  x1={`${(100 / (sentimentData.length - 1)) * i}%`}
                   y1="0"
-                  x2={`${(100 / (fullLength - 1)) * i}%`}
+                  x2={`${(100 / (sentimentData.length - 1)) * i}%`}
                   y2="100%"
                   stroke={i % 7 === 0 ? "#40454A" : "#D9D9D9"}
                   strokeWidth="1"
@@ -126,11 +134,11 @@ export default function HomeMain() {
           <View style={{ position: "relative", height: 126 }}>
             <LineChart
               data={{
-                labels: allLabels,
+                labels: displayLabels,
                 datasets: [{ data: sentimentData }],
                 legend: [],
               }}
-              width={335}
+              width={lastDate * 12}
               height={126}
               withDots={false}
               withShadow={false}
@@ -153,7 +161,6 @@ export default function HomeMain() {
               segments={5}
               style={styles.chartStyle}
             />
-
             <View style={{ position: "absolute", right: 0, top: 0 }}>
               <Text style={{ fontSize: 12, color: "#666" }}>+1</Text>
             </View>
@@ -181,7 +188,6 @@ export default function HomeMain() {
           ]}
         >
           <Text style={styles.newsVolumeTitle}>뉴스 수</Text>
-
           <BarChart
             data={{ labels: [], datasets: [{ data: newsVolumeData }] }}
             width={343}
@@ -200,15 +206,12 @@ export default function HomeMain() {
               color: () => sentimentColor,
               fillShadowGradient: sentimentColor,
               fillShadowGradientOpacity: 1,
-              propsForBackgroundLines: {
-                strokeWidth: 0,
-              },
+              propsForBackgroundLines: { strokeWidth: 0 },
             }}
             style={styles.chartStyle}
-            yAxisLabel=""
-            yAxisSuffix=""
+            yAxisLabel={""}
+            yAxisSuffix={""}
           />
-
           <View style={{ position: "absolute", right: 0, top: 50 }}>
             <Text style={{ fontSize: 12, color: "#666" }}>1.4k</Text>
           </View>
@@ -278,8 +281,6 @@ const styles = StyleSheet.create({
     padding: 8,
     backgroundColor: "white",
     borderRadius: 8,
-    marginRight: 12,
-    marginLeft: -10,
   },
   newsImage: {
     height: 100,

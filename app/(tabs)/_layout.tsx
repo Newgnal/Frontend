@@ -9,8 +9,8 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import HomeIcon from "@/assets/images/home.svg";
 import HomeGrayIcon from "@/assets/images/ic_homegray.svg";
 
-import NewsroomIcon from "@/assets/images/ic_newganl.svg";
-import NewsroomGrayIcon from "@/assets/images/ic_newganlgray.svg";
+import MynewgnalIcon from "@/assets/images/ic_newganl.svg";
+import MynewgnalGrayIcon from "@/assets/images/ic_newganlgray.svg";
 
 import CommunityGrayIcon from "@/assets/images/communitygray.svg";
 import CommunityIcon from "@/assets/images/ic_com.svg";
@@ -73,16 +73,15 @@ export default function TabLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
-        name="newsroom"
+        name="mynewgnal"
         options={{
           title: "내 뉴그널",
           tabBarIcon: ({ focused }) =>
             focused ? (
-              <NewsroomIcon width={24} height={24} />
+              <MynewgnalIcon width={24} height={24} />
             ) : (
-              <NewsroomGrayIcon width={24} height={24} />
+              <MynewgnalGrayIcon width={24} height={24} />
             ),
           tabBarLabel: ({ focused }) => (
             <Text
@@ -102,7 +101,6 @@ export default function TabLayout() {
           ),
         }}
       />
-
       <Tabs.Screen
         name="community"
         options={{
