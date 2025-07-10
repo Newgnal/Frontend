@@ -141,7 +141,6 @@ export default function WriteFormScreen() {
                     date={date ?? ""}
                     category={category ?? ""}
                     sentiment={sentiment ?? ""}
-                    views={Number(views) || 0}
                   />
                   <Pressable
                     onPress={handleRemoveNews}
