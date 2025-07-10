@@ -74,7 +74,7 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="mynewgnal/index"
+        name="mynewgnal"
         options={{
           title: "내 뉴그널",
           tabBarIcon: ({ focused }) =>
