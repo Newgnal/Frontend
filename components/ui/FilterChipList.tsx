@@ -161,9 +161,9 @@ export default function FilterChipList() {
         swipeDirection="down"
         propagateSwipe
         useNativeDriver={false}
-        style={styles.modal}
+        style={{ margin: 0, justifyContent: "flex-end" }}
       >
-        <GestureHandlerRootView style={styles.modalContent}>
+        <GestureHandlerRootView style={{ flex: 0 }}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeaderRow}>
               <View style={styles.modalTextGroup}>
@@ -249,13 +249,14 @@ const styles = StyleSheet.create({
     padding: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: "80%",
   },
   modalHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    overflow: "hidden",
   },
+
   modalTextGroup: {
     flexDirection: "column",
     alignItems: "flex-start",
