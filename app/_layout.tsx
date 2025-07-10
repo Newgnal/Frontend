@@ -1,5 +1,4 @@
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-
+import SearchBar from "@/components/ui/HeaderIcon/searchBar";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import {
   DarkTheme,
@@ -10,8 +9,10 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 
-import SearchBar from "@/components/ui/HeaderIcon/searchBar";
+import { toastConfig } from "@/components/ui/Toast/toastConfig";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
+import Toast from "react-native-toast-message";
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
@@ -48,6 +49,7 @@ export default function RootLayout() {
           <Stack.Screen name="+not-found" />
         </Stack>
         <StatusBar style="auto" />
+        <Toast config={toastConfig} topOffset={100} position="top" />
       </ThemeProvider>
     </GestureHandlerRootView>
   );
