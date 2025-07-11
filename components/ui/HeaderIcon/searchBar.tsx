@@ -1,50 +1,68 @@
 import IcGraySearch from "@/assets/images/ic_search.gray.svg";
 import IcClose from "@/assets/images/icon_close.svg";
-import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, TextInput, View } from "react-native";
 
-export default function SearchBar() {
-  const router = useRouter();
-
+export default function SearchBar({
+  value,
+  onChangeText,
+  onSubmitEditing,
+  onClear,
+}: {
+  value: string;
+  onChangeText: (text: string) => void;
+  onSubmitEditing: () => void;
+  onClear: () => void;
+}) {
   return (
     <View style={styles.wrapper}>
-      <Pressable
-        style={styles.searchBar}
-        onPress={() => router.push("/header/search")}
-      >
+      <View style={styles.searchBar}>
         <IcGraySearch width={24} height={24} />
 
-        <Text style={styles.placeholder}>어떤 테마가 궁금하신가요?</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="어떤 테마가 궁금하신가요?"
+          placeholderTextColor="#89939F"
+          value={value}
+          onChangeText={onChangeText}
+          onSubmitEditing={onSubmitEditing}
+          returnKeyType="search"
+        />
 
-        <IcClose width={20} height={20} />
-      </Pressable>
+        {true && (
+          <Pressable onPress={onClear} style={styles.clearButton}>
+            <IcClose width={20} height={20} />
+          </Pressable>
+        )}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   wrapper: {
-    marginHorizontal: 20,
-    marginTop: 8,
     alignItems: "center",
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
     backgroundColor: "#F5F5F5",
     borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    marginRight: 8,
     width: 348,
     height: 38,
+    paddingHorizontal: 12,
+    gap: 8,
   },
-  placeholder: {
+  input: {
     flex: 1,
-    marginLeft: 8,
-    marginRight: 4,
     fontSize: 14,
-    color: "#999",
+    color: "#111",
+    fontWeight: "400",
+    paddingVertical: 0,
+  },
+  clearButton: {
+    width: 24,
+    height: 24,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
