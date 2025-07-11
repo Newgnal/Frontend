@@ -1,47 +1,23 @@
 import IcVector from "@/assets/images/Vector.svg";
 import CategoryInfoBox from "@/components/CategoryInfoBox";
+import NewsVolumeChart from "@/components/chart/NewsVolumeChart";
+import SentimentChart from "@/components/chart/SentimentChart";
+import { sentimentData } from "@/data/sentimentDummy";
 import { useRouter } from "expo-router";
 import {
-  Dimensions,
   FlatList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { BarChart, LineChart } from "react-native-chart-kit";
-import Svg, { Line } from "react-native-svg";
-
-const screenWidth = Dimensions.get("window").width;
-
-const year = 2025;
-const month = 5;
-const lastDate = new Date(year, month, 0).getDate();
-
-const sentimentData = Array.from({ length: lastDate }, () =>
-  parseFloat((Math.random() * 2 - 1).toFixed(2))
-);
-
-const newsVolumeData = Array.from({ length: lastDate }, () =>
-  Math.floor(Math.random() * 1400)
-);
-
-const labels = Array.from(
-  { length: lastDate },
-  (_, i) => `06.${String(i + 1).padStart(2, "0")}`
-);
-
-const displayLabels = labels.map((label, i) => (i % 7 === 0 ? label : ""));
 
 const averageSentiment =
   sentimentData.reduce((sum, val) => sum + val, 0) / sentimentData.length;
 const sentimentColor = averageSentiment >= 0 ? "#F63D55" : "#497AFA";
-const fullLength = lastDate;
-
-const roundedSentiment = parseFloat(averageSentiment.toFixed(1));
 const sentimentDisplay = `${
-  roundedSentiment >= 0 ? "+" : ""
-}${roundedSentiment}`;
+  averageSentiment >= 0 ? "+" : ""
+}${averageSentiment.toFixed(1)}`;
 
 const dummyNews = [
   {
@@ -113,72 +89,8 @@ export default function HomeMain() {
           />
         </View>
 
-        <View style={[styles.chartBox, { paddingRight: 12 }]}>
-          <View style={styles.fullOverlay}>
-            <Svg height="126" width="100%" style={{ position: "absolute" }}>
-              {[...Array(fullLength)].map((_, i) => (
-                <Line
-                  key={i}
-                  x1={`${(100 / (sentimentData.length - 1)) * i}%`}
-                  y1="0"
-                  x2={`${(100 / (sentimentData.length - 1)) * i}%`}
-                  y2="100%"
-                  stroke={i % 7 === 0 ? "#40454A" : "#D9D9D9"}
-                  strokeWidth="1"
-                  strokeDasharray="4 4"
-                />
-              ))}
-            </Svg>
-          </View>
-
-          <View style={{ position: "relative", height: 126 }}>
-            <LineChart
-              data={{
-                labels: displayLabels,
-                datasets: [{ data: sentimentData }],
-                legend: [],
-              }}
-              width={lastDate * 12}
-              height={126}
-              withDots={false}
-              withShadow={false}
-              withInnerLines={false}
-              withOuterLines={false}
-              withVerticalLines={false}
-              withHorizontalLines={false}
-              withHorizontalLabels={true}
-              yLabelsOffset={10}
-              chartConfig={{
-                backgroundColor: "#ffffff",
-                backgroundGradientFrom: "#ffffff",
-                backgroundGradientTo: "#ffffff",
-                decimalPlaces: 1,
-                color: () => sentimentColor,
-                labelColor: () => "#666",
-                propsForDots: { r: "0" },
-              }}
-              formatYLabel={() => ""}
-              segments={5}
-              style={styles.chartStyle}
-            />
-            <View style={{ position: "absolute", right: 0, top: 0 }}>
-              <Text style={{ fontSize: 12, color: "#666" }}>+1</Text>
-            </View>
-            <View style={{ position: "absolute", right: 0, top: 50 }}>
-              <Text style={{ fontSize: 12, color: "#666" }}>0</Text>
-            </View>
-            <View style={{ position: "absolute", right: 0, bottom: 10 }}>
-              <Text style={{ fontSize: 12, color: "#666" }}>-1</Text>
-            </View>
-          </View>
-
-          <View style={styles.labelBox}>
-            {displayLabels.map((label, idx) => (
-              <Text key={idx} style={styles.labelText}>
-                {label}
-              </Text>
-            ))}
-          </View>
+        <View style={styles.chartBox}>
+          <SentimentChart color={sentimentColor} />
         </View>
 
         <View
@@ -187,39 +99,14 @@ export default function HomeMain() {
             { backgroundColor: "transparent", paddingHorizontal: 0 },
           ]}
         >
-          <Text style={styles.newsVolumeTitle}>뉴스 수</Text>
-          <BarChart
-            data={{ labels: [], datasets: [{ data: newsVolumeData }] }}
-            width={343}
-            height={94}
-            fromZero
-            withInnerLines={false}
-            withHorizontalLabels={false}
-            withVerticalLabels={false}
-            showValuesOnTopOfBars={false}
-            chartConfig={{
-              backgroundColor: "#ffffff",
-              backgroundGradientFrom: "#ffffff",
-              backgroundGradientTo: "#ffffff",
-              decimalPlaces: 0,
-              barPercentage: 0.4,
-              color: () => sentimentColor,
-              fillShadowGradient: sentimentColor,
-              fillShadowGradientOpacity: 1,
-              propsForBackgroundLines: { strokeWidth: 0 },
-            }}
-            style={styles.chartStyle}
-            yAxisLabel={""}
-            yAxisSuffix={""}
-          />
-          <View style={{ position: "absolute", right: 0, top: 50 }}>
-            <Text style={{ fontSize: 12, color: "#666" }}>1.4k</Text>
-          </View>
-          <View style={{ position: "absolute", right: 0, top: 85 }}>
-            <Text style={{ fontSize: 12, color: "#666" }}>400</Text>
-          </View>
-          <View style={{ position: "absolute", right: 0, top: 120 }}>
-            <Text style={{ fontSize: 12, color: "#666" }}>0</Text>
+          <View
+            style={[
+              styles.chartBox,
+              { backgroundColor: "transparent", paddingHorizontal: 0 },
+            ]}
+          >
+            <Text style={styles.newsVolumeTitle}>뉴스 수</Text>
+            <NewsVolumeChart color={sentimentColor} />
           </View>
         </View>
       </View>
@@ -300,12 +187,12 @@ const styles = StyleSheet.create({
     color: "#717D89",
   },
   newsVolumeTitle: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
     lineHeight: 18,
     letterSpacing: 0.072,
     color: "#0E0F15",
-    marginTop: 8,
-    marginBottom: 10,
+
+    marginBottom: 5,
   },
 });
