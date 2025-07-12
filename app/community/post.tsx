@@ -31,6 +31,7 @@ export default function PostScreen() {
   const [likedComments, setLikedComments] = useState<{
     [key: string]: boolean;
   }>({});
+  const [commentText, setCommentText] = useState("");
   const pollLabels = ["매도", "보유", "매수"];
   const pollResults = [20, 20, 15]; // 각 항목 비율(%)
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
@@ -323,6 +324,8 @@ export default function PostScreen() {
             style={styles.textInput}
             placeholder="댓글을 입력하세요"
             placeholderTextColor="#9CA3AF"
+            value={commentText}
+            onChangeText={setCommentText}
           />
           <TouchableOpacity>
             <IcSend width={20} height={20} />

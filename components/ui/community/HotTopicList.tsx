@@ -81,7 +81,7 @@ const HotTopicList = () => {
                 <Pressable
                   key={item.id}
                   style={styles.card}
-                  onPress={() => router.push("/(tabs)/community/post")}
+                  onPress={() => router.push("/community/post")}
                 >
                   <Text style={styles.id}>{item.id}</Text>
                   <View style={styles.textContainer}>

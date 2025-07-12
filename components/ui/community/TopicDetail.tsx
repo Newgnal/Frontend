@@ -57,7 +57,7 @@ export default function TopicDetail({
 
       <Pressable
         style={{ paddingTop: 8 }}
-        onPress={() => router.push("/(tabs)/community/post")}
+        onPress={() => router.push("/community/post")}
       >
         <Text
           style={[typography.subtitle_s3_15_semi_bold, { color: "#40454A" }]}
