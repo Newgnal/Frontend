@@ -3,7 +3,7 @@ import CategoryInfoBox from "@/components/CategoryInfoBox";
 import NewsVolumeChart from "@/components/chart/NewsVolumeChart";
 import SentimentChart from "@/components/chart/SentimentChart";
 import { sentimentData } from "@/data/sentimentDummy";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import {
   FlatList,
   StyleSheet,
@@ -31,15 +31,47 @@ const dummyNews = [
     date: "2025.05.28",
   },
 ];
+const categories = [
+  { id: "semiconductor", name: "반도체/AI" },
+  { id: "finance", name: "금융/보험" },
+  { id: "bond", name: "채권/금리" },
+  { id: "green", name: "2차전지/친환경" },
+  { id: "forex", name: "환율/외환" },
+  { id: "commodity", name: "원자재/귀금속" },
+  { id: "realestate", name: "부동산/리츠" },
+  { id: "health", name: "헬스케어/바이오" },
+  { id: "etc", name: "기타" },
+];
 
 export default function HomeMain() {
   const router = useRouter();
+  const { categoryid } = useLocalSearchParams();
+
+  const selectedCategoryId: string = Array.isArray(categoryid)
+    ? categoryid[0]
+    : categoryid ?? "semiconductor";
+  const categoryDisplayNames: Record<string, string> = {
+    semiconductor: "반도체/AI",
+    it: "IT/인터넷",
+    finance: "금융/보험",
+    bond: "채권/금리",
+    green: "2차전지/친환경",
+    forex: "환율/외환",
+    commodity: "원자재/귀금속",
+    realestate: "부동산/리츠",
+    health: "헬스케어/바이오",
+    etc: "기타",
+  };
+  const displayName =
+    categoryDisplayNames[selectedCategoryId] ?? "카테고리 없음";
+
+  const { updatedCategory } = useLocalSearchParams();
 
   return (
     <View style={styles.container}>
       <View style={{ marginTop: 20 }}>
         <CategoryInfoBox
-          category="반도체/AI"
+          category={displayName}
           change={sentimentDisplay}
           color={sentimentColor}
         />
@@ -49,7 +81,12 @@ export default function HomeMain() {
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>주요 뉴스</Text>
           <TouchableOpacity
-            onPress={() => router.push("/category/semiconductor")}
+            onPress={() =>
+              router.push({
+                pathname: "/category/[categoryid]",
+                params: { categoryid: selectedCategoryId },
+              })
+            }
           >
             <Text style={styles.moreText}>더 보기 &gt;</Text>
           </TouchableOpacity>

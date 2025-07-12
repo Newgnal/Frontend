@@ -39,6 +39,10 @@ export default function RootLayout() {
               headerShown: false,
             }}
           />
+          <Stack.Screen
+            name="category/[categoryid]"
+            options={{ headerShown: false }}
+          />
           <Stack.Screen name="news/[id]" options={{ headerShown: false }} />
           <Stack.Screen name="newgnal" options={{ headerShown: false }} />
           <Stack.Screen

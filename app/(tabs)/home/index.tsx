@@ -6,9 +6,9 @@ import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Line } from "react-native-svg";
-import { typography } from "../../styles/typography";
-import HomeAll from "../home/home_all";
-import HomeMain from "../home/home_theme";
+import { typography } from "../../../styles/typography";
+import HomeAll from "../../Home/home_all";
+import HomeMain from "../../Home/home_theme";
 
 export default function HomeScreen() {
   const [selectedTab, setSelectedTab] = useState<"theme" | "all">("theme");
