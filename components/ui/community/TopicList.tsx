@@ -1,12 +1,6 @@
-import DotIcon from "@/assets/images/ic_dot.svg";
-import EmptyProfileIcon from "@/assets/images/ic_ellipse.svg";
-import ViewIcon from "@/assets/images/ic_eyes.svg";
-import HeartIcon from "@/assets/images/ic_hrt_emt.svg";
-import MessageIcon from "@/assets/images/ic_message.svg";
-import { typography } from "@/styles/typography";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { HorizontalLine } from "../HorizontalLine";
-import News from "./News";
+import TopicDetail from "./TopicDetail";
 
 type OrderType = "latest" | "views";
 
@@ -23,7 +17,7 @@ const dummyData = [
     category: "반도체/AI",
     title: "반도체에 대해 어떻게 생각하세요?",
     content:
-      "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.",
+      "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.",
     likes: 10,
     views: 10,
     comments: 10,
@@ -70,99 +64,7 @@ export default function TopicList({ order, hasNews }: TopciListProps) {
     <>
       {sortedData.map((item, index) => (
         <View key={item.id}>
-          <View>
-            <View style={styles.header}>
-              <View style={{ flexDirection: "row", gap: 7 }}>
-                <View>
-                  <EmptyProfileIcon />
-                </View>
-                <View>
-                  <View>
-                    <Text style={typography.label_l2_13_medium}>
-                      {item.username}
-                    </Text>
-                  </View>
-                  <View>
-                    <Text
-                      style={[
-                        typography.caption_c2_12_regular,
-                        { color: "#89939F" },
-                      ]}
-                    >
-                      {item.time}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-              <View style={styles.category}>
-                <Text
-                  style={[
-                    typography.caption_c2_12_regular,
-                    { color: "#484F56", padding: 4 },
-                  ]}
-                >
-                  {item.category}
-                </Text>
-              </View>
-            </View>
-            <View style={{ paddingTop: 8 }}>
-              <Text
-                style={[
-                  typography.subtitle_s3_15_semi_bold,
-                  { color: "#40454A" },
-                ]}
-              >
-                {item.title}
-              </Text>
-              <Text
-                style={[
-                  typography.caption_c2_12_regular,
-                  { paddingTop: 4, color: "#717D89" },
-                ]}
-              >
-                {item.content}
-              </Text>
-            </View>
-            {hasNews && (
-              <View style={{ marginTop: 12 }}>
-                <News />
-              </View>
-            )}
-            <View style={styles.buttonContainer}>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <HeartIcon />
-                <Text
-                  style={[
-                    typography.caption_c2_12_regular,
-                    { color: "#89939F" },
-                  ]}
-                >
-                  {item.likes}
-                </Text>
-              </View>
-              <View style={{ flexDirection: "row", alignItems: "center" }}>
-                <ViewIcon />
-                <Text
-                  style={[
-                    typography.caption_c2_12_regular,
-                    { color: "#89939F", paddingRight: 4 },
-                  ]}
-                >
-                  {item.views}
-                </Text>
-                <DotIcon />
-                <MessageIcon />
-                <Text
-                  style={[
-                    typography.caption_c2_12_regular,
-                    { color: "#89939F" },
-                  ]}
-                >
-                  {item.comments}
-                </Text>
-              </View>
-            </View>
-          </View>
+          <TopicDetail item={item} isList={true} hasNews={hasNews} />
           {index !== dummyData.length - 1 && (
             <HorizontalLine style={{ marginBottom: 20 }} />
           )}
