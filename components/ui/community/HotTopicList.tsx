@@ -3,13 +3,21 @@ import ViewIcon from "@/assets/images/ic_eyes.svg";
 import HeartIcon from "@/assets/images/ic_hrt_emt.svg";
 import CommentIcon from "@/assets/images/ic_message.svg";
 import { typography } from "@/styles/typography";
+import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { HorizontalLine } from "../HorizontalLine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-const PEEK_WIDTH = 30;
-const PAGE_WIDTH = SCREEN_WIDTH - PEEK_WIDTH * 4;
+const PEEK_WIDTH = 32;
+const PAGE_WIDTH = SCREEN_WIDTH - PEEK_WIDTH * 3;
 
 const data = Array.from({ length: 9 }, (_, i) => ({
   id: i + 1,
@@ -41,6 +49,7 @@ const HotTopicList = () => {
     setCurrentPage(pageIndex);
   };
 
+  const router = useRouter();
   return (
     <>
       <ScrollView
@@ -51,6 +60,7 @@ const HotTopicList = () => {
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScrollEnd}
+        contentContainerStyle={{ paddingRight: PEEK_WIDTH }}
       >
         {pageChunks.map((chunk, pageIndex) => (
           <View
@@ -68,7 +78,11 @@ const HotTopicList = () => {
               const globalIndex = pageIndex * 3 + index + 1; // 전체 카드 인덱스 (1부터 시작)
 
               return (
-                <View key={item.id} style={styles.card}>
+                <Pressable
+                  key={item.id}
+                  style={styles.card}
+                  onPress={() => router.push("/(tabs)/community/post")}
+                >
                   <Text style={styles.id}>{item.id}</Text>
                   <View style={styles.textContainer}>
                     <View style={styles.tagCard}>
@@ -78,25 +92,25 @@ const HotTopicList = () => {
                     <View style={styles.meta}>
                       <View style={styles.iconContainer}>
                         <HeartIcon />
-                        <Text>{item.likes}</Text>
+                        <Text style={styles.itemText}>{item.likes}</Text>
                       </View>
                       <View style={{ flexDirection: "row" }}>
                         <View style={styles.iconContainer}>
                           <ViewIcon />
-                          <Text>{item.views}</Text>
+                          <Text style={styles.itemText}>{item.views}</Text>
                         </View>
                         <DotIcon
                           style={{ alignSelf: "center", marginLeft: 4 }}
                         />
                         <View style={styles.iconContainer}>
                           <CommentIcon />
-                          <Text>{item.comments}</Text>
+                          <Text style={styles.itemText}>{item.comments}</Text>
                         </View>
                       </View>
                     </View>
                     -{globalIndex % 3 !== 0 && <HorizontalLine />}
                   </View>
-                </View>
+                </Pressable>
               );
             })}
           </View>
@@ -181,6 +195,11 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     flexDirection: "row",
+  },
+  itemText: {
+    ...typography.caption_c2_12_regular,
+    color: "#89939F",
+    alignSelf: "center",
   },
 });
 

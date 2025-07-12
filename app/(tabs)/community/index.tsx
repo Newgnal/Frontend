@@ -69,8 +69,10 @@ export default function CommunityScreen() {
               >
                 지금 뜨는 이야기
               </Text>
-              <HotTopicList />
             </View>
+          </View>
+          <View style={{ paddingLeft: 20, paddingBottom: 25 }}>
+            <HotTopicList />
           </View>
           <HorizontalLine color={"#F4F5F7"} height={8} />
           <View style={{ paddingTop: 20, paddingHorizontal: 20 }}>
