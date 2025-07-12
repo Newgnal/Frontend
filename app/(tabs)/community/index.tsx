@@ -61,7 +61,6 @@ export default function CommunityScreen() {
               </View>
             </View>
             <View style={{ paddingTop: 20 }}>
-              <HotTopicList />
               <Text
                 style={[
                   typography.subtitle_s2_16_semi_bold,
@@ -70,17 +69,7 @@ export default function CommunityScreen() {
               >
                 지금 뜨는 이야기
               </Text>
-              <ScrollView horizontal={true}>
-                <View>
-                  <Text>11111111111</Text>
-                </View>
-                <View>
-                  <Text>2</Text>
-                </View>
-                <View>
-                  <Text>3</Text>
-                </View>
-              </ScrollView>
+              <HotTopicList />
             </View>
           </View>
           <HorizontalLine color={"#F4F5F7"} height={8} />

@@ -1,17 +1,15 @@
+import DotIcon from "@/assets/images/ic_dot.svg";
+import ViewIcon from "@/assets/images/ic_eyes.svg";
+import HeartIcon from "@/assets/images/ic_hrt_emt.svg";
+import CommentIcon from "@/assets/images/ic_message.svg";
+import { typography } from "@/styles/typography";
 import { useRef, useState } from "react";
-import {
-  Dimensions,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
+import { HorizontalLine } from "../HorizontalLine";
 
 const SCREEN_WIDTH = Dimensions.get("window").width;
-const PEEK_WIDTH = 32;
-const PAGE_WIDTH = SCREEN_WIDTH - PEEK_WIDTH;
+const PEEK_WIDTH = 30;
+const PAGE_WIDTH = SCREEN_WIDTH - PEEK_WIDTH * 4;
 
 const data = Array.from({ length: 9 }, (_, i) => ({
   id: i + 1,
@@ -22,8 +20,8 @@ const data = Array.from({ length: 9 }, (_, i) => ({
   comments: 12,
 }));
 
-// 3개씩 나누기 (주 슬라이드 단위)
-const chunkArray = (arr: any[], size: number) => {
+// 3개씩 나누기 (페이지 당 3개 카드)
+const chunkArray = (arr, size) => {
   const chunked = [];
   for (let i = 0; i < arr.length; i += size) {
     chunked.push(arr.slice(i, i + size));
@@ -33,20 +31,18 @@ const chunkArray = (arr: any[], size: number) => {
 
 const HotTopicList = () => {
   const [currentPage, setCurrentPage] = useState(0);
-  const scrollRef = useRef<ScrollView>(null);
+  const scrollRef = useRef(null);
 
-  const mainChunks = chunkArray(data, 3); // 3개씩 잘라 페이지 구성
+  const pageChunks = chunkArray(data, 3);
 
-  const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+  const handleScrollEnd = (event) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const pageIndex = Math.round(offsetX / PAGE_WIDTH);
     setCurrentPage(pageIndex);
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>지금 뜨는 이야기</Text>
-
+    <>
       <ScrollView
         ref={scrollRef}
         horizontal
@@ -54,57 +50,68 @@ const HotTopicList = () => {
         snapToInterval={PAGE_WIDTH}
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingLeft: 16 }}
         onMomentumScrollEnd={handleScrollEnd}
       >
-        {mainChunks.map((mainItems, pageIndex) => {
-          const peekItems = data.slice(
-            (pageIndex + 1) * 3,
-            (pageIndex + 2) * 3
-          ); // 다음 3개 peek
+        {pageChunks.map((chunk, pageIndex) => (
+          <View
+            key={pageIndex}
+            style={[
+              styles.page,
+              {
+                width: PAGE_WIDTH,
+                marginRight:
+                  pageIndex !== pageChunks.length - 1 ? PEEK_WIDTH : 0,
+              },
+            ]}
+          >
+            {chunk.map((item, index) => {
+              const globalIndex = pageIndex * 3 + index + 1; // 전체 카드 인덱스 (1부터 시작)
 
-          const allItems = [...mainItems, ...peekItems]; // 총 6개
-          const rows = chunkArray(allItems, 2); // 2열 구성
-
-          return (
-            <View
-              key={pageIndex}
-              style={[
-                styles.page,
-                { width: PAGE_WIDTH, marginRight: PEEK_WIDTH },
-              ]}
-            >
-              {rows.map((row, rowIndex) => (
-                <View key={rowIndex} style={styles.row}>
-                  {row.map((item) => (
-                    <View key={item.id} style={styles.card}>
-                      <Text style={styles.id}>{item.id}</Text>
+              return (
+                <View key={item.id} style={styles.card}>
+                  <Text style={styles.id}>{item.id}</Text>
+                  <View style={styles.textContainer}>
+                    <View style={styles.tagCard}>
                       <Text style={styles.tag}>{item.tag}</Text>
-                      <Text style={styles.titleText}>{item.title}</Text>
-                      <View style={styles.meta}>
-                        <Text>❤️ {item.likes}</Text>
-                        <Text>👁 {item.views}</Text>
-                        <Text>💬 {item.comments}</Text>
+                    </View>
+                    <Text style={styles.titleText}>{item.title}</Text>
+                    <View style={styles.meta}>
+                      <View style={styles.iconContainer}>
+                        <HeartIcon />
+                        <Text>{item.likes}</Text>
+                      </View>
+                      <View style={{ flexDirection: "row" }}>
+                        <View style={styles.iconContainer}>
+                          <ViewIcon />
+                          <Text>{item.views}</Text>
+                        </View>
+                        <DotIcon
+                          style={{ alignSelf: "center", marginLeft: 4 }}
+                        />
+                        <View style={styles.iconContainer}>
+                          <CommentIcon />
+                          <Text>{item.comments}</Text>
+                        </View>
                       </View>
                     </View>
-                  ))}
+                    -{globalIndex % 3 !== 0 && <HorizontalLine />}
+                  </View>
                 </View>
-              ))}
-            </View>
-          );
-        })}
+              );
+            })}
+          </View>
+        ))}
       </ScrollView>
 
-      {/* 인디케이터 */}
       <View style={styles.indicator}>
-        {mainChunks.map((_, i) => (
+        {pageChunks.map((_, i) => (
           <View
             key={i}
             style={[styles.dot, { opacity: currentPage === i ? 1 : 0.3 }]}
           />
         ))}
       </View>
-    </View>
+    </>
   );
 };
 
@@ -120,29 +127,30 @@ const styles = StyleSheet.create({
   },
   page: {
     backgroundColor: "#fff",
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
+    paddingRight: 24,
   },
   card: {
-    width: (PAGE_WIDTH - 16) / 2 - 8,
-    padding: 12,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: "#ddd",
-    backgroundColor: "#fff",
+    marginBottom: 16,
+    flexDirection: "row",
+    gap: 12,
   },
   id: {
-    color: "green",
-    fontWeight: "bold",
-    marginBottom: 4,
+    ...typography.subtitle_s3_15_semi_bold,
+    color: "#04E38F",
+    paddingRight: 12,
   },
   tag: {
+    fontFamily: "Pretendard",
+    color: "#484F56",
     fontSize: 12,
-    color: "#666",
-    marginBottom: 6,
+    fontWeight: "400",
+    fontStyle: "normal",
+  },
+  tagCard: {
+    padding: 4,
+    backgroundColor: "#F4F5F7",
+    borderRadius: 4,
+    alignSelf: "flex-start",
   },
   titleText: {
     fontSize: 14,
@@ -165,6 +173,14 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: "#000",
     marginHorizontal: 4,
+  },
+  textContainer: {
+    alignSelf: "center",
+    gap: 8,
+    width: "100%",
+  },
+  iconContainer: {
+    flexDirection: "row",
   },
 });
 
