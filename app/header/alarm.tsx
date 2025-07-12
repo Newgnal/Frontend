@@ -58,7 +58,7 @@ export default function AlarmScreen() {
           </TouchableOpacity>
         </View>
       </View>
-
+      <View style={styles.divider} />
       <FlatList
         data={notifications}
         keyExtractor={(item) => item.id}
@@ -67,9 +67,9 @@ export default function AlarmScreen() {
             <View style={styles.textBlock}>
               <Text style={styles.subtitle}>{item.subtitle}</Text>
               <View style={styles.titleRow}>
-                {!item.isRead && (
-                  <AlarmIcon width={16} height={16} style={styles.readIcon} />
-                )}
+                <View style={styles.iconWrapper}>
+                  {!item.isRead && <AlarmIcon width={24} height={24} />}
+                </View>
                 <Text
                   style={[styles.title, !item.isRead && styles.unreadTitle]}
                 >
@@ -115,6 +115,11 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
   },
+  divider: {
+    height: 1,
+    backgroundColor: "#EDEEEF",
+    marginTop: 0,
+  },
   notificationItem: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -131,15 +136,22 @@ const styles = StyleSheet.create({
     color: "#7A7A7A",
     marginBottom: 8,
     marginTop: 20,
+    marginLeft: 35,
   },
   titleRow: {
     flexDirection: "row",
     alignItems: "center",
   },
+  iconWrapper: {
+    width: 20,
+    height: 20,
+    marginRight: 0,
+  },
   title: {
     fontSize: 15,
     color: "#000",
     marginTop: 8,
+    marginLeft: 17,
   },
   unreadTitle: {
     fontSize: 15,

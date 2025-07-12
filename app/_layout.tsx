@@ -1,4 +1,3 @@
-import SearchBar from "@/components/ui/HeaderIcon/searchBar";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import {
   DarkTheme,
@@ -28,15 +27,12 @@ export default function RootLayout() {
         <Stack>
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen
-            name="category/semiconductor"
+            name="category"
             options={{
               title: "",
             }}
           />
-          <Stack.Screen
-            name="header/search"
-            options={{ headerTitle: () => <SearchBar />, headerShown: true }}
-          />
+          <Stack.Screen name="header/search" options={{ headerShown: false }} />
           <Stack.Screen
             name="header/alarm"
             options={{

@@ -23,7 +23,7 @@ const dummyNews = [
     title: "삼성, 2028년부터 반도체 유리기판 쓴다",
     date: "2025.05.28",
     category: "반도체/AI",
-    sentiment: "+0.8",
+    sentiment: "-0.8",
     views: 21000,
   },
   {
@@ -31,7 +31,7 @@ const dummyNews = [
     title: "삼성전자, 차세대 AI 반도체 공개",
     date: "2025.05.27",
     category: "반도체/AI",
-    sentiment: "+0.9",
+    sentiment: "-0.9",
     views: 50000,
   },
   {
@@ -39,7 +39,7 @@ const dummyNews = [
     title: "NVIDIA, GPT-5에 최적화된 GPU 출시",
     date: "2025.05.26",
     category: "반도체/AI",
-    sentiment: "+1.2",
+    sentiment: "-1.2",
     views: 35000,
   },
   {
@@ -47,7 +47,7 @@ const dummyNews = [
     title: "AI 반도체 시장, 2030년 5배 성장 전망",
     date: "2025.05.25",
     category: "반도체/AI",
-    sentiment: "+1.0",
+    sentiment: "-1.0",
     views: 12000,
   },
   {
@@ -55,7 +55,15 @@ const dummyNews = [
     title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
     date: "2025.05.24",
     category: "반도체/AI",
-    sentiment: "+0.7",
+    sentiment: "-0.7",
+    views: 27000,
+  },
+  {
+    id: "6",
+    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
+    date: "2025.05.24",
+    category: "반도체/AI",
+    sentiment: "-0.7",
     views: 27000,
   },
 ];
