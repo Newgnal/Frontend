@@ -34,13 +34,6 @@ export const useKeywordStore = create<Store>((set) => ({
       newsCount: 354,
       alertOn: false,
     },
-    {
-      id: "3",
-      name: "엔비디아",
-      hasNewNews: true,
-      newsCount: 354,
-      alertOn: false,
-    },
   ],
   addKeyword: (keyword) =>
     set((state) => ({ keywords: [...state.keywords, keyword] })),

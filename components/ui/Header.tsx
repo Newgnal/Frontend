@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from "react-native";
 import { HorizontalLine } from "./HorizontalLine";
 
 interface HeaderProps {
-  title: string;
+  title: string | React.ReactNode;
   leftSlot?: React.ReactNode;
   rightSlot?: React.ReactNode;
 }
