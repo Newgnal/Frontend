@@ -6,9 +6,12 @@ import IcHeart from "@/assets/images/ic_hrt.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
 import IcSend from "@/assets/images/ic_send.svg";
 import IcComment from "@/assets/images/material-symbols-light_reply-rounded.svg";
+import CommentOptionModal from "@/components/ui/modal/CommentOptionModal";
+import OptionSelectModal from "@/components/ui/modal/OptionSelectModal";
+import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
 import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -20,6 +23,11 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function NewsDetail() {
+  const [isOptionModalVisible, setOptionModalVisible] = useState(false);
+  const [isCommentOptionModalVisible, setCommentOptionModalVisible] =
+    useState(false);
+  const [isReportModalVisible, setReportModalVisible] = useState(false);
+
   const { id } = useLocalSearchParams();
   const router = useRouter();
   const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
@@ -142,11 +150,14 @@ export default function NewsDetail() {
   };
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
   const news = dummyNewsData.find((n) => n.id === id);
+  const scrollRef = useRef<ScrollView>(null);
+  const pollRef = useRef<View>(null);
+  const commentRef = useRef<View>(null);
   if (!news) return <Text>뉴스를 찾을 수 없습니다</Text>;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <ScrollView style={styles.container}>
+      <ScrollView ref={scrollRef} style={styles.container}>
         <View style={styles.header}>
           <TouchableOpacity onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={24} color="black" />
@@ -155,7 +166,7 @@ export default function NewsDetail() {
             <TouchableOpacity style={{ marginRight: 12 }}>
               <IcHeader width={24} height={24} />
             </TouchableOpacity>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => setOptionModalVisible(true)}>
               <IcEtc width={24} height={24} />
             </TouchableOpacity>
           </View>
@@ -165,16 +176,37 @@ export default function NewsDetail() {
           한살림 고구마 케이크서 ‘식중독균 검출’... 식약처, 회수 조치
         </Text>
         <Text style={styles.newsMeta}>입력 2025.06.20 오후 6:44</Text>
-
         <View style={styles.reactions}>
-          <View style={styles.reactionItem}>
-            <IcComnt width={16} height={16} style={{ marginRight: 4 }} />
-            <Text style={styles.reactionText}>10</Text>
-          </View>
-          <View style={styles.reactionItem}>
+          <TouchableOpacity
+            onPress={() => {
+              pollRef.current?.measure((fx, fy, width, height, px, py) => {
+                scrollRef.current?.scrollTo({ y: py - 60, animated: true });
+              });
+            }}
+            style={styles.reactionItem}
+          >
             <IcPoll width={16} height={16} style={{ marginRight: 4 }} />
             <Text style={styles.reactionText}>402</Text>
-          </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => {
+              setTimeout(() => {
+                commentRef.current?.measure(
+                  (x, y, width, height, pageX, pageY) => {
+                    scrollRef.current?.scrollTo({
+                      y: pageY - 60,
+                      animated: true,
+                    });
+                  }
+                );
+              }, 100);
+            }}
+            style={styles.reactionItem}
+          >
+            <IcComnt width={16} height={16} style={{ marginRight: 4 }} />
+            <Text style={styles.reactionText}>10</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.summaryBox}>
@@ -201,7 +233,7 @@ export default function NewsDetail() {
           }}
         />
 
-        <View style={styles.pollBox}>
+        <View ref={pollRef} style={styles.pollBox}>
           <View style={styles.pollContainer}>
             <Text style={styles.pollQuestion}>
               이 뉴스가 [반도체/AI]에 어떤 영향을 줄까요?
@@ -340,7 +372,7 @@ export default function NewsDetail() {
           }}
         />
 
-        <View style={styles.commentSection}>
+        <View ref={commentRef} style={styles.commentSection}>
           <Text style={styles.commentCount}>댓글 {comments.length}</Text>
 
           {comments.map((comment) => (
@@ -404,7 +436,10 @@ export default function NewsDetail() {
                     <Text style={styles.commentActionText}>답글 달기</Text>
                   </View>
                 </View>
-                <TouchableOpacity style={{ marginLeft: "auto" }}>
+                <TouchableOpacity
+                  style={{ marginLeft: "auto" }}
+                  onPress={() => setCommentOptionModalVisible(true)}
+                >
                   <IcComntEtc width={20} height={20} />
                 </TouchableOpacity>
               </View>
@@ -501,6 +536,35 @@ export default function NewsDetail() {
           </TouchableOpacity>
         </View>
       </View>
+      <OptionSelectModal
+        isVisible={isOptionModalVisible}
+        onClose={() => setOptionModalVisible(false)}
+        onFeedbackPress={() => {
+          setOptionModalVisible(false);
+
+          console.log("피드백 보내기 클릭됨");
+        }}
+      />
+      <CommentOptionModal
+        isVisible={isCommentOptionModalVisible}
+        onClose={() => setCommentOptionModalVisible(false)}
+        onEdit={() => {
+          setCommentOptionModalVisible(false);
+          console.log("수정하기 눌림");
+        }}
+        onDelete={() => {
+          setCommentOptionModalVisible(false);
+          console.log("삭제하기 눌림");
+        }}
+      />
+      <ReportOptionModal
+        isVisible={isReportModalVisible}
+        onClose={() => setReportModalVisible(false)}
+        onReport={() => {
+          setReportModalVisible(false);
+          //신고하기
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -3,7 +3,6 @@ import IcMoveActive from "@/assets/images/ic_move_active.svg";
 import IcThemeModalActive from "@/assets/images/ic_them_modal-1.svg";
 import IcThemeModal from "@/assets/images/ic_them_modal.svg";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   ScrollView,
@@ -35,7 +34,7 @@ const DraggableChipItem = gestureHandlerRootHOC(function DraggableChipItem({
   isActive: boolean;
   selected: string;
   isSortMode: boolean;
-  handleSelect: (label: string) => void;
+  handleSelect: (key: string) => void;
 }) {
   return (
     <ScaleDecorator>
@@ -44,13 +43,13 @@ const DraggableChipItem = gestureHandlerRootHOC(function DraggableChipItem({
           onLongPress={drag}
           style={{ flex: 1 }}
           disabled={isActive}
-          onPress={() => !isSortMode && handleSelect(item.label)}
+          onPress={() => !isSortMode && handleSelect(item.key)}
         >
           <Text
             style={[
               styles.modalItemText,
               styles.boldModalItemText,
-              selected === item.label && styles.selectedModalItemText,
+              selected === item.key && styles.selectedModalItemText,
             ]}
           >
             {item.label}
@@ -65,7 +64,7 @@ const DraggableChipItem = gestureHandlerRootHOC(function DraggableChipItem({
           <Ionicons
             name="checkmark"
             size={16}
-            color={selected === item.label ? "#0E0F15" : "#D5DADD"}
+            color={selected === item.key ? "#0E0F15" : "#D5DADD"}
           />
         )}
       </Animated.View>
@@ -88,36 +87,34 @@ const initialChipOptions = [
   { key: "etc", label: "기타" },
 ];
 
-const routeMap: Record<string, string> = {
-  semiconductor: "/category/semiconductor",
-  it: "/category/it",
-  finance: "/category/finance",
-  mobility: "/category/mobility",
-  defense: "/category/defense",
-  green: "/category/green",
-  realestate: "/category/realestate",
-  bond: "/category/bond",
-  health: "/category/health",
-  forex: "/category/forex",
-  commodity: "/category/commodity",
-  etc: "/category/etc",
-};
+interface FilterChipListProps {
+  selectedKey: string;
+  onSelect: (key: string) => void;
+}
 
-export default function FilterChipList() {
-  const router = useRouter();
+export default function FilterChipList({
+  selectedKey,
+  onSelect,
+}: FilterChipListProps) {
   const [chips, setChips] = useState(initialChipOptions);
-  const [selected, setSelected] = useState("반도체/AI");
   const [isModalVisible, setModalVisible] = useState(false);
   const [isSortMode, setSortMode] = useState(false);
 
-  const handleSelect = (label: string) => {
-    setSelected(label);
+  const handleSelect = (key: string) => {
     setModalVisible(false);
-    const matched = chips.find((item) => item.label === label);
-    if (matched?.key && routeMap[matched.key]) {
-      router.push(routeMap[matched.key] as any);
+    if (typeof onSelect === "function") {
+      onSelect(key);
     }
   };
+
+  const visibleChips = (() => {
+    const base = chips.slice(0, 4);
+    const selectedItem = chips.find((c) => c.key === selectedKey);
+    if (selectedItem && !base.includes(selectedItem)) {
+      return [selectedItem, ...base.slice(0, 3)];
+    }
+    return base;
+  })();
 
   return (
     <View style={{ marginTop: 12 }}>
@@ -126,19 +123,19 @@ export default function FilterChipList() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ gap: 8 }}
       >
-        {chips.slice(0, 4).map((item) => (
+        {visibleChips.map((item) => (
           <TouchableOpacity
             key={item.key}
-            onPress={() => handleSelect(item.label)}
+            onPress={() => onSelect(item.key)}
             style={[
               styles.chip,
-              selected === item.label && styles.selectedChip,
+              selectedKey === item.key && styles.selectedChip,
             ]}
           >
             <Text
               style={[
                 styles.chipText,
-                selected === item.label && styles.selectedChipText,
+                selectedKey === item.key && styles.selectedChipText,
               ]}
             >
               {item.label}
@@ -200,7 +197,7 @@ export default function FilterChipList() {
                   item={item}
                   drag={drag}
                   isActive={isActive}
-                  selected={selected}
+                  selected={selectedKey}
                   isSortMode={isSortMode}
                   handleSelect={handleSelect}
                 />
@@ -240,10 +237,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  modal: {
-    justifyContent: "flex-end",
-    margin: 0,
-  },
   modalContent: {
     backgroundColor: "white",
     padding: 20,
@@ -256,7 +249,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     overflow: "hidden",
   },
-
   modalTextGroup: {
     flexDirection: "column",
     alignItems: "flex-start",
