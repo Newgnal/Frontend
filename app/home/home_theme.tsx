@@ -1,14 +1,18 @@
+import UnionIcon from "@/assets/images/Union.svg";
 import IcVector from "@/assets/images/Vector.svg";
 import CategoryInfoBox from "@/components/CategoryInfoBox";
 import NewsVolumeChart from "@/components/chart/NewsVolumeChart";
 import SentimentChart from "@/components/chart/SentimentChart";
 import { sentimentData } from "@/data/sentimentDummy";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { useState } from "react";
 import {
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 
@@ -31,123 +35,134 @@ const dummyNews = [
     date: "2025.05.28",
   },
 ];
-const categories = [
-  { id: "semiconductor", name: "반도체/AI" },
-  { id: "finance", name: "금융/보험" },
-  { id: "bond", name: "채권/금리" },
-  { id: "green", name: "2차전지/친환경" },
-  { id: "forex", name: "환율/외환" },
-  { id: "commodity", name: "원자재/귀금속" },
-  { id: "realestate", name: "부동산/리츠" },
-  { id: "health", name: "헬스케어/바이오" },
-  { id: "etc", name: "기타" },
-];
 
-export default function HomeMain() {
+interface Props {
+  selectedCategoryId: string;
+}
+
+export default function HomeMain({ selectedCategoryId }: Props) {
   const router = useRouter();
-  const { categoryid } = useLocalSearchParams();
 
-  const selectedCategoryId: string = Array.isArray(categoryid)
-    ? categoryid[0]
-    : categoryid ?? "semiconductor";
   const categoryDisplayNames: Record<string, string> = {
     semiconductor: "반도체/AI",
     it: "IT/인터넷",
     finance: "금융/보험",
     bond: "채권/금리",
-    green: "2차전지/친환경",
+    green: "2차전지/친환경E",
     forex: "환율/외환",
     commodity: "원자재/귀금속",
     realestate: "부동산/리츠",
     health: "헬스케어/바이오",
     etc: "기타",
+    mobility: "모빌리티",
+    defense: "방산/항공우주",
   };
   const displayName =
-    categoryDisplayNames[selectedCategoryId] ?? "카테고리 없음";
+    categoryDisplayNames[selectedCategoryId] ?? "semiconductor";
 
   const { updatedCategory } = useLocalSearchParams();
 
+  const [showTooltip, setShowTooltip] = useState(false);
+
   return (
-    <View style={styles.container}>
-      <View style={{ marginTop: 20 }}>
-        <CategoryInfoBox
-          category={displayName}
-          change={sentimentDisplay}
-          color={sentimentColor}
-        />
-      </View>
-
-      <View style={styles.sectionContainer}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>주요 뉴스</Text>
-          <TouchableOpacity
-            onPress={() =>
-              router.push({
-                pathname: "/category/[categoryid]",
-                params: { categoryid: selectedCategoryId },
-              })
-            }
-          >
-            <Text style={styles.moreText}>더 보기 &gt;</Text>
-          </TouchableOpacity>
-        </View>
-        <FlatList
-          horizontal
-          data={dummyNews}
-          keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingLeft: 0, paddingRight: 12 }}
-          ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() =>
-                router.push({ pathname: "/news/[id]", params: { id: item.id } })
-              }
-            >
-              <View style={styles.newsCard}>
-                <View style={styles.newsImage} />
-                <Text numberOfLines={2} style={styles.newsTitle}>
-                  {item.title}
-                </Text>
-                <Text style={styles.newsMeta}>{item.date}</Text>
-              </View>
-            </TouchableOpacity>
-          )}
-        />
-      </View>
-
-      <View style={styles.sectionContainer}>
-        <View style={styles.sectionTitleWithIcon}>
-          <Text style={styles.sectionTitle}>감성 지표</Text>
-          <IcVector
-            width={14}
-            height={14}
-            style={{ marginLeft: 4, marginBottom: -2 }}
+    <TouchableWithoutFeedback onPress={() => setShowTooltip(false)}>
+      <View style={styles.container}>
+        <View style={{ marginTop: 20 }}>
+          <CategoryInfoBox
+            category={displayName}
+            change={sentimentDisplay}
+            color={sentimentColor}
           />
         </View>
 
-        <View style={styles.chartBox}>
-          <SentimentChart color={sentimentColor} />
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>주요 뉴스</Text>
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: "/category/[categoryid]",
+                  params: { categoryid: selectedCategoryId },
+                })
+              }
+            >
+              <Text style={styles.moreText}>더 보기 &gt;</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            horizontal
+            data={dummyNews}
+            keyExtractor={(item) => item.id}
+            contentContainerStyle={{ paddingLeft: 0, paddingRight: 12 }}
+            ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                onPress={() =>
+                  router.push({
+                    pathname: "/news/[id]",
+                    params: { id: item.id },
+                  })
+                }
+              >
+                <View style={styles.newsCard}>
+                  <View style={styles.newsImage} />
+                  <Text numberOfLines={2} style={styles.newsTitle}>
+                    {item.title}
+                  </Text>
+                  <Text style={styles.newsMeta}>{item.date}</Text>
+                </View>
+              </TouchableOpacity>
+            )}
+          />
         </View>
 
-        <View
-          style={[
-            styles.chartBox,
-            { backgroundColor: "transparent", paddingHorizontal: 0 },
-          ]}
-        >
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionTitleWithIcon}>
+            <Text style={styles.sectionTitle}>감성 지표</Text>
+            <View style={{ position: "relative" }}>
+              <Pressable onPress={() => setShowTooltip((prev) => !prev)}>
+                <IcVector
+                  width={14}
+                  height={14}
+                  style={{ marginLeft: 4, marginBottom: -2 }}
+                />
+              </Pressable>
+
+              {showTooltip && (
+                <View style={styles.tooltipWrapper}>
+                  <UnionIcon width={250} height={50} />
+                  <Text style={styles.tooltipText}>
+                    뉴스의 긍·부정 흐름을 수치화한 감성 점수로{"\n"}뉴스의
+                    방향을 쉽게 읽을 수 있어요
+                  </Text>
+                </View>
+              )}
+            </View>
+          </View>
+          <View style={styles.chartBox}>
+            <SentimentChart color={sentimentColor} />
+          </View>
+
           <View
             style={[
               styles.chartBox,
               { backgroundColor: "transparent", paddingHorizontal: 0 },
             ]}
           >
-            <Text style={styles.newsVolumeTitle}>뉴스 수</Text>
-            <NewsVolumeChart color={sentimentColor} />
+            <View
+              style={[
+                styles.chartBox,
+                { backgroundColor: "transparent", paddingHorizontal: 0 },
+              ]}
+            >
+              <Text style={styles.newsVolumeTitle}>뉴스 수</Text>
+              <NewsVolumeChart color={sentimentColor} />
+            </View>
           </View>
         </View>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 }
 
@@ -231,5 +246,21 @@ const styles = StyleSheet.create({
     color: "#0E0F15",
 
     marginBottom: 5,
+  },
+  tooltipWrapper: {
+    position: "absolute",
+    top: -15,
+    left: 25,
+    zIndex: 100,
+  },
+
+  tooltipText: {
+    position: "absolute",
+    top: 5,
+    left: 22,
+    fontSize: 12,
+    lineHeight: 20,
+    color: "#FFFFFF",
+    fontWeight: "400",
   },
 });

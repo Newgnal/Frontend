@@ -3,9 +3,11 @@ import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcOrderChange from "@/assets/images/ic_orderchange.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
 import BackIcon from "@/assets/images/icon_next_lg.svg";
+import CategoryFilterModal from "@/components/ui/modal/categoryFilterModal";
+
 import { Header as CategoryHeader } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
-import { router, useLocalSearchParams, useNavigation } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { useState } from "react";
 import {
   FlatList,
@@ -139,14 +141,19 @@ const categoryDisplayNames: Record<string, string> = {
 };
 
 export default function CategoryScreen() {
-  const { categoryid } = useLocalSearchParams();
-  const navigation = useNavigation();
   const [order, setOrder] = useState<OrderType>("latest");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { categoryid } = useLocalSearchParams();
+  const [selectedCategory, setSelectedCategory] = useState(
+    typeof categoryid === "string" ? categoryid : "semiconductor"
+  );
 
-  const displayName = categoryDisplayNames[categoryid as string] ?? categoryid;
+  const displayName =
+    categoryDisplayNames[selectedCategory] ?? selectedCategory;
 
-  const filteredNews = dummyNews.filter((item) => item.category === categoryid);
+  const filteredNews = dummyNews.filter(
+    (item) => item.category === selectedCategory
+  );
 
   const sortedNews = [...filteredNews].sort((a, b) => {
     return order === "views"
@@ -162,7 +169,7 @@ export default function CategoryScreen() {
   };
 
   const [isModalVisible, setIsModalVisible] = useState(false);
-
+  const [isChipVisible, setIsChipVisible] = useState(false);
   const renderItem = ({ item }: { item: (typeof dummyNews)[0] }) => {
     const isSelected = selectedId === item.id;
 
@@ -227,7 +234,7 @@ export default function CategoryScreen() {
               style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
             >
               <Text style={styles.topTitle}>{displayName}</Text>
-              <TouchableOpacity onPress={() => setIsModalVisible(true)}>
+              <TouchableOpacity onPress={() => setIsChipVisible(true)}>
                 <IcArrowDown width={24} height={24} />
               </TouchableOpacity>
             </View>
@@ -263,6 +270,18 @@ export default function CategoryScreen() {
           paddingBottom: 80,
         }}
       />
+      {isChipVisible && (
+        <CategoryFilterModal
+          isVisible={isChipVisible}
+          onClose={() => setIsChipVisible(false)}
+          selectedKey={selectedCategory}
+          onSelect={(key) => {
+            setIsChipVisible(false);
+            setSelectedCategory(key);
+            router.push(`/category/${key}`);
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 }
