@@ -70,7 +70,9 @@ function extractQueryParam(url: string, key: string): string | null {
   const match = url.match(new RegExp(`[?&]${key}=([^&]+)`));
   return match?.[1] || null;
 }
-
+export const options = {
+  headerShown: false,
+};
 const styles = StyleSheet.create({
   container: {
     flex: 1,
