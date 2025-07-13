@@ -7,7 +7,6 @@ type NewsProps = {
   date: string;
   category: string;
   sentiment: string;
-  views: number;
 };
 
 export default function News({
@@ -16,7 +15,6 @@ export default function News({
   date,
   category,
   sentiment,
-  views,
 }: NewsProps) {
   return (
     <View style={styles.container}>
