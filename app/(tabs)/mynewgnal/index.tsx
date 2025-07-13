@@ -1,10 +1,11 @@
-import IcAi from "@/assets/images/Frame 2147228509.svg";
 import Icadd from "@/assets/images/Group (1).svg";
 import Icfix from "@/assets/images/ic_fix.svg";
 import AddKeywordModal from "@/components/ui/newgnal/AddKeywordModal";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+
 export default function MyNewgnalScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
 
@@ -15,7 +16,14 @@ export default function MyNewgnalScreen() {
           <View style={styles.header}>
             <Text style={styles.headerTitle}>내 뉴그널</Text>
             <View style={styles.headerIcons}>
-              <TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  Toast.show({
+                    type: "warning",
+                    text1: "키워드를 추가해주세요",
+                  });
+                }}
+              >
                 <Icfix width={24} height={24} />
               </TouchableOpacity>
               <TouchableOpacity onPress={() => setModalVisible(true)}>
@@ -63,13 +71,6 @@ export default function MyNewgnalScreen() {
           />
         </View>
       </SafeAreaView>
-      <View style={styles.aiButtonContainer}>
-        <View style={styles.aiInner}>
-          <View style={styles.pill} />
-          <IcAi width={30} height={31} />
-          <View style={styles.pill} />
-        </View>
-      </View>
     </>
   );
 }
@@ -165,34 +166,5 @@ const styles = StyleSheet.create({
     fontSize: 12,
     marginTop: 40,
     fontWeight: "400",
-  },
-  aiButtonContainer: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    width: 60,
-    height: 60,
-    backgroundColor: "#484F56",
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 100,
-    shadowColor: "#A8B2B8",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  aiInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-
-  pill: {
-    width: 3.3,
-    height: 9.6,
-    backgroundColor: "white",
-    borderRadius: 3.4,
   },
 });

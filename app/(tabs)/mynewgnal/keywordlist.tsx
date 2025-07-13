@@ -1,4 +1,3 @@
-import IcAi from "@/assets/images/Frame 2147228509.svg";
 import Icadd from "@/assets/images/Group (1).svg";
 import IcAlarm from "@/assets/images/ic_alarm (1).svg";
 import IcAlarmOff from "@/assets/images/ic_alarm (2).svg";
@@ -22,6 +21,9 @@ import uuid from "react-native-uuid";
 export default function MyNewgnalScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const { keywords, toggleAlert, addKeyword } = useKeywordStore();
+  const [recentlyAddedKeyword, setRecentlyAddedKeyword] = useState<
+    string | null
+  >(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -40,6 +42,16 @@ export default function MyNewgnalScreen() {
       setModalVisible(true);
     }
   };
+  useEffect(() => {
+    if (!isModalVisible && recentlyAddedKeyword) {
+      Toast.show({
+        type: "success",
+        text1: `"${recentlyAddedKeyword}" 키워드가 등록되었어요`,
+        position: "top",
+      });
+      setRecentlyAddedKeyword(null);
+    }
+  }, [isModalVisible, recentlyAddedKeyword]);
 
   return (
     <>
@@ -80,7 +92,15 @@ export default function MyNewgnalScreen() {
             keyExtractor={(item) => item.id}
             contentContainerStyle={{ paddingBottom: 40 }}
             renderItem={({ item }) => (
-              <TouchableOpacity style={styles.keywordItem}>
+              <TouchableOpacity
+                style={styles.keywordItem}
+                onPress={() =>
+                  router.push({
+                    pathname: "/keyword/[keyword]",
+                    params: { keyword: item.name },
+                  })
+                }
+              >
                 <View style={styles.keywordLeft}>
                   <Text style={styles.keywordHash}># {item.name}</Text>
                   {item.hasNewNews && (
@@ -91,7 +111,26 @@ export default function MyNewgnalScreen() {
                 </View>
                 <View style={styles.keywordRight}>
                   <View style={styles.iconWithCount}>
-                    <TouchableOpacity onPress={() => toggleAlert(item.id)}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        const isCurrentlyOn = item.alertOn;
+                        toggleAlert(item.id);
+
+                        if (!isCurrentlyOn) {
+                          Toast.show({
+                            type: "success",
+                            text1: "관련 뉴스가 뜨면 알려드릴게요!",
+                            position: "top",
+                          });
+                        } else {
+                          Toast.show({
+                            type: "success",
+                            text1: "알림이 해제됐어요",
+                            position: "top",
+                          });
+                        }
+                      }}
+                    >
                       {item.alertOn ? (
                         <IcAlarm
                           width={32}
@@ -106,6 +145,7 @@ export default function MyNewgnalScreen() {
                         />
                       )}
                     </TouchableOpacity>
+
                     <View style={styles.countWithArrow}>
                       <Text style={styles.newsCount}>
                         총 {item.newsCount}개
@@ -123,7 +163,6 @@ export default function MyNewgnalScreen() {
               </Text>
             )}
           />
-
           <AddKeywordModal
             isVisible={isModalVisible}
             onClose={() => setModalVisible(false)}
@@ -135,19 +174,16 @@ export default function MyNewgnalScreen() {
                 newsCount: 0,
                 alertOn: true,
               });
+              Toast.show({
+                type: "success",
+                text1: `"${keyword}" 키워드가 등록되었어요`,
+                position: "top",
+              });
               setModalVisible(false);
             }}
           />
         </View>
       </SafeAreaView>
-
-      <View style={styles.aiButtonContainer}>
-        <View style={styles.aiInner}>
-          <View style={styles.pill} />
-          <IcAi width={30} height={31} />
-          <View style={styles.pill} />
-        </View>
-      </View>
     </>
   );
 }
@@ -289,33 +325,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 4,
     marginBottom: 8,
-  },
-  aiButtonContainer: {
-    position: "absolute",
-    bottom: 30,
-    right: 20,
-    width: 60,
-    height: 60,
-    backgroundColor: "#484F56",
-    borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
-    zIndex: 100,
-    shadowColor: "#A8B2B8",
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 8,
-    elevation: 5,
-  },
-  aiInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-  },
-  pill: {
-    width: 3.3,
-    height: 9.6,
-    backgroundColor: "white",
-    borderRadius: 3.4,
   },
 });

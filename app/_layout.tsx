@@ -81,6 +81,10 @@ export default function RootLayout() {
               />
               <Stack.Screen name="mp" options={{ headerShown: false }} />
               <Stack.Screen name="+not-found" />
+              <Stack.Screen
+                name="keyword/[keyword]"
+                options={{ headerShown: false }}
+              />
             </Stack>
             <StatusBar style="auto" />
             <Toast config={toastConfig} topOffset={100} position="top" />

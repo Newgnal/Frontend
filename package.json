@@ -16,6 +16,7 @@
     "@nivo/bar": "^0.99.0",
     "@nivo/core": "^0.99.0",
     "@nivo/line": "^0.99.0",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-community/datetimepicker": "^8.4.2",
     "@react-navigation/bottom-tabs": "^7.3.10",
     "@react-navigation/elements": "^2.3.8",
@@ -55,8 +56,7 @@
     "react-native-webview": "13.13.5",
     "uuid": "^11.1.0",
     "victory-native": "^41.17.4",
-    "zustand": "^5.0.6",
-    "@react-native-async-storage/async-storage": "2.1.2"
+    "zustand": "^5.0.6"
   },
   "devDependencies": {
     "@babel/core": "^7.27.7",

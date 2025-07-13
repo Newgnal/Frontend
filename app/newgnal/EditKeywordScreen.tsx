@@ -33,7 +33,9 @@ export default function EditKeywordScreen() {
             <IcBack width={24} height={24} />
           </TouchableOpacity>
           <Text style={styles.headerTitle}>키워드 수정</Text>
-          <Text style={styles.doneText}>완료</Text>
+          <TouchableOpacity onPress={() => router.back()}>
+            <Text style={styles.doneText}>완료</Text>
+          </TouchableOpacity>
         </View>
         <View style={styles.divider} />
         <DraggableFlatList
