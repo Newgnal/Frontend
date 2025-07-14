@@ -1,4 +1,5 @@
 import { useAuth } from "@/context/authContext";
+import axiosInstance from "@/lib/axiosInstance";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -23,14 +24,17 @@ export default function LoginScreen() {
       if (code) {
         setIsHandled(true);
         try {
-          const response = await fetch(
-            `https://newgnal.site/auth/v1/login/kakao?code=${code}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-            }
+          // const response = await fetch(
+          //   `https://newgnal.site/auth/v1/login/kakao?code=${code}`,
+          //   {
+          //     method: "POST",
+          //     headers: { "Content-Type": "application/json" },
+          //   }
+          // );
+          // const data = await response.json();
+          const { data } = await axiosInstance.post(
+            `/auth/v1/login/kakao?code=${code}`
           );
-          const data = await response.json();
           console.log("백엔드 응답:", data);
           const jwtToken = data?.data?.jwtAccessToken;
           if (jwtToken) {

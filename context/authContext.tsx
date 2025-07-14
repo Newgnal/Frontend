@@ -1,5 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useEffect, useState } from "react";
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -8,12 +8,17 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const DEV_MODE = process.env.EXPO_PUBLIC_DEV_MODE === "true";
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const checkAuth = async () => {
     try {
+      if (DEV_MODE) {
+        setIsLoggedIn(true);
+        return;
+      }
       const token = await AsyncStorage.getItem("access_token");
       console.log("checkAuth() 호출됨. 토큰:", token);
       setIsLoggedIn(!!token && token !== "");
@@ -33,9 +38,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // 앱 시작 시 로그인 여부 확인
-  // useEffect(() => {
-  //   checkAuth();
-  // }, []);
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   return (
     <AuthContext.Provider value={{ isLoggedIn, checkAuth, logout }}>

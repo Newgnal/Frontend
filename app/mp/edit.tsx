@@ -5,6 +5,7 @@ import ProfileIcon from "@/assets/images/icn_profile.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import { useAuth } from "@/context/authContext";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -12,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileEditScreen() {
   const router = useRouter();
+  const { logout } = useAuth();
 
   return (
     <>
@@ -147,7 +149,10 @@ export default function ProfileEditScreen() {
           </View>
         </View>
         <View style={styles.footer}>
-          <View style={{ backgroundColor: "#F4F5F7", borderRadius: 12 }}>
+          <Pressable
+            style={{ backgroundColor: "#F4F5F7", borderRadius: 12 }}
+            onPress={logout}
+          >
             <Text
               style={[
                 typography.subtitle_s3_15_semi_bold,
@@ -160,7 +165,7 @@ export default function ProfileEditScreen() {
             >
               로그아웃
             </Text>
-          </View>
+          </Pressable>
           <HorizontalLine style={{ marginVertical: 46 }} />
           <Text
             style={[
