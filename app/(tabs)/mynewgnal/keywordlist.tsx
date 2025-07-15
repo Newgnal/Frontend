@@ -249,8 +249,13 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  divider: {
+    height: 1,
+    backgroundColor: "#EDEEEF",
+    marginTop: 10,
+  },
   container: {
-    flex: 1,
+    paddingTop: 15,
     paddingHorizontal: 20,
     backgroundColor: "#FFFFFF",
   },
@@ -258,21 +263,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    height: 39,
   },
   headerTitle: {
     fontSize: 18,
     fontWeight: "600",
     color: "#0E0F15",
+    marginBottom: 13,
   },
   headerIcons: {
     flexDirection: "row",
     gap: 12,
-  },
-  divider: {
-    height: 1,
-    backgroundColor: "#EDEEEF",
-    marginTop: 13,
   },
   sectionTitle: {
     fontSize: 16,

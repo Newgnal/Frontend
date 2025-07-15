@@ -1,6 +1,13 @@
 import Icadd from "@/assets/images/Group (1).svg";
 import Icfix from "@/assets/images/ic_fix.svg";
+import {
+  getKeywords,
+  getPopularKeywords,
+  postKeyword,
+} from "@/components/api/useKeywordApi";
 import AddKeywordModal from "@/components/ui/newgnal/AddKeywordModal";
+import { useKeywordStore } from "@/store/keywordStore"; //프론트 타입
+import { PopularKeyword, ServerKeyword } from "@/types/keyword"; //백엔드 타입
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -12,14 +19,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-
-import {
-  getKeywords,
-  getPopularKeywords,
-  postKeyword,
-} from "@/components/api/useKeywordApi";
-import { useKeywordStore } from "@/store/keywordStore"; //프론트 타입
-import { PopularKeyword, ServerKeyword } from "@/types/keyword"; //백엔드 타입
 
 export default function MyNewgnalScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
@@ -180,10 +179,10 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: "#EDEEEF",
-    marginTop: 13,
+    marginTop: 10,
   },
   container: {
-    paddingTop: 20,
+    paddingTop: 15,
     paddingHorizontal: 20,
     backgroundColor: "#FFFFFF",
   },
@@ -196,6 +195,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#0E0F15",
+    marginBottom: 13,
   },
   headerIcons: {
     flexDirection: "row",
