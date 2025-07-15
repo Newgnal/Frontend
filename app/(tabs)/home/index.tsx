@@ -7,12 +7,13 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Line } from "react-native-svg";
 import { typography } from "../../../styles/typography";
-import HomeAll from "../../home/home_all";
-import HomeMain from "../../home/home_theme";
+import HomeAll from "../../Home/home_all";
+import HomeMain from "../../Home/home_theme";
 
 export default function HomeScreen() {
   const [selectedTab, setSelectedTab] = useState<"theme" | "all">("theme");
   const [order, setOrder] = useState<"latest" | "views">("latest");
+  const [selectedCategory, setSelectedCategory] = useState("semiconductor");
 
   return (
     <SafeAreaView style={{ backgroundColor: "#FFFFFF", paddingVertical: 20 }}>
@@ -69,11 +70,21 @@ export default function HomeScreen() {
 
       {selectedTab === "theme" && (
         <View style={{ paddingTop: 8, paddingHorizontal: 20, marginBottom: 4 }}>
-          <FilterChipList />
+          <FilterChipList
+            selectedKey={selectedCategory}
+            onSelect={(key) => {
+              setSelectedCategory(key);
+              console.log("카테고리 선택됨:", key);
+            }}
+          />
         </View>
       )}
 
-      {selectedTab === "theme" ? <HomeMain /> : <HomeAll order={order} />}
+      {selectedTab === "theme" ? (
+        <HomeMain selectedCategoryId={selectedCategory} />
+      ) : (
+        <HomeAll order={order} />
+      )}
     </SafeAreaView>
   );
 }

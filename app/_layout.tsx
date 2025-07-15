@@ -27,6 +27,7 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
+
           <Stack>
             <Stack.Screen name="login/index" options={{ headerShown: false }} />
             <Stack.Screen name="login/kakao" options={{ headerShown: false }} />
@@ -57,6 +58,7 @@ export default function RootLayout() {
 
           <StatusBar style="auto" />
           <Toast config={toastConfig} topOffset={100} position="top" />
+
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
