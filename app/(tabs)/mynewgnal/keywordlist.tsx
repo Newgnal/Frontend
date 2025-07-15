@@ -4,6 +4,7 @@ import IcAlarmOff from "@/assets/images/ic_alarm (2).svg";
 import Icfix from "@/assets/images/ic_fix.svg";
 import IcNext from "@/assets/images/ic_next_sm.svg";
 import AddKeywordModal from "@/components/ui/newgnal/AddKeywordModal";
+import axiosInstance from "@/lib/axiosInstance";
 import { useKeywordStore } from "@/store/keywordStore";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -16,21 +17,33 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import uuid from "react-native-uuid";
+
+import { PopularKeyword } from "@/types/keyword";
 
 export default function MyNewgnalScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
-  const { keywords, toggleAlert, addKeyword } = useKeywordStore();
+  const { keywords, toggleAlert, setKeywords } = useKeywordStore();
   const [recentlyAddedKeyword, setRecentlyAddedKeyword] = useState<
     string | null
   >(null);
   const router = useRouter();
+  const [popularKeywords, setPopularKeywords] = useState<PopularKeyword[]>([]);
 
   useEffect(() => {
-    if (keywords.length === 0) {
-      router.replace("/mynewgnal");
-    }
-  }, [keywords]);
+    const fetchPopular = async () => {
+      try {
+        const res = await axiosInstance.get("/newsroom/v1/popular-keywords", {
+          params: { count: 5 },
+        });
+        const data = res.data?.data;
+        if (Array.isArray(data)) {
+          setPopularKeywords(data);
+        }
+      } catch (e) {}
+    };
+
+    fetchPopular();
+  }, []);
 
   const handleAddKeyword = () => {
     if (keywords.length >= 3) {
@@ -42,11 +55,12 @@ export default function MyNewgnalScreen() {
       setModalVisible(true);
     }
   };
+
   useEffect(() => {
     if (!isModalVisible && recentlyAddedKeyword) {
       Toast.show({
         type: "success",
-        text1: `"${recentlyAddedKeyword}" 키워드가 등록되었어요`,
+        text1: " 키워드가 등록되었어요",
         position: "top",
       });
       setRecentlyAddedKeyword(null);
@@ -55,7 +69,7 @@ export default function MyNewgnalScreen() {
 
   return (
     <>
-      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+      <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <View style={styles.header}>
             <Text style={styles.headerTitle}>내 뉴그널</Text>
@@ -74,19 +88,38 @@ export default function MyNewgnalScreen() {
           <View style={styles.divider} />
 
           <Text style={styles.sectionTitle}>실시간 인기 키워드</Text>
-          <View style={styles.keywordBox}>
-            <View style={styles.keywordTag}>
-              <Text style={styles.keywordText}>삼성전자</Text>
-            </View>
-            <View>
-              <Text style={styles.newsTitle}>
-                삼성, 2028년부터 반도체 유리기판 쓴다
-              </Text>
-              <Text style={styles.newsMeta}>매일 경제 | 7시간 전</Text>
-            </View>
-          </View>
+          {popularKeywords.length > 0 ? (
+            popularKeywords.map((item, idx) => (
+              <View key={idx} style={styles.keywordBox}>
+                <View style={styles.keywordTag}>
+                  <Text style={styles.keywordText}>{item.keyword}</Text>
+                </View>
+                <View style={styles.keywordContent}>
+                  {item.representativeNews ? (
+                    <>
+                      <Text style={styles.newsTitle}>
+                        {item.representativeNews.title}
+                      </Text>
+                      <Text style={styles.newsMeta}>
+                        {item.representativeNews.source} |{" "}
+                        {item.representativeNews.timeAgo}
+                      </Text>
+                    </>
+                  ) : (
+                    <Text style={styles.newsMeta}>
+                      대표 뉴스가 아직 없습니다.
+                    </Text>
+                  )}
+                </View>
+              </View>
+            ))
+          ) : (
+            <Text style={styles.newsMeta}>
+              오늘의 인기 키워드가 아직 없습니다.
+            </Text>
+          )}
 
-          <Text style={styles.sectionTitle}>내 뉴그널</Text>
+          <Text style={styles.sectionTitle}>키워드 뉴스</Text>
           <FlatList
             data={keywords}
             keyExtractor={(item) => item.id}
@@ -115,20 +148,13 @@ export default function MyNewgnalScreen() {
                       onPress={() => {
                         const isCurrentlyOn = item.alertOn;
                         toggleAlert(item.id);
-
-                        if (!isCurrentlyOn) {
-                          Toast.show({
-                            type: "success",
-                            text1: "관련 뉴스가 뜨면 알려드릴게요!",
-                            position: "top",
-                          });
-                        } else {
-                          Toast.show({
-                            type: "success",
-                            text1: "알림이 해제됐어요",
-                            position: "top",
-                          });
-                        }
+                        Toast.show({
+                          type: "success",
+                          text1: isCurrentlyOn
+                            ? "알림이 해제됐어요"
+                            : "관련 뉴스가 뜨면 알려드릴게요!",
+                          position: "top",
+                        });
                       }}
                     >
                       {item.alertOn ? (
@@ -163,23 +189,53 @@ export default function MyNewgnalScreen() {
               </Text>
             )}
           />
+
           <AddKeywordModal
             isVisible={isModalVisible}
             onClose={() => setModalVisible(false)}
-            onConfirm={(keyword) => {
-              addKeyword({
-                id: uuid.v4() as string,
-                name: keyword,
-                hasNewNews: false,
-                newsCount: 0,
-                alertOn: true,
-              });
-              Toast.show({
-                type: "success",
-                text1: `"${keyword}" 키워드가 등록되었어요`,
-                position: "top",
-              });
-              setModalVisible(false);
+            onConfirm={async (keyword) => {
+              try {
+                const res = await axiosInstance.post("/newsroom/v1/keywords", {
+                  keyword,
+                });
+
+                const keywordRes = await axiosInstance.get(
+                  "/newsroom/v1/keywords"
+                );
+
+                const keywordCounts = keywordRes.data?.data?.keywordCounts;
+
+                if (!Array.isArray(keywordCounts)) {
+                  throw new Error("키워드 목록 응답 형식 이상");
+                }
+
+                const formattedKeywords = keywordCounts.map((item: any) => ({
+                  id: String(item.keywordId),
+                  name: item.keywordName,
+                  newsCount: item.count,
+                  alertOn: true,
+                  hasNewNews: false,
+                }));
+
+                setKeywords(formattedKeywords);
+                setRecentlyAddedKeyword(res.data?.data.keyword);
+              } catch (e: any) {
+                if (e.response?.status === 409) {
+                  Toast.show({
+                    type: "warning",
+                    text1: "이미 등록된 키워드예요!",
+                  });
+                } else if (e.response?.status === 400) {
+                  Toast.show({
+                    type: "warning",
+                    text1: "2~10자 키워드만 가능해요",
+                  });
+                } else {
+                  Toast.show({ type: "warning", text1: "등록 실패" });
+                }
+              } finally {
+                setModalVisible(false);
+              }
             }}
           />
         </View>
@@ -243,10 +299,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#FFFFFF",
   },
+  keywordContent: {
+    flex: 1,
+    flexShrink: 1,
+  },
   newsTitle: {
     fontSize: 13,
     fontWeight: "500",
     color: "#000000",
+    flexShrink: 1,
+    flexWrap: "wrap",
+    lineHeight: 18,
+    maxWidth: 300,
   },
   newsMeta: {
     fontSize: 11,
@@ -305,7 +369,7 @@ const styles = StyleSheet.create({
   alertText: {
     color: "#fff",
     fontSize: 11,
-    fontWeight: "regular",
+    fontWeight: "400",
   },
   captionText: {
     textAlign: "center",

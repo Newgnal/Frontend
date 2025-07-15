@@ -19,22 +19,7 @@ type Store = {
 };
 
 export const useKeywordStore = create<Store>((set) => ({
-  keywords: [
-    {
-      id: "1",
-      name: "엔비디아",
-      hasNewNews: false,
-      newsCount: 354,
-      alertOn: false,
-    },
-    {
-      id: "2",
-      name: "엔비디아",
-      hasNewNews: true,
-      newsCount: 354,
-      alertOn: false,
-    },
-  ],
+  keywords: [],
   addKeyword: (keyword) =>
     set((state) => ({ keywords: [...state.keywords, keyword] })),
   removeKeyword: (id) =>
@@ -53,5 +38,5 @@ export const useKeywordStore = create<Store>((set) => ({
         k.id === id ? { ...k, ...newData } : k
       ),
     })),
-  setKeywords: (newKeywords) => set({ keywords: newKeywords }),
+  setKeywords: (keywords) => set({ keywords }),
 }));
