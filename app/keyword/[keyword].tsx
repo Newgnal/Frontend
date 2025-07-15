@@ -1,12 +1,17 @@
+import AlarmIcon from "@/assets/images/ic_alarm.svg";
 import IcArrowDown from "@/assets/images/ic_arrow_down.svg";
+import Iccheck from "@/assets/images/ic_check_default.svg";
+import IcSelected from "@/assets/images/ic_check_selected.svg";
 import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
+import SearchIcon from "@/assets/images/ic_search.svg";
 import BackIcon from "@/assets/images/icon_next_lg.svg";
+import { getKeywordNews, getKeywords } from "@/components/api/useKeywordApi";
 import { Header } from "@/components/ui/Header";
-import HeaderIcons from "@/components/ui/HeaderIcon/HeaderIcons";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import { KeywordNewsResponse, NewsItem, ServerKeyword } from "@/types/keyword";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   Modal,
@@ -14,36 +19,10 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-const dummyNews = [
-  {
-    id: "1",
-    keyword: "삼성전자",
-    title: "삼성, 2028년부터 반도체 유리기판 쓴다",
-    date: "2025.05.28",
-    sentiment: "-0.8",
-    views: 21000,
-  },
-  {
-    id: "2",
-    keyword: "앤비디아",
-    title: "삼성전자, 차세대 반도체 발표",
-    date: "2025.05.27",
-    sentiment: "-0.6",
-    views: 18000,
-  },
-  {
-    id: "3",
-    keyword: "현대차",
-    title: "현대차, 전기차 전략 공개",
-    date: "2025.05.26",
-    sentiment: "-0.5",
-    views: 12000,
-  },
-];
 
 export const options = {
   headerShown: false,
@@ -51,11 +30,36 @@ export const options = {
 
 export default function KeywordNewsScreen() {
   const { keyword } = useLocalSearchParams<{ keyword: string }>();
+  const [keywords, setKeywords] = useState<ServerKeyword[]>([]);
+  const [newsList, setNewsList] = useState<NewsItem[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
-  const keywords = [...new Set(dummyNews.map((item) => item.keyword))];
-  const filteredNews = dummyNews.filter((item) => item.keyword === keyword);
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const keywordList = await getKeywords();
+
+        const convertedList: ServerKeyword[] = keywordList.map((k) => ({
+          id: k.keywordId,
+          keyword: k.keywordName,
+          createdAt: "",
+          userId: 0,
+        }));
+
+        setKeywords(convertedList);
+
+        const matched = convertedList.find((k) => k.keyword === keyword);
+        if (!matched) return;
+
+        const newsRes: KeywordNewsResponse = await getKeywordNews(matched.id);
+        setNewsList(newsRes.newsData.content);
+      } catch (err) {
+        console.error("키워드 뉴스 로드 실패:", err);
+      }
+    };
+    fetchData();
+  }, [keyword]);
 
   const getCurrentTimeString = () => {
     const now = new Date();
@@ -64,12 +68,12 @@ export default function KeywordNewsScreen() {
     return `${hours}:${minutes}`;
   };
 
-  const renderItem = ({ item }: { item: (typeof dummyNews)[0] }) => {
-    const isSelected = selectedId === item.id;
+  const renderItem = ({ item }: { item: NewsItem }) => {
+    const isSelected = selectedId === String(item.id);
 
     return (
       <Pressable
-        onPress={() => setSelectedId(isSelected ? null : item.id)}
+        onPress={() => setSelectedId(isSelected ? null : String(item.id))}
         style={[
           styles.card,
           {
@@ -78,26 +82,28 @@ export default function KeywordNewsScreen() {
         ]}
       >
         <View style={styles.header}>
-          <Text style={styles.category}>#{item.keyword}</Text>
+          <Text style={styles.category}>#{item.thema || "기타"}</Text>
           <Text style={styles.sentiment}>{item.sentiment}</Text>
         </View>
 
         <View style={styles.contentRow}>
           <View style={styles.textContent}>
             <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.subtitle}>매일 경제 | {item.date}</Text>
+            <Text style={styles.subtitle}>
+              {item.source} | {item.date}
+            </Text>
 
             <View style={styles.metaRow}>
               <Text style={styles.meta}>
-                조회 {Math.floor(item.views / 10000)}만
+                조회 {Math.floor(item.view / 10000)}만
               </Text>
               <View style={styles.iconWithText}>
                 <IcComnt width={24} height={24} />
-                <Text style={styles.meta}>234</Text>
+                <Text style={styles.meta}>{item.commentNum}</Text>
               </View>
               <View style={styles.iconWithText}>
                 <IcPoll width={24} height={24} />
-                <Text style={styles.meta}>402</Text>
+                <Text style={styles.meta}>{item.voteNum}</Text>
               </View>
             </View>
           </View>
@@ -125,16 +131,28 @@ export default function KeywordNewsScreen() {
           </View>
         }
         leftSlot={
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity
+            onPress={() => router.push("/(tabs)/mynewgnal/keywordlist")}
+          >
             <BackIcon width={24} height={24} />
           </TouchableOpacity>
         }
-        rightSlot={<HeaderIcons />}
+        rightSlot={
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+            <TouchableOpacity onPress={() => router.push("/header/search")}>
+              <SearchIcon width={24} height={24} />
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => router.push("/header/alarm")}>
+              <AlarmIcon width={24} height={24} />
+            </TouchableOpacity>
+          </View>
+        }
       />
 
       <FlatList
-        data={filteredNews}
-        keyExtractor={(item) => item.id}
+        data={newsList}
+        keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 80 }}
       />
@@ -145,30 +163,38 @@ export default function KeywordNewsScreen() {
         visible={isModalVisible}
         onRequestClose={() => setIsModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>메뉴</Text>
-            <Text style={styles.modalSub}>
-              보고 싶은 키워드를 선택해 주세요
-            </Text>
-            {keywords.map((word) => (
-              <TouchableOpacity
-                key={word}
-                onPress={() => {
-                  setIsModalVisible(false);
-                  router.push({
-                    pathname: "/keyword/[keyword]",
-                    params: { keyword: word },
-                  });
-                }}
-                style={styles.keywordItem}
-              >
-                <Text style={{ fontSize: 16 }}>{word}</Text>
-                {word === keyword && <Text>✔️</Text>}
-              </TouchableOpacity>
-            ))}
+        <TouchableWithoutFeedback onPress={() => setIsModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalTitle}>메뉴</Text>
+                <Text style={styles.modalSub}>
+                  보고 싶은 키워드를 선택해 주세요
+                </Text>
+                {keywords.map((word) => (
+                  <TouchableOpacity
+                    key={word.id}
+                    onPress={() => {
+                      setIsModalVisible(false);
+                      router.push({
+                        pathname: "/keyword/[keyword]",
+                        params: { keyword: word.keyword },
+                      });
+                    }}
+                    style={styles.keywordItem}
+                  >
+                    <Text style={{ fontSize: 16 }}>{word.keyword}</Text>
+                    {word.keyword === keyword ? (
+                      <IcSelected width={20} height={20} />
+                    ) : (
+                      <Iccheck width={20} height={20} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </TouchableWithoutFeedback>
           </View>
-        </View>
+        </TouchableWithoutFeedback>
       </Modal>
     </SafeAreaView>
   );
@@ -229,11 +255,6 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     flexDirection: "row",
     justifyContent: "space-between",
-    borderBottomColor: "#eee",
-  },
-  centerSlot: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
+    borderBottomColor: "#2E3439",
   },
 });

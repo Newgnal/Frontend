@@ -27,7 +27,6 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
-
           <Stack>
             <Stack.Screen name="login/index" options={{ headerShown: false }} />
             <Stack.Screen name="login/kakao" options={{ headerShown: false }} />
@@ -52,13 +51,16 @@ export default function RootLayout() {
               name="community/post"
               options={{ headerShown: false }}
             />
+            <Stack.Screen
+              name="keyword/[keyword]"
+              options={{ headerShown: false }}
+            />
             <Stack.Screen name="mp" options={{ headerShown: false }} />
             <Stack.Screen name="+not-found" />
           </Stack>
 
           <StatusBar style="auto" />
           <Toast config={toastConfig} topOffset={100} position="top" />
-
         </ThemeProvider>
       </AuthProvider>
     </GestureHandlerRootView>
