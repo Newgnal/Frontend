@@ -25,7 +25,7 @@ export const updatePost = async (
 };
 
 // 게시글 삭제
-export const deletePost = async (postId: number) => {
+export const deletePostbyId = async (postId: number) => {
   const res = await axiosInstance.delete(`/post/v1/${postId}`);
   return res.data;
 };
