@@ -8,6 +8,7 @@ import TopicList from "@/components/ui/community/TopicList";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
@@ -16,6 +17,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function CommunityScreen() {
   const router = useRouter();
   const [topThemes, setTopThemes] = useState<string[]>([]);
+  const [hotTopics, setHotTopics] = useState([]);
+  const [recentPosts, setRecentPosts] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -23,32 +26,15 @@ export default function CommunityScreen() {
         const data = await getCommunityHomeData();
         const themes = data.topThemes.map((t: any) => t.thema);
         setTopThemes(themes);
+        setHotTopics(data.hotPosts);
+
+        setRecentPosts(data.recentPosts);
       } catch (error) {
-        console.error("인기 테마 불러오기 실패", error);
+        console.error("홈 데이터 불러오기 실패", error);
       }
     };
-
     fetchData();
   }, []);
-
-  const convertThemaToKor = (en: string): string => {
-    const reverseMap: Record<string, string> = {
-      SEMICONDUCTOR_AI: "반도체/AI",
-      IT_INTERNET: "IT/인터넷",
-      FINANCE_INSURANCE: "금융/보험",
-      MOBILITY: "모빌리티",
-      DEFENSE_AEROSPACE: "방산/항공우주",
-      SECOND_BATTERY_ENVIRONMENT: "2차전지/친환경E",
-      REAL_ESTATE_REIT: "부동산/리츠",
-      BOND_INTEREST: "채권/금리",
-      HEALTHCARE_BIO: "헬스케어/바이오",
-      EXCHANGE_RATE: "환율/외환",
-      RAW_MATERIAL_METALS: "원자재/귀금속",
-      ETC: "기타",
-    };
-
-    return reverseMap[en] ?? en;
-  };
 
   return (
     <>
@@ -99,7 +85,7 @@ export default function CommunityScreen() {
             </View>
           </View>
           <View style={{ paddingLeft: 20, paddingBottom: 25 }}>
-            <HotTopicList />
+            <HotTopicList data={hotTopics} />
           </View>
           <HorizontalLine color={"#F4F5F7"} height={8} />
           <View style={{ paddingTop: 20, paddingHorizontal: 20 }}>

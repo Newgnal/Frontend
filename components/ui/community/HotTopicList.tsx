@@ -3,10 +3,13 @@ import ViewIcon from "@/assets/images/ic_eyes.svg";
 import HeartIcon from "@/assets/images/ic_hrt_emt.svg";
 import CommentIcon from "@/assets/images/ic_message.svg";
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
   Dimensions,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -19,31 +22,31 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const PEEK_WIDTH = 32;
 const PAGE_WIDTH = SCREEN_WIDTH - PEEK_WIDTH * 3;
 
-const data = Array.from({ length: 9 }, (_, i) => ({
-  id: i + 1,
-  tag: "반도체/AI",
-  title: "반도체에 대해 어떻게 생각하세요?",
-  likes: 10,
-  views: 10,
-  comments: 12,
-}));
+// const data = Array.from({ length: 9 }, (_, i) => ({
+//   id: i + 1,
+//   tag: "반도체/AI",
+//   title: "반도체에 대해 어떻게 생각하세요?",
+//   likes: 10,
+//   views: 10,
+//   comments: 12,
+// }));
 
 // 3개씩 나누기 (페이지 당 3개 카드)
-const chunkArray = (arr, size) => {
-  const chunked = [];
+function chunkArray<T>(arr: T[], size: number): T[][] {
+  const chunked: T[][] = [];
   for (let i = 0; i < arr.length; i += size) {
     chunked.push(arr.slice(i, i + size));
   }
   return chunked;
-};
+}
 
-const HotTopicList = () => {
+const HotTopicList = ({ data }: { data: any[] }) => {
   const [currentPage, setCurrentPage] = useState(0);
   const scrollRef = useRef(null);
 
   const pageChunks = chunkArray(data, 3);
 
-  const handleScrollEnd = (event) => {
+  const handleScrollEnd = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const pageIndex = Math.round(offsetX / PAGE_WIDTH);
     setCurrentPage(pageIndex);
@@ -83,28 +86,32 @@ const HotTopicList = () => {
                   style={styles.card}
                   onPress={() => router.push("/community/post")}
                 >
-                  <Text style={styles.id}>{item.id}</Text>
+                  <Text style={styles.id}>{globalIndex}</Text>
                   <View style={styles.textContainer}>
                     <View style={styles.tagCard}>
-                      <Text style={styles.tag}>{item.tag}</Text>
+                      <Text style={styles.tag}>
+                        {convertThemaToKor(item.thema)}
+                      </Text>
                     </View>
-                    <Text style={styles.titleText}>{item.title}</Text>
+                    <Text style={styles.titleText}>{item.postTitle}</Text>
                     <View style={styles.meta}>
                       <View style={styles.iconContainer}>
                         <HeartIcon />
-                        <Text style={styles.itemText}>{item.likes}</Text>
+                        <Text style={styles.itemText}>{item.likeCount}</Text>
                       </View>
                       <View style={{ flexDirection: "row" }}>
                         <View style={styles.iconContainer}>
                           <ViewIcon />
-                          <Text style={styles.itemText}>{item.views}</Text>
+                          <Text style={styles.itemText}>{item.viewCount}</Text>
                         </View>
                         <DotIcon
                           style={{ alignSelf: "center", marginLeft: 4 }}
                         />
                         <View style={styles.iconContainer}>
                           <CommentIcon />
-                          <Text style={styles.itemText}>{item.comments}</Text>
+                          <Text style={styles.itemText}>
+                            {item.commentCount}
+                          </Text>
                         </View>
                       </View>
                     </View>
