@@ -1,5 +1,9 @@
 import IcDrag from "@/assets/images/ic_move_active.svg";
 import IcBack from "@/assets/images/icon_next_lg.svg";
+import {
+  deleteKeyword,
+  updateKeywordOrder,
+} from "@/components/api/useKeywordApi";
 import { Keyword, useKeywordStore } from "@/store/keywordStore";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -7,13 +11,12 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import DraggableFlatList, {
   RenderItemParams,
 } from "react-native-draggable-flatlist";
-
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
 export default function EditKeywordScreen() {
   const router = useRouter();
-  const { keywords, updateKeyword, removeKeyword, setKeywords, addKeyword } =
+  const { keywords, updateKeyword, removeKeyword, setKeywords } =
     useKeywordStore();
 
   const [isModalVisible, setModalVisible] = useState(false);
@@ -38,10 +41,18 @@ export default function EditKeywordScreen() {
           </TouchableOpacity>
         </View>
         <View style={styles.divider} />
+
         <DraggableFlatList
           data={keywords}
           keyExtractor={(item) => item.id}
-          onDragEnd={({ data }) => setKeywords(data)}
+          onDragEnd={async ({ data }) => {
+            try {
+              const keywordIdList = data.map((k) => Number(k.id));
+
+              await updateKeywordOrder(keywordIdList);
+              setKeywords(data);
+            } catch {}
+          }}
           renderItem={({ item, drag, isActive }: RenderItemParams<Keyword>) => (
             <TouchableOpacity
               onLongPress={drag}
@@ -52,6 +63,7 @@ export default function EditKeywordScreen() {
               ]}
             >
               <Text style={styles.keywordText}># {item.name}</Text>
+
               <View style={styles.rightArea}>
                 <TouchableOpacity
                   style={[
@@ -103,13 +115,42 @@ export default function EditKeywordScreen() {
 
               <TouchableOpacity
                 style={styles.confirmBtn}
-                onPress={() => {
-                  removeKeyword(selectedId!);
-                  setModalVisible(false);
-                  Toast.show({
-                    type: "success",
-                    text1: "키워드가 삭제되었어요",
-                  });
+                onPress={async () => {
+                  try {
+                    await deleteKeyword(Number(selectedId));
+                    removeKeyword(selectedId!);
+
+                    const updatedKeywords = keywords.filter(
+                      (k) => k.id !== selectedId
+                    );
+
+                    setKeywords(updatedKeywords);
+
+                    if (updatedKeywords.length === 0) {
+                      Toast.show({
+                        type: "success",
+                        text1: "키워드가 삭제되었어요",
+                      });
+
+                      setTimeout(() => {
+                        router.replace("/mynewgnal");
+                      }, 1000); // 1초 뒤에 이동
+                    } else {
+                      Toast.show({
+                        type: "success",
+                        text1: "키워드가 삭제되었어요",
+                      });
+                    }
+
+                    setModalVisible(false);
+                  } catch (e) {
+                    console.error("키워드 삭제 실패", e);
+                    Toast.show({
+                      type: "warning",
+                      text1: "삭제에 실패했어요",
+                    });
+                    setModalVisible(false);
+                  }
                 }}
               >
                 <Text style={styles.confirmText}>삭제하기</Text>
@@ -160,7 +201,7 @@ const styles = StyleSheet.create({
   },
   keywordText: {
     fontSize: 16,
-    fontWeight: 500,
+    fontWeight: "500",
     color: "#2E3439",
   },
   rightArea: {
@@ -204,7 +245,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     backgroundColor: "#F4F5F7",
     borderRadius: 12,
-    padding: 20,
     alignItems: "center",
   },
   modalTitle: {

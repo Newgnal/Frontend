@@ -1,5 +1,3 @@
-import { useKeywordStore } from "@/store/keywordStore";
-import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
   KeyboardAvoidingView,
@@ -10,7 +8,6 @@ import {
   View,
 } from "react-native";
 import Modal from "react-native-modal";
-import uuid from "react-native-uuid";
 
 export default function AddKeywordModal({
   isVisible,
@@ -23,8 +20,6 @@ export default function AddKeywordModal({
 }) {
   const [keyword, setKeyword] = useState("");
   const maxLength = 10;
-  const router = useRouter();
-  const newId = uuid.v4();
 
   return (
     <Modal isVisible={isVisible} onBackdropPress={onClose} style={styles.modal}>
@@ -57,18 +52,12 @@ export default function AddKeywordModal({
             <TouchableOpacity
               style={styles.confirmBtn}
               onPress={() => {
-                if (keyword.trim() === "") return;
+                const trimmed = keyword.trim();
 
-                useKeywordStore.getState().addKeyword({
-                  id: uuid.v4().toString(),
-                  name: keyword.trim(),
-                  hasNewNews: false,
-                  newsCount: 0,
-                  alertOn: true,
-                });
+                onConfirm(trimmed);
 
                 setKeyword("");
-                router.push("/(tabs)/mynewgnal/keywordlist");
+                onClose();
               }}
             >
               <Text style={styles.confirmText}>확인</Text>
