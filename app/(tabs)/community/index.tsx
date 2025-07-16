@@ -124,7 +124,7 @@ export default function CommunityScreen() {
                 </View>
               </Pressable>
             </View>
-            <TopicList data={recentPosts} order="latest" hasNews={false} />
+            <TopicList data={recentPosts} order="LATEST" hasNews={false} />
           </View>
           <HorizontalLine
             color={"#F4F5F7"}

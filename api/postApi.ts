@@ -35,8 +35,26 @@ export const reportPost = async (postId: number) => {
   return res.data;
 };
 
-// (나중에 만들게 될 GET API)
-// export const getPostList = async () => {
-//   const res = await axiosInstance.get("/post/v1/list");
-//   return res.data;
-// };
+// 게시글 리스트 조회
+interface GetPostListParams {
+  page?: number;
+  size?: number;
+  sortType?: string;
+}
+
+export const getPostList = async ({
+  page = 0,
+  size = 10,
+  sortType = "LATEST",
+}: GetPostListParams) => {
+  const res = await axiosInstance.get("/post/v1/list", {
+    params: { page, size, sortType },
+  });
+  return res.data.data.content;
+};
+
+// 게시글 상세 조회
+export const getPostById = async (postId: number) => {
+  const res = await axiosInstance.get(`/post/v1/detail/${postId}`);
+  return res.data;
+};
