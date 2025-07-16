@@ -1,62 +1,151 @@
-import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
-import IcEtc from "@/assets/images/ic_cmnt_etc.svg";
-import IcComnt from "@/assets/images/ic_comnt.svg";
-import IcHeader from "@/assets/images/ic_header.svg";
-import IcHeart from "@/assets/images/ic_hrt.svg";
-import IcPoll from "@/assets/images/ic_poll.svg";
-import IcSend from "@/assets/images/ic_send.svg";
-import IcComment from "@/assets/images/material-symbols-light_reply-rounded.svg";
-import CommentOptionModal from "@/components/ui/modal/CommentOptionModal";
-import OptionSelectModal from "@/components/ui/modal/OptionSelectModal";
-import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
-import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
+  Dimensions,
+  Image,
   ScrollView,
-  StyleSheet,
   Text,
-  TextInput,
-  TouchableOpacity,
+  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { getNewsById } from "@/api/useNewsApi";
+import { postVote } from "@/api/useVoteApi";
+import { NewsItem } from "@/types/news";
+import { VoteType } from "@/types/vote";
+
+import CommentSection from "@/app/news/CommentSection";
+import NewsContent from "@/app/news/NewsContent";
+import NewsHeader from "@/app/news/NewsHeader";
+import VoteSection from "@/app/news/PollSection";
+
+import CommentOptionModal from "@/components/ui/modal/CommentOptionModal";
+import OptionSelectModal from "@/components/ui/modal/OptionSelectModal";
+import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
+
 export default function NewsDetail() {
+  const { id } = useLocalSearchParams();
+  const router = useRouter();
+
+  const [news, setNews] = useState<NewsItem | null>(null);
+  const [htmlContent, setHtmlContent] = useState<string | null>(null);
+  const { width } = useWindowDimensions();
+  const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
+
+  const [hasVoted, setHasVoted] = useState(false);
+  const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
+  const [pollResults, setPollResults] = useState<number[]>([0, 0, 0, 0, 0]);
+  const [isVoteLoaded, setIsVoteLoaded] = useState(false);
+
+  const [likedComments, setLikedComments] = useState<{
+    [key: string]: boolean;
+  }>({});
   const [isOptionModalVisible, setOptionModalVisible] = useState(false);
   const [isCommentOptionModalVisible, setCommentOptionModalVisible] =
     useState(false);
   const [isReportModalVisible, setReportModalVisible] = useState(false);
 
-  const { id } = useLocalSearchParams();
-  const router = useRouter();
-  const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
-  const [hasVoted, setHasVoted] = useState(false);
-  const [likedComments, setLikedComments] = useState<{
-    [key: string]: boolean;
-  }>({});
+  const scrollRef = useRef<ScrollView>(null);
+  const pollRef = useRef<View>(null);
+  const commentRef = useRef<View>(null);
+
+  const VOTE_KEY = `vote-${id}`;
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      const res = await getNewsById(id as string);
+
+      setNews(res);
+    };
+    if (id) fetchNews();
+  }, [id]);
+
+  useEffect(() => {
+    if (!news?.content) return;
+
+    const plain = news.content;
+    const formatted = `<p>${plain.replace(/\n/g, "<br/>")}</p>`;
+
+    setHtmlContent(formatted);
+  }, [news]);
+
+  useEffect(() => {
+    if (!news?.imageUrl) return;
+    Image.getSize(news.imageUrl, (w, h) => {
+      const screenWidth = Dimensions.get("window").width - 32;
+      const ratio = screenWidth / w;
+      setImageSize({
+        width: screenWidth,
+        height: h * ratio,
+      });
+    });
+  }, [news?.imageUrl]);
+
+  useEffect(() => {
+    const loadVoteStatus = async () => {
+      try {
+        const storedVote = await AsyncStorage.getItem(VOTE_KEY);
+        if (storedVote !== null) {
+          const parsed = JSON.parse(storedVote);
+          setHasVoted(true);
+          setSelectedPoll(parsed.selectedPoll);
+          setPollResults(parsed.pollResults);
+        }
+      } catch (e) {
+        console.error("투표 상태 불러오기 실패", e);
+      } finally {
+        setIsVoteLoaded(true);
+      }
+    };
+    if (id) loadVoteStatus();
+  }, [id]);
+
+  const handleVote = async (selectedIndex: number) => {
+    const voteMap: VoteType[] = [
+      "STRONGLY_NEGATIVE",
+      "NEGATIVE",
+      "NEUTRAL",
+      "POSITIVE",
+      "STRONGLY_POSITIVE",
+    ];
+    const voteType = voteMap[selectedIndex];
+
+    try {
+      const response = await postVote({
+        newsId: Number(id),
+        voteType,
+      });
+      const resultArray = [
+        response.stronglyNegativeCount,
+        response.negativeCount,
+        response.neutralCount,
+        response.positiveCount,
+        response.stronglyPositiveCount,
+      ];
+      setPollResults(resultArray);
+      setHasVoted(true);
+      setSelectedPoll(selectedIndex);
+
+      await AsyncStorage.setItem(
+        VOTE_KEY,
+        JSON.stringify({
+          selectedPoll: selectedIndex,
+          pollResults: resultArray,
+        })
+      );
+    } catch (error) {
+      console.error("투표 실패", error);
+    }
+  };
+
   const toggleLike = (commentId: string) => {
     setLikedComments((prev) => ({
       ...prev,
       [commentId]: !prev[commentId],
     }));
   };
-
-  const dummyNewsData = [
-    {
-      id: "1",
-      title: "한살림 고구마 케이크서 식중독균 검출",
-      content:
-        "식품의약품안전처(식약처)가 식품제조·가공업체 한살림우리밀제과가 제조하고, 유통전문판매업체 한살림사업연합이 판매한 '고구마케이크 1호'에서 중독균인 황색포도상구균이 검출돼 판매를 중단하고 회수 조치한다고 20일 밝혔다.\n\n회수 대상은 제조 일자가 '2025. 6. 12.'로 표시된 제품이다.\n\n식약처는 안성시청이 해당 제품을 신속히 회수 조치하도록 했으며, 해당 제품을 구매한 소비자에게 섭취를 중단하고 구입처에 반품해 달라고 당부했다고 알렸다.\n\n식품 관련 불법 행위를 목격한 경우 불량식품 신고 전화(☎ 1399)로 신고하거나 스마트폰 '내손안' 애플리케이션을 이용해 신고할 수 있다.",
-      date: "2025.06.20",
-    },
-    {
-      id: "2",
-      title: "삼성전자, AI 반도체 공개",
-      content: "삼성전자가 차세대 AI 반도체를 공개했다.",
-      date: "2025.06.21",
-    },
-  ];
 
   const pollLabels = [
     "강한 부정",
@@ -65,7 +154,6 @@ export default function NewsDetail() {
     "약한 긍정",
     "강한 긍정",
   ];
-  const pollResults = [15, 20, 50, 30, 15];
   const opinionTheme: Record<
     string,
     {
@@ -112,9 +200,13 @@ export default function NewsDetail() {
       tagTextColor: "#00BD73",
     },
   };
-
-  const pollBgColor = "#F4F5F7";
-
+  const opinionBgColors: Record<string, string> = {
+    "강한 부정": "#FFF1E6",
+    "약한 부정": "#FFF7E8",
+    중립: "#E4E6E7",
+    "약한 긍정": "#E0FFF3",
+    "강한 긍정": "#D6FFEF",
+  };
   const comments = Array.from({ length: 10 }, (_, i) => ({
     id: i.toString(),
     user: "테이비",
@@ -141,665 +233,76 @@ export default function NewsDetail() {
     ],
   }));
 
-  const opinionBgColors: Record<string, string> = {
-    "강한 부정": "#FFF1E6",
-    "약한 부정": "#FFF7E8",
-    중립: "#E4E6E7",
-    "약한 긍정": "#E0FFF3",
-    "강한 긍정": "#D6FFEF",
-  };
-  const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
-  const news = dummyNewsData.find((n) => n.id === id);
-  const scrollRef = useRef<ScrollView>(null);
-  const pollRef = useRef<View>(null);
-  const commentRef = useRef<View>(null);
   if (!news) return <Text>뉴스를 찾을 수 없습니다</Text>;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <ScrollView ref={scrollRef} style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={24} color="black" />
-          </TouchableOpacity>
-          <View style={styles.headerIcons}>
-            <TouchableOpacity style={{ marginRight: 12 }}>
-              <IcHeader width={24} height={24} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setOptionModalVisible(true)}>
-              <IcEtc width={24} height={24} />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <Text style={styles.newsTitle}>
-          한살림 고구마 케이크서 ‘식중독균 검출’... 식약처, 회수 조치
-        </Text>
-        <Text style={styles.newsMeta}>입력 2025.06.20 오후 6:44</Text>
-        <View style={styles.reactions}>
-          <TouchableOpacity
-            onPress={() => {
-              pollRef.current?.measure((fx, fy, width, height, px, py) => {
-                scrollRef.current?.scrollTo({ y: py - 60, animated: true });
-              });
-            }}
-            style={styles.reactionItem}
-          >
-            <IcPoll width={16} height={16} style={{ marginRight: 4 }} />
-            <Text style={styles.reactionText}>402</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => {
-              setTimeout(() => {
-                commentRef.current?.measure(
-                  (x, y, width, height, pageX, pageY) => {
-                    scrollRef.current?.scrollTo({
-                      y: pageY - 60,
-                      animated: true,
-                    });
-                  }
-                );
-              }, 100);
-            }}
-            style={styles.reactionItem}
-          >
-            <IcComnt width={16} height={16} style={{ marginRight: 4 }} />
-            <Text style={styles.reactionText}>10</Text>
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.summaryBox}>
-          <Text style={styles.sectionLabel}>+ AI 요약</Text>
-          <Text style={styles.summaryText}>
-            요약요약요약요약요약요약요약요약요약요약요약요약요약요약요약요약
-          </Text>
-        </View>
-
-        <Text style={styles.content}>{news.content}</Text>
-
-        <View style={styles.imageBox}></View>
-        <Text style={styles.imageLabel}>
-          한살림/식약관리원이 확인한 ‘고구마케이크’ 1판. 식약처제공
-        </Text>
-
-        <View
-          style={{
-            height: 8,
-            width: "100%",
-            backgroundColor: "#F4F5F7",
-            marginTop: 20,
-            marginBottom: 20,
-          }}
+      <ScrollView ref={scrollRef}>
+        <NewsHeader
+          title={news.title}
+          date={news.date}
+          pollCount={pollResults.reduce((acc, val) => acc + val, 0)}
+          commentCount={comments.length}
+          onBack={() => router.back()}
+          onOpenOption={() => setOptionModalVisible(true)}
+          onPressPoll={() =>
+            pollRef.current?.measure((_, __, ___, ____, px, py) => {
+              scrollRef.current?.scrollTo({ y: py - 60, animated: true });
+            })
+          }
+          onPressComment={() =>
+            commentRef.current?.measure((_, __, ___, ____, px, py) => {
+              scrollRef.current?.scrollTo({ y: py - 60, animated: true });
+            })
+          }
         />
 
-        <View ref={pollRef} style={styles.pollBox}>
-          <View style={styles.pollContainer}>
-            <Text style={styles.pollQuestion}>
-              이 뉴스가 [반도체/AI]에 어떤 영향을 줄까요?
-            </Text>
-
-            <View style={styles.pollOptions}>
-              {pollLabels.map((label, idx) => (
-                <TouchableOpacity
-                  key={idx}
-                  onPress={() => {
-                    setSelectedPoll(idx);
-                    setHasVoted(true);
-                  }}
-                  style={{
-                    width: 24,
-                    height: 24,
-                    borderRadius: 12,
-                    alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: "transparent",
-                  }}
-                >
-                  <View
-                    style={{
-                      width: 12,
-                      height: 12,
-                      borderRadius: 6,
-                      backgroundColor:
-                        selectedPoll === idx
-                          ? opinionTheme[label].dotColor
-                          : "#CBD5E1",
-                      transform: selectedPoll === idx ? [{ scale: 2.5 }] : [],
-                    }}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                marginTop: 8,
-                paddingHorizontal: 4,
-              }}
-            >
-              {pollLabels.map((label, idx) => (
-                <Text
-                  key={idx}
-                  style={[
-                    styles.pollLabel,
-                    selectedPoll === idx && {
-                      fontWeight: "bold",
-                      color: opinionTheme[label].labelColor,
-                    },
-                  ]}
-                >
-                  {label}
-                </Text>
-              ))}
-            </View>
-          </View>
-
-          {hasVoted && (
-            <View style={{ marginTop: 20 }}>
-              <View
-                style={{
-                  flexDirection: "row",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  marginBottom: 12,
-                }}
-              >
-                <Text style={{ fontWeight: "bold", fontSize: 15 }}>
-                  다른 사용자들의 의견
-                </Text>
-                <Text
-                  style={{ fontWeight: "400", fontSize: 12, color: "#666" }}
-                >
-                  답변 {pollTotalCount}
-                </Text>
-              </View>
-              {pollLabels.map((label, idx) => (
-                <View
-                  key={idx}
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    marginVertical: 6,
-                  }}
-                >
-                  <Text
-                    style={{
-                      width: 70,
-                      fontSize: 12,
-                      fontWeight: "400",
-                      color: "#484F56",
-                    }}
-                  >
-                    {label}
-                  </Text>
-                  <View
-                    style={{
-                      flex: 1,
-                      height: 6,
-                      backgroundColor: "#F3F4F6",
-                      borderRadius: 4,
-                      marginHorizontal: 8,
-                    }}
-                  >
-                    <View
-                      style={{
-                        height: 6,
-                        borderRadius: 4,
-                        backgroundColor: opinionTheme[label].barColor,
-                        width: `${pollResults[idx]}%`,
-                      }}
-                    />
-                  </View>
-                  <Text style={{ width: 30, fontSize: 12 }}>
-                    {pollResults[idx]}%
-                  </Text>
-                </View>
-              ))}
-            </View>
-          )}
-        </View>
-
-        <View
-          style={{
-            height: 8,
-            width: "100%",
-            backgroundColor: "#F4F5F7",
-            marginTop: 20,
-            marginBottom: 12,
-          }}
+        <NewsContent
+          summary={news.summary}
+          htmlContent={htmlContent}
+          imageUrl={news.imageUrl}
+          imageCaption={news.imageCaption}
+          imageSize={imageSize}
         />
 
-        <View ref={commentRef} style={styles.commentSection}>
-          <Text style={styles.commentCount}>댓글 {comments.length}</Text>
-
-          {comments.map((comment) => (
-            <View key={comment.id} style={styles.commentBox}>
-              <View style={styles.commentHeader}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    flex: 1,
-                  }}
-                >
-                  <View style={styles.commentUserIcon} />
-                  <View>
-                    <Text style={styles.commentUser}>{comment.user}</Text>
-                    <Text style={styles.commentTime}>{comment.time}</Text>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.positiveTag,
-                      {
-                        backgroundColor:
-                          opinionBgColors[comment.opinion] || pollBgColor,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={{
-                        color: opinionTheme[comment.opinion].tagTextColor,
-                        fontSize: 12,
-                        fontWeight: "400",
-                        fontFamily: "Pretendard",
-                        lineHeight: 14,
-                      }}
-                    >
-                      {comment.opinion}
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
-                {comment.content}
-              </Text>
-
-              <View style={[styles.commentActions, { paddingLeft: 40 }]}>
-                <View style={{ flexDirection: "row", gap: 12 }}>
-                  <View style={styles.iconWithText}>
-                    <IcHeart
-                      width={24}
-                      height={24}
-                      stroke={likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"}
-                    />
-                    <Text style={styles.commentActionText}>
-                      {likedComments[comment.id] ? 11 : 10}
-                    </Text>
-                  </View>
-                  <View style={styles.iconWithText}>
-                    <IcComment width={24} height={24} />
-                    <Text style={styles.commentActionText}>답글 달기</Text>
-                  </View>
-                </View>
-                <TouchableOpacity
-                  style={{ marginLeft: "auto" }}
-                  onPress={() => setCommentOptionModalVisible(true)}
-                >
-                  <IcComntEtc width={20} height={20} />
-                </TouchableOpacity>
-              </View>
-
-              {comment.replies && comment.replies.length > 0 && (
-                <View
-                  style={{
-                    backgroundColor: "#F4F5F7",
-                    borderRadius: 4,
-                    paddingHorizontal: 16,
-                    paddingTop: 16,
-                    paddingBottom: 12,
-                    marginTop: 12,
-                  }}
-                >
-                  {comment.replies.map((reply) => (
-                    <View key={reply.id} style={styles.replyBox}>
-                      <View style={styles.commentHeader}>
-                        <View style={styles.commentUserIcon} />
-                        <View>
-                          <Text style={styles.commentUser}>{reply.user}</Text>
-                          <Text style={styles.commentTime}>{reply.time}</Text>
-                        </View>
-                        <View
-                          style={[
-                            styles.positiveTag,
-                            {
-                              backgroundColor:
-                                opinionBgColors[reply.opinion] || pollBgColor,
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={{
-                              color: opinionTheme[reply.opinion].tagTextColor,
-                              fontSize: 12,
-                              fontWeight: "400",
-                              fontFamily: "Pretendard",
-                              lineHeight: 14,
-                            }}
-                          >
-                            {reply.opinion}
-                          </Text>
-                        </View>
-                      </View>
-
-                      <Text
-                        style={[styles.commentContent, { paddingLeft: 40 }]}
-                      >
-                        {reply.content}
-                      </Text>
-
-                      <View style={styles.commentActions}>
-                        <View
-                          style={[styles.iconWithText, { paddingLeft: 36 }]}
-                        >
-                          <IcHeart
-                            width={24}
-                            height={24}
-                            stroke={
-                              likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"
-                            }
-                          />
-
-                          <Text style={styles.commentActionText}>
-                            {likedComments[reply.id] ? 11 : 10}
-                          </Text>
-                        </View>
-                        <TouchableOpacity style={{ marginLeft: "auto" }}>
-                          <IcComntEtc width={20} height={20} />
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                  ))}
-                </View>
-              )}
-            </View>
-          ))}
+        <View ref={pollRef}>
+          <VoteSection
+            hasVoted={hasVoted}
+            isVoteLoaded={isVoteLoaded}
+            selectedPoll={selectedPoll}
+            pollResults={pollResults}
+            onVote={handleVote}
+            pollLabels={pollLabels}
+            opinionTheme={opinionTheme}
+          />
         </View>
+
+        <CommentSection
+          comments={comments}
+          likedComments={likedComments}
+          onToggleLike={toggleLike}
+          opinionTheme={opinionTheme}
+          opinionBgColors={opinionBgColors}
+          onOpenOption={() => setCommentOptionModalVisible(true)}
+        />
       </ScrollView>
-      <View style={styles.commentInputContainer}>
-        <View style={styles.commentInputWrapper}>
-          <View style={styles.commentInputBox}>
-            <View style={styles.avatarCircle} />
-            <TextInput
-              style={styles.textInput}
-              placeholder="댓글을 입력하세요"
-              placeholderTextColor="#9CA3AF"
-            />
-          </View>
 
-          <TouchableOpacity style={styles.sendButton}>
-            <IcSend width={20} height={20} />
-          </TouchableOpacity>
-        </View>
-      </View>
       <OptionSelectModal
         isVisible={isOptionModalVisible}
         onClose={() => setOptionModalVisible(false)}
-        onFeedbackPress={() => {
-          setOptionModalVisible(false);
-
-          console.log("피드백 보내기 클릭됨");
-        }}
+        onFeedbackPress={() => console.log("피드백 보내기 클릭됨")}
       />
       <CommentOptionModal
         isVisible={isCommentOptionModalVisible}
         onClose={() => setCommentOptionModalVisible(false)}
-        onEdit={() => {
-          setCommentOptionModalVisible(false);
-          console.log("수정하기 눌림");
-        }}
-        onDelete={() => {
-          setCommentOptionModalVisible(false);
-          console.log("삭제하기 눌림");
-        }}
+        onEdit={() => console.log("댓글 수정")}
+        onDelete={() => console.log("댓글 삭제")}
       />
       <ReportOptionModal
         isVisible={isReportModalVisible}
         onClose={() => setReportModalVisible(false)}
-        onReport={() => {
-          setReportModalVisible(false);
-          //신고하기
-        }}
+        onReport={() => console.log("신고하기")}
       />
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { padding: 20, backgroundColor: "#fff", flex: 1 },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerIcons: { flexDirection: "row" },
-  newsTitle: {
-    fontSize: 24,
-    fontWeight: "700",
-    lineHeight: 36,
-    fontFamily: "Pretendard",
-    marginTop: 20,
-  },
-  newsMeta: { fontSize: 12, color: "#888", marginTop: 6 },
-  sectionLabel: { marginTop: 20, fontWeight: "bold", fontSize: 14 },
-  content: { marginTop: 8, fontSize: 14, lineHeight: 22, color: "#222" },
-  imageBox: {
-    marginTop: 20,
-    backgroundColor: "#eaeaea",
-    height: 140,
-    borderRadius: 8,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  imageLabel: { fontSize: 12, color: "#666", padding: 10 },
-  reactions: { flexDirection: "row", gap: 12, marginTop: 12 },
-  reactionItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    borderRadius: 999,
-    backgroundColor: "#fff",
-  },
-  summaryBox: {
-    borderLeftWidth: 2,
-    borderLeftColor: "#D0D0D0",
-    paddingLeft: 12,
-    marginTop: 16,
-  },
-  summaryText: { fontSize: 14, lineHeight: 22, color: "#444" },
-  reactionText: { fontSize: 14, color: "#6B7280" },
-  pollBox: {
-    padding: 0,
-    borderRadius: 12,
-    marginTop: 0,
-  },
-  pollContainer: {
-    backgroundColor: "#F4F5F7",
-    width: 372,
-    height: 145,
-    borderRadius: 20,
-    paddingVertical: 20,
-    paddingHorizontal: 24,
-    alignSelf: "center",
-    justifyContent: "space-between",
-  },
-  pollQuestion: {
-    fontSize: 16,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  pollOptions: {
-    backgroundColor: "#FFFFFF",
-    height: 24,
-    borderRadius: 12,
-    paddingHorizontal: 20,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 12,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  pollOption: {
-    alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
-    gap: 4,
-  },
-  circle: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: "#CBD5E1",
-  },
-  pollLabel: { fontSize: 10, color: "#4B5563", textAlign: "center" },
-  commentSection: {
-    marginTop: 8,
-    paddingTop: 8,
-  },
-  commentCount: {
-    fontSize: 13,
-    fontWeight: "500",
-    fontFamily: "Pretendard",
-    color: "#40454A",
-    lineHeight: 13,
-  },
-  commentBox: {
-    marginTop: 12,
-    marginBottom: 24,
-    paddingBottom: 16,
-    borderBottomColor: "rgba(244, 245, 247, 1)",
-    borderBottomWidth: 2,
-  },
-  commentHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  commentUserIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#dcdcdc",
-    marginRight: 8,
-  },
-  commentUser: { fontWeight: "bold", fontSize: 14 },
-  commentTime: { fontSize: 12, color: "#888" },
-  positiveTag: {
-    marginLeft: "auto",
-    borderRadius: 4,
-    paddingHorizontal: 4,
-    paddingVertical: 4,
-    width: 55,
-    height: 22,
-    justifyContent: "center",
-    alignItems: "center",
-    flexDirection: "row",
-  },
-  commentContent: { fontSize: 14, color: "#333", lineHeight: 20 },
-  commentActions: {
-    flexDirection: "row",
-    marginTop: 8,
-    alignItems: "center",
-    gap: 12,
-  },
-  commentLike: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  commentReply: {
-    fontSize: 12,
-    color: "#6B7280",
-    textDecorationLine: "underline",
-  },
-
-  iconWithText: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 0,
-  },
-
-  commentActionText: {
-    fontSize: 12,
-    color: "#6B7280",
-  },
-  replyContainer: {
-    marginTop: 12,
-    paddingLeft: 12,
-    gap: 12,
-  },
-  replyBox: {
-    backgroundColor: "#F4F5F7",
-    borderRadius: 4,
-    paddingTop: 16,
-    paddingBottom: 12,
-    paddingHorizontal: 0,
-    marginLeft: 0,
-  },
-  commentInputContainer: {
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#F0F0F0",
-    backgroundColor: "#FFFFFF",
-  },
-  commentInputWrapper: {
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "100%",
-    gap: 8,
-  },
-
-  commentInputBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    borderRadius: 9999,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    justifyContent: "space-between",
-    borderColor: "#E4E6E7",
-    borderWidth: 1,
-    width: 324,
-    height: 40,
-    paddingLeft: 8,
-    paddingRight: 16,
-  },
-  sendButton: {
-    width: 24,
-    height: 24,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  commentPlaceholder: {
-    fontSize: 14,
-    color: "#9CA3AF",
-    flex: 1,
-  },
-  avatarCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 16,
-    backgroundColor: "#F2F3F5",
-    marginLeft: 0,
-  },
-
-  textInput: {
-    flex: 1,
-    fontSize: 14,
-    paddingVertical: 0,
-    paddingRight: 12,
-    fontWeight: "400",
-    color: "#89939F",
-  },
-});

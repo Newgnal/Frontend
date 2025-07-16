@@ -1,3 +1,4 @@
+import { getKeywordNews, getKeywords } from "@/api/useKeywordApi";
 import AlarmIcon from "@/assets/images/ic_alarm.svg";
 import IcArrowDown from "@/assets/images/ic_arrow_down.svg";
 import Iccheck from "@/assets/images/ic_check_default.svg";
@@ -6,7 +7,6 @@ import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
 import BackIcon from "@/assets/images/icon_next_lg.svg";
-import { getKeywordNews, getKeywords } from "@/components/api/useKeywordApi";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { KeywordNewsResponse, NewsItem, ServerKeyword } from "@/types/keyword";

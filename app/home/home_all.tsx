@@ -1,8 +1,18 @@
+import { getAllNews } from "@/api/useNewsApi";
 import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
-import { useState } from "react";
-import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { NewsItem } from "@/types/news";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Image,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { typography } from "../../styles/typography";
 
 type OrderType = "latest" | "views";
@@ -11,61 +21,45 @@ interface HomeAllProps {
   order: OrderType;
 }
 
-const dummyNews = [
-  {
-    id: "1",
-    title: "삼성, 2028년부터 반도체 유리기판 쓴다",
-    date: "2025.05.28",
-    category: "반도체/AI",
-    sentiment: "+0.8",
-    views: 21000,
-  },
-  {
-    id: "2",
-    title: "삼성전자, 차세대 AI 반도체 공개",
-    date: "2025.05.27",
-    category: "반도체/AI",
-    sentiment: "+0.9",
-    views: 50000,
-  },
-  {
-    id: "3",
-    title: "NVIDIA, GPT-5에 최적화된 GPU 출시",
-    date: "2025.05.26",
-    category: "반도체/AI",
-    sentiment: "+1.2",
-    views: 35000,
-  },
-  {
-    id: "4",
-    title: "AI 반도체 시장, 2030년 5배 성장 전망",
-    date: "2025.05.25",
-    category: "반도체/AI",
-    sentiment: "+1.0",
-    views: 12000,
-  },
-  {
-    id: "5",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "반도체/AI",
-    sentiment: "+0.7",
-    views: 27000,
-  },
-];
-
 export default function HomeAll({ order }: HomeAllProps) {
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [newsList, setNewsList] = useState<NewsItem[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
 
-  const sortedNews = [...dummyNews].sort((a, b) => {
-    if (order === "views") {
-      return b.views - a.views;
-    } else {
-      return new Date(b.date).getTime() - new Date(a.date).getTime();
+  const fetchNews = async (pageNum: number) => {
+    try {
+      setLoading(true);
+      const data = await getAllNews(order, pageNum);
+      if (data.length === 0) {
+        setHasMore(false);
+      } else {
+        setNewsList((prev) => [...prev, ...data]);
+      }
+    } catch (error) {
+      console.error("뉴스 불러오기 실패:", error);
+    } finally {
+      setLoading(false);
     }
-  });
+  };
 
-  const renderItem = ({ item }: { item: (typeof dummyNews)[0] }) => {
+  useEffect(() => {
+    setNewsList([]);
+    setPage(0);
+    setHasMore(true);
+    fetchNews(0);
+  }, [order]);
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchNews(nextPage);
+    }
+  };
+
+  const renderItem = ({ item }: { item: NewsItem }) => {
     const isSelected = selectedId === item.id;
 
     return (
@@ -83,33 +77,39 @@ export default function HomeAll({ order }: HomeAllProps) {
         ]}
       >
         <View style={styles.header}>
-          <Text style={styles.category}>{item.category}</Text>
-          <Text style={styles.sentiment}>{item.sentiment}</Text>
+          <Text style={styles.category}>{item.thema}</Text>
+          <Text style={styles.sentiment}>
+            {item.sentiment > 0 ? `+${item.sentiment}` : item.sentiment}
+          </Text>
         </View>
 
         <View style={styles.contentRow}>
           <View style={styles.textContent}>
             <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.subtitle}>매일 경제 | {item.date}</Text>
+            <Text style={styles.subtitle}>
+              {item.source} | {item.date.split("T")[0]}
+            </Text>
 
             <View style={styles.metaRow}>
               <Text style={styles.meta}>
-                조회 {Math.floor(item.views / 10000)}만
+                조회 {Math.floor(item.view / 10000)}만
               </Text>
 
               <View style={styles.iconWithText}>
                 <IcComnt width={24} height={24} />
-                <Text style={styles.meta}>234</Text>
+                <Text style={styles.meta}>{item.commentNum ?? 0}</Text>
               </View>
 
               <View style={styles.iconWithText}>
                 <IcPoll width={24} height={24} />
-                <Text style={styles.meta}>402</Text>
+                <Text style={styles.meta}>{item.voteNum ?? 0}</Text>
               </View>
             </View>
           </View>
 
-          <View style={styles.imagePlaceholder} />
+          {item.imageUrl && (
+            <Image source={{ uri: item.imageUrl }} style={styles.image} />
+          )}
         </View>
 
         <HorizontalLine />
@@ -119,10 +119,15 @@ export default function HomeAll({ order }: HomeAllProps) {
 
   return (
     <FlatList
-      data={sortedNews}
-      keyExtractor={(item) => item.id}
+      data={newsList}
+      keyExtractor={(item) => item.id.toString()}
       renderItem={renderItem}
       contentContainerStyle={styles.container}
+      onEndReached={handleLoadMore}
+      onEndReachedThreshold={0.6}
+      ListFooterComponent={
+        loading ? <ActivityIndicator size="small" color="#aaa" /> : null
+      }
     />
   );
 }
@@ -198,10 +203,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#777",
   },
-  imagePlaceholder: {
+  image: {
     width: 60,
     height: 60,
-    backgroundColor: "#dcdcdc",
     borderRadius: 4,
+    backgroundColor: "#dcdcdc",
   },
 });
