@@ -60,7 +60,7 @@ export default function PostScreen() {
 
   const router = useRouter();
 
-  // console.log("받은 postId:", id);
+  console.log("받은 postId:", id);
 
   const [post, setPost] = useState<Post | null>(null);
   const [vote, setVote] = useState<any | null>(null);
@@ -241,7 +241,7 @@ export default function PostScreen() {
             <View style={styles.commentSection}>
               <View style={styles.commentContainer}>
                 <Text style={styles.commentText}>댓글</Text>
-                <Text style={styles.commentCount}>{comments.length}</Text>
+                <Text style={styles.commentCount}>{post.commentCount}</Text>
               </View>
 
               {comments.map((comment) => (
@@ -305,7 +305,9 @@ export default function PostScreen() {
                           }
                         />
                         <Text style={styles.commentActionText}>
-                          {likedComments[comment.commentId] ? 11 : 10}
+                          {/* {likedComments[comment.commentId] ? 11 : 10} */}
+                          {likedComments[comment.commentId] ??
+                            comment.likeCount}
                         </Text>
                       </View>
                       <View style={styles.iconWithText}>
@@ -360,7 +362,7 @@ export default function PostScreen() {
                                   lineHeight: 14,
                                 }}
                               >
-                                {reply.voteType}
+                                {reply.voteType}f
                               </Text>
                             </View>
                           </View>
