@@ -22,15 +22,6 @@ const SCREEN_WIDTH = Dimensions.get("window").width;
 const PEEK_WIDTH = 32;
 const PAGE_WIDTH = SCREEN_WIDTH - PEEK_WIDTH * 3;
 
-// const data = Array.from({ length: 9 }, (_, i) => ({
-//   id: i + 1,
-//   tag: "반도체/AI",
-//   title: "반도체에 대해 어떻게 생각하세요?",
-//   likes: 10,
-//   views: 10,
-//   comments: 12,
-// }));
-
 // 3개씩 나누기 (페이지 당 3개 카드)
 function chunkArray<T>(arr: T[], size: number): T[][] {
   const chunked: T[][] = [];
@@ -82,9 +73,14 @@ const HotTopicList = ({ data }: { data: any[] }) => {
 
               return (
                 <Pressable
-                  key={item.id}
+                  key={item.postId}
                   style={styles.card}
-                  onPress={() => router.push("/community/post")}
+                  onPress={() =>
+                    router.push({
+                      pathname: `/community/post/[id]` as const,
+                      params: { id: String(item.postId) },
+                    })
+                  }
                 >
                   <Text style={styles.id}>{globalIndex}</Text>
                   <View style={styles.textContainer}>
@@ -115,7 +111,7 @@ const HotTopicList = ({ data }: { data: any[] }) => {
                         </View>
                       </View>
                     </View>
-                    -{globalIndex % 3 !== 0 && <HorizontalLine />}
+                    {globalIndex % 3 !== 0 && <HorizontalLine />}
                   </View>
                 </Pressable>
               );
