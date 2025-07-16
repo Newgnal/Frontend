@@ -174,15 +174,15 @@ export default function PostScreen() {
               isList={false}
               hasNews
               item={{
-                username: "홍길동",
-                time: "2시간 전",
-                category: "스타트업",
-                title: "요즘 스타트업 근무 환경 어때요?",
-                content:
+                nickname: "홍길동",
+                createdAt: "2시간 전",
+                thema: "스타트업",
+                postTitle: "요즘 스타트업 근무 환경 어때요?",
+                postContent:
                   "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
-                likes: 8,
-                views: 25,
-                comments: 3,
+                likeCount: 8,
+                viewCount: 25,
+                commentCount: 3,
               }}
             />
           </View>
