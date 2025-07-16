@@ -1,3 +1,4 @@
+import { deletePostbyId } from "@/api/postApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import HoldIcon from "@/assets/images/ic_com_poll.svg";
@@ -12,10 +13,12 @@ import { PollSection } from "@/components/ui/community/PollSection";
 import TopicDetail from "@/components/ui/community/TopicDetail";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import PostModal from "@/components/ui/modal/PostModal";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,6 +27,8 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
+
 export default function PostScreen() {
   const router = useRouter();
   const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
@@ -31,10 +36,42 @@ export default function PostScreen() {
   const [likedComments, setLikedComments] = useState<{
     [key: string]: boolean;
   }>({});
+  const [isVisible, setIsVisible] = useState(false);
   const [commentText, setCommentText] = useState("");
   const pollLabels = ["매도", "보유", "매수"];
   const pollResults = [20, 20, 15]; // 각 항목 비율(%)
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
+
+  const postId = 1;
+
+  const handlePostUpdate = () => {
+    router.push({
+      pathname: "/(tabs)/community/writeForm",
+      // params: {
+      //   postId: post.id.toString(),
+      //   editTitle: post.postTitle,
+      //   editContent: post.postContent,
+      //   editHasVoted: post.hasVote?.toString(),
+      //   editArticleUrl: post.articleUrl,
+      //   editThema: post.thema,
+      //   category: post.categoryName,
+      // },
+    });
+  };
+
+  const handlePostDelete = async () => {
+    try {
+      await deletePostbyId(postId);
+      Toast.show({ type: "success", text1: "글이 삭제되었어요" });
+      router.replace("/(tabs)/community"); // 목록으로 이동
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "삭제 실패",
+        text2: "다시 시도해주세요",
+      });
+    }
+  };
 
   const opinionTheme: Record<
     string,
@@ -113,226 +150,251 @@ export default function PostScreen() {
     ],
   }));
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <Header
-        title=""
-        leftSlot={<NextLgIcon onPress={() => router.back()} />}
-        rightSlot={
-          <>
-            <ShareIcon />
-            <EtcVerIcon />
-          </>
-        }
-      />
-      <ScrollView>
-        <View style={styles.content}>
-          <TopicDetail
-            isList={false}
-            hasNews
-            item={{
-              username: "홍길동",
-              time: "2시간 전",
-              category: "스타트업",
-              title: "요즘 스타트업 근무 환경 어때요?",
-              content:
-                "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
-              likes: 8,
-              views: 25,
-              comments: 3,
-            }}
-          />
-        </View>
+    <>
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+        <Header
+          title=""
+          leftSlot={<NextLgIcon onPress={() => router.back()} />}
+          rightSlot={
+            <>
+              <ShareIcon />
+              <Pressable
+                onPress={() => {
+                  setIsVisible(true);
+                }}
+              >
+                <EtcVerIcon />
+              </Pressable>
+            </>
+          }
+        />
+        <ScrollView>
+          <View style={styles.content}>
+            <TopicDetail
+              isList={false}
+              hasNews
+              item={{
+                nickname: "홍길동",
+                createdAt: "2시간 전",
+                thema: "스타트업",
+                postTitle: "요즘 스타트업 근무 환경 어때요?",
+                postContent:
+                  "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
+                likeCount: 8,
+                viewCount: 25,
+                commentCount: 3,
+              }}
+            />
+          </View>
 
-        <HorizontalLine height={8} />
+          <HorizontalLine height={8} />
 
-        <View style={styles.content}>
-          <PollSection
-            pollLabels={pollLabels}
-            pollResults={pollResults}
-            pollTotalCount={pollTotalCount}
-            opinionTheme={opinionTheme}
-            selectedPoll={selectedPoll}
-            hasVoted={hasVoted}
-            onSelectPoll={(idx) => {
-              setSelectedPoll(idx);
-              setHasVoted(true);
-            }}
-          />
-        </View>
+          <View style={styles.content}>
+            <PollSection
+              pollLabels={pollLabels}
+              pollResults={pollResults}
+              pollTotalCount={pollTotalCount}
+              opinionTheme={opinionTheme}
+              selectedPoll={selectedPoll}
+              hasVoted={hasVoted}
+              onSelectPoll={(idx) => {
+                setSelectedPoll(idx);
+                setHasVoted(true);
+              }}
+            />
+          </View>
 
-        <HorizontalLine height={8} />
+          <HorizontalLine height={8} />
 
-        <View style={styles.content}>
-          <View style={styles.commentSection}>
-            <View style={styles.commentContainer}>
-              <Text style={styles.commentText}>댓글</Text>
-              <Text style={styles.commentCount}>{comments.length}</Text>
-            </View>
-
-            {comments.map((comment) => (
-              <View key={comment.id} style={styles.commentBox}>
-                <View style={styles.commentHeader}>
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      alignItems: "center",
-                      flex: 1,
-                    }}
-                  >
-                    <View style={styles.commentUserIcon} />
-                    <View>
-                      <Text style={styles.commentUser}>{comment.user}</Text>
-                      <Text style={styles.commentTime}>{comment.time}</Text>
-                    </View>
-
-                    <View
-                      style={[
-                        styles.positiveTag,
-                        {
-                          backgroundColor:
-                            opinionBgColors[comment.opinion] || pollBgColor,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={{
-                          color: opinionTheme[comment.opinion].textColor,
-                          fontSize: 12,
-                          fontWeight: "400",
-                          fontFamily: "Pretendard",
-                          lineHeight: 14,
-                        }}
-                      >
-                        {comment.opinion}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
-                  {comment.content}
-                </Text>
-
-                <View style={[styles.commentActions, { paddingLeft: 40 }]}>
-                  <View style={{ flexDirection: "row", gap: 12 }}>
-                    <View style={styles.iconWithText}>
-                      <IcHeart
-                        width={24}
-                        height={24}
-                        stroke={
-                          likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"
-                        }
-                      />
-                      <Text style={styles.commentActionText}>
-                        {likedComments[comment.id] ? 11 : 10}
-                      </Text>
-                    </View>
-                    <View style={styles.iconWithText}>
-                      <IcComment width={24} height={24} />
-                      <Text style={styles.commentActionText}>답글 달기</Text>
-                    </View>
-                  </View>
-                  <TouchableOpacity style={{ marginLeft: "auto" }}>
-                    <IcComntEtc width={20} height={20} />
-                  </TouchableOpacity>
-                </View>
-
-                {comment.replies && comment.replies.length > 0 && (
-                  <View
-                    style={{
-                      backgroundColor: "#F4F5F7",
-                      borderRadius: 4,
-                      paddingHorizontal: 16,
-                      paddingTop: 16,
-                      paddingBottom: 12,
-                      marginTop: 12,
-                    }}
-                  >
-                    {comment.replies.map((reply) => (
-                      <View key={reply.id} style={styles.replyBox}>
-                        <View style={styles.commentHeader}>
-                          <View style={styles.commentUserIcon} />
-                          <View>
-                            <Text style={styles.commentUser}>{reply.user}</Text>
-                            <Text style={styles.commentTime}>{reply.time}</Text>
-                          </View>
-                          <View
-                            style={[
-                              styles.positiveTag,
-                              {
-                                backgroundColor:
-                                  opinionBgColors[reply.opinion] || pollBgColor,
-                              },
-                            ]}
-                          >
-                            <Text
-                              style={{
-                                color: opinionTheme[reply.opinion].textColor,
-                                fontSize: 12,
-                                fontWeight: "400",
-                                fontFamily: "Pretendard",
-                                lineHeight: 14,
-                              }}
-                            >
-                              {reply.opinion}
-                            </Text>
-                          </View>
-                        </View>
-
-                        <Text
-                          style={[styles.commentContent, { paddingLeft: 40 }]}
-                        >
-                          {reply.content}
-                        </Text>
-
-                        <View style={styles.commentActions}>
-                          <View
-                            style={[styles.iconWithText, { paddingLeft: 36 }]}
-                          >
-                            <IcHeart
-                              width={24}
-                              height={24}
-                              stroke={
-                                likedComments[comment.id]
-                                  ? "#FF5A5F"
-                                  : "#C4C4C4"
-                              }
-                            />
-
-                            <Text style={styles.commentActionText}>
-                              {likedComments[reply.id] ? 11 : 10}
-                            </Text>
-                          </View>
-                          <TouchableOpacity style={{ marginLeft: "auto" }}>
-                            <IcComntEtc width={20} height={20} />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                )}
+          <View style={styles.content}>
+            <View style={styles.commentSection}>
+              <View style={styles.commentContainer}>
+                <Text style={styles.commentText}>댓글</Text>
+                <Text style={styles.commentCount}>{comments.length}</Text>
               </View>
-            ))}
+
+              {comments.map((comment) => (
+                <View key={comment.id} style={styles.commentBox}>
+                  <View style={styles.commentHeader}>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        flex: 1,
+                      }}
+                    >
+                      <View style={styles.commentUserIcon} />
+                      <View>
+                        <Text style={styles.commentUser}>{comment.user}</Text>
+                        <Text style={styles.commentTime}>{comment.time}</Text>
+                      </View>
+
+                      <View
+                        style={[
+                          styles.positiveTag,
+                          {
+                            backgroundColor:
+                              opinionBgColors[comment.opinion] || pollBgColor,
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            color: opinionTheme[comment.opinion].textColor,
+                            fontSize: 12,
+                            fontWeight: "400",
+                            fontFamily: "Pretendard",
+                            lineHeight: 14,
+                          }}
+                        >
+                          {comment.opinion}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+
+                  <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
+                    {comment.content}
+                  </Text>
+
+                  <View style={[styles.commentActions, { paddingLeft: 40 }]}>
+                    <View style={{ flexDirection: "row", gap: 12 }}>
+                      <View style={styles.iconWithText}>
+                        <IcHeart
+                          width={24}
+                          height={24}
+                          stroke={
+                            likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"
+                          }
+                        />
+                        <Text style={styles.commentActionText}>
+                          {likedComments[comment.id] ? 11 : 10}
+                        </Text>
+                      </View>
+                      <View style={styles.iconWithText}>
+                        <IcComment width={24} height={24} />
+                        <Text style={styles.commentActionText}>답글 달기</Text>
+                      </View>
+                    </View>
+                    <TouchableOpacity style={{ marginLeft: "auto" }}>
+                      <IcComntEtc width={20} height={20} />
+                    </TouchableOpacity>
+                  </View>
+
+                  {comment.replies && comment.replies.length > 0 && (
+                    <View
+                      style={{
+                        backgroundColor: "#F4F5F7",
+                        borderRadius: 4,
+                        paddingHorizontal: 16,
+                        paddingTop: 16,
+                        paddingBottom: 12,
+                        marginTop: 12,
+                      }}
+                    >
+                      {comment.replies.map((reply) => (
+                        <View key={reply.id} style={styles.replyBox}>
+                          <View style={styles.commentHeader}>
+                            <View style={styles.commentUserIcon} />
+                            <View>
+                              <Text style={styles.commentUser}>
+                                {reply.user}
+                              </Text>
+                              <Text style={styles.commentTime}>
+                                {reply.time}
+                              </Text>
+                            </View>
+                            <View
+                              style={[
+                                styles.positiveTag,
+                                {
+                                  backgroundColor:
+                                    opinionBgColors[reply.opinion] ||
+                                    pollBgColor,
+                                },
+                              ]}
+                            >
+                              <Text
+                                style={{
+                                  color: opinionTheme[reply.opinion].textColor,
+                                  fontSize: 12,
+                                  fontWeight: "400",
+                                  fontFamily: "Pretendard",
+                                  lineHeight: 14,
+                                }}
+                              >
+                                {reply.opinion}
+                              </Text>
+                            </View>
+                          </View>
+
+                          <Text
+                            style={[styles.commentContent, { paddingLeft: 40 }]}
+                          >
+                            {reply.content}
+                          </Text>
+
+                          <View style={styles.commentActions}>
+                            <View
+                              style={[styles.iconWithText, { paddingLeft: 36 }]}
+                            >
+                              <IcHeart
+                                width={24}
+                                height={24}
+                                stroke={
+                                  likedComments[comment.id]
+                                    ? "#FF5A5F"
+                                    : "#C4C4C4"
+                                }
+                              />
+
+                              <Text style={styles.commentActionText}>
+                                {likedComments[reply.id] ? 11 : 10}
+                              </Text>
+                            </View>
+                            <TouchableOpacity style={{ marginLeft: "auto" }}>
+                              <IcComntEtc width={20} height={20} />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              ))}
+            </View>
+          </View>
+        </ScrollView>
+
+        <View style={styles.commentInputContainer}>
+          <View style={styles.commentInputBox}>
+            <View style={styles.avatarCircle} />
+            <TextInput
+              style={styles.textInput}
+              placeholder="댓글을 입력하세요"
+              placeholderTextColor="#9CA3AF"
+              value={commentText}
+              onChangeText={setCommentText}
+            />
+            <TouchableOpacity>
+              <IcSend width={20} height={20} />
+            </TouchableOpacity>
           </View>
         </View>
-      </ScrollView>
-
-      <View style={styles.commentInputContainer}>
-        <View style={styles.commentInputBox}>
-          <View style={styles.avatarCircle} />
-          <TextInput
-            style={styles.textInput}
-            placeholder="댓글을 입력하세요"
-            placeholderTextColor="#9CA3AF"
-            value={commentText}
-            onChangeText={setCommentText}
-          />
-          <TouchableOpacity>
-            <IcSend width={20} height={20} />
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
+      </SafeAreaView>
+      <PostModal
+        isVisible={isVisible}
+        onClose={() => setIsVisible(false)}
+        onSelect={(action) => {
+          if (action === "update") {
+            handlePostUpdate();
+          } else if (action === "delete") {
+            handlePostDelete();
+          }
+          setIsVisible(false);
+        }}
+      />
+    </>
   );
 }
 

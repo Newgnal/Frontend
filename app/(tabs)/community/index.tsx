@@ -1,3 +1,4 @@
+import { getCommunityHomeData } from "@/api/communityHomeApi";
 import PlusIcon from "@/assets/images/ic_add.svg";
 import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
 import SearchIcon from "@/assets/images/ic_search.svg";
@@ -7,12 +8,33 @@ import TopicList from "@/components/ui/community/TopicList";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function CommunityScreen() {
   const router = useRouter();
+  const [topThemes, setTopThemes] = useState<string[]>([]);
+  const [hotTopics, setHotTopics] = useState([]);
+  const [recentPosts, setRecentPosts] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getCommunityHomeData();
+        const themes = data.topThemes.map((t: any) => t.thema);
+        setTopThemes(themes);
+        setHotTopics(data.hotPosts);
+
+        setRecentPosts(data.recentPosts);
+      } catch (error) {
+        console.error("홈 데이터 불러오기 실패", error);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <>
@@ -36,28 +58,19 @@ export default function CommunityScreen() {
             </View>
             <View style={styles.rankbox}>
               <View style={styles.rankdetail}>
-                <Text>1위</Text>
-                <Text
-                  style={[styles.rankname, typography.caption_c2_12_regular]}
-                >
-                  반도체/AI
-                </Text>
-              </View>
-              <View style={styles.rankdetail}>
-                <Text>2위</Text>
-                <Text
-                  style={[styles.rankname, typography.caption_c2_12_regular]}
-                >
-                  IT/인터넷
-                </Text>
-              </View>
-              <View style={styles.rankdetail}>
-                <Text>3위</Text>
-                <Text
-                  style={[styles.rankname, typography.caption_c2_12_regular]}
-                >
-                  모빌리티
-                </Text>
+                {topThemes.map((theme, index) => (
+                  <View key={theme} style={styles.rankdetail}>
+                    <Text>{index + 1}위</Text>
+                    <Text
+                      style={[
+                        styles.rankname,
+                        typography.caption_c2_12_regular,
+                      ]}
+                    >
+                      {convertThemaToKor(theme)}
+                    </Text>
+                  </View>
+                ))}
               </View>
             </View>
             <View style={{ paddingTop: 20 }}>
@@ -72,7 +85,7 @@ export default function CommunityScreen() {
             </View>
           </View>
           <View style={{ paddingLeft: 20, paddingBottom: 25 }}>
-            <HotTopicList />
+            <HotTopicList data={hotTopics} />
           </View>
           <HorizontalLine color={"#F4F5F7"} height={8} />
           <View style={{ paddingTop: 20, paddingHorizontal: 20 }}>
@@ -111,7 +124,7 @@ export default function CommunityScreen() {
                 </View>
               </Pressable>
             </View>
-            <TopicList order="latest" hasNews={false} />
+            <TopicList data={recentPosts} order="latest" hasNews={false} />
           </View>
           <HorizontalLine
             color={"#F4F5F7"}

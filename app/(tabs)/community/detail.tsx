@@ -76,7 +76,7 @@ export default function ComDetailScreen() {
 
         <ScrollView contentContainerStyle={{ justifyContent: "center" }}>
           <View style={{ paddingHorizontal: 20 }}>
-            <TopicList order={order} hasNews={true} />
+            <TopicList data={[]} order={order} hasNews={true} />
           </View>
         </ScrollView>
       </SafeAreaView>

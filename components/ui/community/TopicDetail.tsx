@@ -4,20 +4,23 @@ import ViewIcon from "@/assets/images/ic_eyes.svg";
 import HeartIcon from "@/assets/images/ic_hrt_emt.svg";
 import MessageIcon from "@/assets/images/ic_message.svg";
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
+import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import News from "./News";
 
 interface TopicDetailProps {
   item: {
-    username: string;
-    time: string;
-    category: string;
-    title: string;
-    content: string;
-    likes: number;
-    views: number;
-    comments: number;
+    nickname: string;
+    createdAt: string;
+    thema: string;
+    postTitle: string;
+    postContent: string;
+    likeCount: number;
+    viewCount: number;
+    commentCount: number;
+    updatedAt?: string;
   };
   isList?: boolean;
   hasNews?: boolean;
@@ -35,11 +38,11 @@ export default function TopicDetail({
         <View style={{ flexDirection: "row", gap: 7 }}>
           <EmptyProfileIcon />
           <View>
-            <Text style={typography.label_l2_13_medium}>{item.username}</Text>
+            <Text style={typography.label_l2_13_medium}>{item.nickname}</Text>
             <Text
               style={[typography.caption_c2_12_regular, { color: "#89939F" }]}
             >
-              {item.time}
+              {getTimeAgo(item.updatedAt, item.createdAt)}
             </Text>
           </View>
         </View>
@@ -50,7 +53,7 @@ export default function TopicDetail({
               { color: "#484F56", padding: 4 },
             ]}
           >
-            {item.category}
+            {convertThemaToKor(item.thema)}
           </Text>
         </View>
       </View>
@@ -62,7 +65,7 @@ export default function TopicDetail({
         <Text
           style={[typography.subtitle_s3_15_semi_bold, { color: "#40454A" }]}
         >
-          {item.title}
+          {item.postTitle}
         </Text>
         <Text
           style={[
@@ -75,7 +78,7 @@ export default function TopicDetail({
           ]}
           numberOfLines={isList ? 2 : undefined}
         >
-          {item.content}
+          {item.postContent}
         </Text>
       </Pressable>
 
@@ -100,7 +103,7 @@ export default function TopicDetail({
               { color: "#89939F", marginLeft: 4 },
             ]}
           >
-            {item.likes}
+            {item.likeCount}
           </Text>
         </View>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -111,14 +114,14 @@ export default function TopicDetail({
               { color: "#89939F", paddingRight: 4 },
             ]}
           >
-            {item.views}
+            {item.viewCount}
           </Text>
           <DotIcon />
           <MessageIcon />
           <Text
             style={[typography.caption_c2_12_regular, { color: "#89939F" }]}
           >
-            {item.comments}
+            {item.commentCount}
           </Text>
         </View>
       </View>

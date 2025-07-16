@@ -4,7 +4,7 @@ import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import NewsCard from "@/components/NewsCard";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import {
   FlatList,
@@ -24,6 +24,7 @@ const dummyNews = [
     category: "반도체/AI",
     sentiment: "+0.8",
     views: 21000,
+    url: "https://v.daum.net/v/20250712120333420",
   },
   {
     id: "2",
@@ -32,6 +33,7 @@ const dummyNews = [
     category: "반도체/AI",
     sentiment: "+0.9",
     views: 50000,
+    url: "https://v.daum.net/v/20250712120333420",
   },
   {
     id: "3",
@@ -40,6 +42,7 @@ const dummyNews = [
     category: "반도체/AI",
     sentiment: "+1.2",
     views: 35000,
+    url: "https://v.daum.net/v/20250712120333420",
   },
   {
     id: "4",
@@ -48,6 +51,7 @@ const dummyNews = [
     category: "반도체/AI",
     sentiment: "+1.0",
     views: 12000,
+    url: "https://v.daum.net/v/20250712120333420",
   },
   {
     id: "5",
@@ -56,6 +60,7 @@ const dummyNews = [
     category: "반도체/AI",
     sentiment: "+0.7",
     views: 27000,
+    url: "https://v.daum.net/v/20250712120333420",
   },
 ];
 
@@ -66,8 +71,12 @@ type NewsType = {
   category: string;
   sentiment: string;
   views: number;
+  url: string;
   isSelected?: boolean;
   onPress?: () => void;
+  formTitle: string;
+  content: string;
+  newsCategory: string;
 };
 
 export default function SelectNewsScreen() {
@@ -77,7 +86,11 @@ export default function SelectNewsScreen() {
   const sortedNews = [...dummyNews].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
-
+  const { formTitle, content, category } = useLocalSearchParams<{
+    formTitle?: string;
+    content?: string;
+    category?: string;
+  }>();
   const handleSelectNews = (news: (typeof dummyNews)[0]) => {
     router.push({
       pathname: "/(tabs)/community/writeForm",
@@ -85,9 +98,13 @@ export default function SelectNewsScreen() {
         id: news.id,
         title: news.title,
         date: news.date,
-        category: news.category,
+        newsCategory: news.category,
         sentiment: news.sentiment,
         views: String(news.views),
+        url: news.url,
+        formTitle: formTitle ?? "",
+        content: content ?? "",
+        category: category ?? "",
       },
     });
   };

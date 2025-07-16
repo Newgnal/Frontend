@@ -1,7 +1,8 @@
-import { useState } from "react";
 import { Pressable, StyleSheet, View } from "react-native";
 
 interface ToggleSwitchProps {
+  value: boolean;
+  onToggle: (val: boolean) => void;
   containerHeight?: number;
   containerWidth?: number;
   circleHeight?: number;
@@ -9,16 +10,15 @@ interface ToggleSwitchProps {
 }
 
 export function ToggleSwitch({
+  value,
+  onToggle,
   containerHeight = 32,
   containerWidth = 56,
   circleHeight = 24,
   circleWidth = 24,
 }: ToggleSwitchProps) {
-  const [isOn, setIsOn] = useState(false);
-  const toggle = () => setIsOn((prev) => !prev);
-
   const padding = 4;
-  const translateX = isOn ? containerWidth - circleWidth - padding : padding;
+  const translateX = value ? containerWidth - circleWidth - padding : padding;
 
   return (
     <Pressable
@@ -28,11 +28,11 @@ export function ToggleSwitch({
           width: containerWidth,
           height: containerHeight,
           borderRadius: containerHeight / 2,
-          backgroundColor: isOn ? "#5E6974" : "#E4E6E7",
+          backgroundColor: value ? "#5E6974" : "#E4E6E7",
           padding,
         },
       ]}
-      onPress={toggle}
+      onPress={() => onToggle(!value)}
     >
       <View
         style={{

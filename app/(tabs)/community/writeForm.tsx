@@ -4,6 +4,7 @@ import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
 import CloseIcon from "@/assets/images/ic_out.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 
+import { createPost } from "@/api/postApi";
 import News from "@/components/ui/community/News";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
@@ -23,30 +24,78 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function WriteFormScreen() {
   const router = useRouter();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [voteEnabled, setVoteEnabled] = useState(false);
-  const [title, setTitle] = useState("");
-  const [content, setContent] = useState("");
 
   const {
     category,
+    newsCategory,
     id: newsId,
     title: newsTitle,
     date,
     sentiment,
     views,
+    url: articleUrl,
+    formTitle: initialTitle,
+    content: initialContent,
   } = useLocalSearchParams<{
     category?: string;
+    newsCategory?: string;
     id?: string;
     title?: string;
     date?: string;
     sentiment?: string;
     views?: string;
+    url?: string;
+    content?: string;
+    formTitle?: string;
   }>();
 
+  const [title, setTitle] = useState(initialTitle ?? "");
+  const [content, setContent] = useState(initialContent ?? "");
+  const categoryMap: { [key: string]: string } = {
+    "반도체/AI": "SEMICONDUCTOR_AI",
+    "IT/인터넷": "IT_INTERNET",
+    "금융/보험": "FINANCE_INSURANCE",
+    모빌리티: "MOBILITY",
+    "방산/항공우주": "DEFENSE_AEROSPACE",
+    "2차전지/친환경E": "SECOND_BATTERY_ENVIRONMENT",
+    "부동산/리츠": "REAL_ESTATE_REIT",
+    "채권/금리": "BOND_INTEREST",
+    "헬스케어/바이오": "HEALTHCARE_BIO",
+    "환율/외환": "EXCHANGE_RATE",
+    "원자재/귀금속": "RAW_MATERIAL_METALS",
+    기타: "ETC",
+  };
+  // const reverseCategoryMap = Object.fromEntries(
+  //   Object.entries(categoryMap).map(([ko, en]) => [en, ko])
+  // );
+  const handleSubmit = async () => {
+    if (!title || !content) return;
+
+    try {
+      await createPost({
+        postTitle: title,
+        postContent: content,
+        articleUrl: newsId ? articleUrl : "",
+        thema: category ? categoryMap[category] ?? "UNKNOWN" : "UNKNOWN",
+        hasVote: voteEnabled,
+      });
+      Toast.show({ type: "success", text1: "글이 등록되었어요" });
+      // 등록 후 이동 (예: 커뮤니티 메인으로)
+      router.replace("/(tabs)/community");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "등록 실패",
+        text2: "다시 시도해주세요.",
+      });
+    }
+  };
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
       setKeyboardHeight(e.endCoordinates.height);
@@ -65,6 +114,8 @@ export default function WriteFormScreen() {
       pathname: "/(tabs)/community/writeForm",
       params: {
         category,
+        formTitle: title,
+        content,
       },
     });
   };
@@ -84,14 +135,16 @@ export default function WriteFormScreen() {
               </Pressable>
             }
             rightSlot={
-              <Text
-                style={[
-                  typography.label_l1_14_regular,
-                  { color: title && content ? "#111" : "#89939F" },
-                ]}
-              >
-                등록
-              </Text>
+              <Pressable onPress={handleSubmit} disabled={!title || !content}>
+                <Text
+                  style={[
+                    typography.label_l1_14_regular,
+                    { color: title && content ? "#111" : "#89939F" },
+                  ]}
+                >
+                  등록
+                </Text>
+              </Pressable>
             }
           />
 
@@ -166,7 +219,14 @@ export default function WriteFormScreen() {
                     <NewsIcon />
                     <Pressable
                       onPress={() =>
-                        router.push("/(tabs)/community/selectNews")
+                        router.push({
+                          pathname: "/(tabs)/community/selectNews",
+                          params: {
+                            category,
+                            formTitle: title,
+                            content,
+                          },
+                        })
                       }
                     >
                       <Text style={styles.footerText}>뉴스 추가하기</Text>
@@ -174,7 +234,16 @@ export default function WriteFormScreen() {
                   </View>
 
                   <Pressable
-                    onPress={() => router.push("/(tabs)/community/selectNews")}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(tabs)/community/selectNews",
+                        params: {
+                          category,
+                          formTitle: title,
+                          content,
+                        },
+                      })
+                    }
                   >
                     <NextSmIcon />
                   </Pressable>
@@ -195,6 +264,8 @@ export default function WriteFormScreen() {
                 containerWidth={54}
                 circleHeight={20}
                 circleWidth={20}
+                value={voteEnabled}
+                onToggle={(val) => setVoteEnabled(val)}
               />
             </View>
           </View>
