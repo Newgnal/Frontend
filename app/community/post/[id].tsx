@@ -1,4 +1,4 @@
-import { deletePostbyId } from "@/api/postApi";
+import { deletePostbyId, getPostById } from "@/api/postApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import HoldIcon from "@/assets/images/ic_com_poll.svg";
@@ -15,8 +15,8 @@ import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import PostModal from "@/components/ui/modal/PostModal";
 import { typography } from "@/styles/typography";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -29,8 +29,44 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
 
+interface Reply {
+  replyId: number;
+  replyContent: string;
+  nickname: string;
+  createdAt: string;
+  voteType: "BUY" | "SELL" | "HOLD";
+  likeCount: number;
+}
+
+interface Post {
+  postId: number;
+  postTitle: string;
+  postContent: string;
+  articleUrl: string;
+  likeCount: number;
+  thema: string;
+  nickname: string;
+  imageUrl: string;
+  createdAt: string;
+  updatedAt: string;
+  hasVote: boolean;
+  viewCount: number;
+  commentCount: number;
+}
+
 export default function PostScreen() {
+  const { id } = useLocalSearchParams();
+  const numericPostId = Number(id);
+
   const router = useRouter();
+
+  console.log("받은 postId:", id);
+
+  const [post, setPost] = useState<Post | null>(null);
+  const [vote, setVote] = useState<any | null>(null);
+  const [comments, setComments] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
   const [likedComments, setLikedComments] = useState<{
@@ -42,28 +78,44 @@ export default function PostScreen() {
   const pollResults = [20, 20, 15]; // 각 항목 비율(%)
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
 
-  const postId = 1;
+  useEffect(() => {
+    if (!numericPostId || isNaN(numericPostId)) return;
+    const fetchDetail = async () => {
+      try {
+        setLoading(true);
+        const res = await getPostById(numericPostId);
+        // console.log("getPostById 응답:", res);
+        setPost(res.data.post);
+        setVote(res.data.vote);
+        setComments(res.data.comments);
+      } catch (err) {
+        // console.error("게시글 조회 실패:", err);
+        Toast.show({
+          type: "error",
+          text1: "게시글 조회 실패",
+          text2: "잠시 후 다시 시도해주세요",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDetail();
+  }, [numericPostId]);
 
   const handlePostUpdate = () => {
     router.push({
       pathname: "/(tabs)/community/writeForm",
       // params: {
-      //   postId: post.id.toString(),
-      //   editTitle: post.postTitle,
-      //   editContent: post.postContent,
-      //   editHasVoted: post.hasVote?.toString(),
-      //   editArticleUrl: post.articleUrl,
-      //   editThema: post.thema,
-      //   category: post.categoryName,
+
       // },
     });
   };
 
   const handlePostDelete = async () => {
     try {
-      await deletePostbyId(postId);
+      await deletePostbyId(numericPostId);
       Toast.show({ type: "success", text1: "글이 삭제되었어요" });
-      router.replace("/(tabs)/community"); // 목록으로 이동
+      router.replace("/(tabs)/community");
     } catch (error) {
       Toast.show({
         type: "error",
@@ -124,31 +176,10 @@ export default function PostScreen() {
 
   const pollBgColor = "#F4F5F7";
 
-  const comments = Array.from({ length: 10 }, (_, i) => ({
-    id: i.toString(),
-    user: "테이비",
-    time: "16시간 전",
-    content:
-      "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.",
-    opinion: "매수",
-    replies: [
-      {
-        id: `${i}-r1`,
-        user: "테이비",
-        time: "16시간 전",
-        content: "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
-        opinion: "매도",
-      },
-      {
-        id: `${i}-r2`,
-        user: "테이비",
-        time: "16시간 전",
-        content:
-          "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
-        opinion: "매수",
-      },
-    ],
-  }));
+  if (loading || !post) {
+    return <Text>로딩 중...</Text>;
+  }
+
   return (
     <>
       <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -174,15 +205,15 @@ export default function PostScreen() {
               isList={false}
               hasNews
               item={{
-                nickname: "홍길동",
-                createdAt: "2시간 전",
-                thema: "스타트업",
-                postTitle: "요즘 스타트업 근무 환경 어때요?",
-                postContent:
-                  "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
-                likeCount: 8,
-                viewCount: 25,
-                commentCount: 3,
+                postId: post.postId,
+                nickname: post.nickname,
+                createdAt: post.createdAt,
+                thema: post.thema,
+                postTitle: post.postTitle,
+                postContent: post.postContent,
+                likeCount: post.likeCount,
+                viewCount: post.viewCount,
+                commentCount: post.commentCount,
               }}
             />
           </View>
@@ -210,11 +241,11 @@ export default function PostScreen() {
             <View style={styles.commentSection}>
               <View style={styles.commentContainer}>
                 <Text style={styles.commentText}>댓글</Text>
-                <Text style={styles.commentCount}>{comments.length}</Text>
+                <Text style={styles.commentCount}>{post.commentCount}</Text>
               </View>
 
               {comments.map((comment) => (
-                <View key={comment.id} style={styles.commentBox}>
+                <View key={comment.commentId} style={styles.commentBox}>
                   <View style={styles.commentHeader}>
                     <View
                       style={{
@@ -225,8 +256,12 @@ export default function PostScreen() {
                     >
                       <View style={styles.commentUserIcon} />
                       <View>
-                        <Text style={styles.commentUser}>{comment.user}</Text>
-                        <Text style={styles.commentTime}>{comment.time}</Text>
+                        <Text style={styles.commentUser}>
+                          {comment.nickname}
+                        </Text>
+                        <Text style={styles.commentTime}>
+                          {comment.createdAt}
+                        </Text>
                       </View>
 
                       <View
@@ -234,27 +269,27 @@ export default function PostScreen() {
                           styles.positiveTag,
                           {
                             backgroundColor:
-                              opinionBgColors[comment.opinion] || pollBgColor,
+                              opinionBgColors[comment.voteType] || pollBgColor,
                           },
                         ]}
                       >
                         <Text
                           style={{
-                            color: opinionTheme[comment.opinion].textColor,
+                            color: opinionTheme[comment.voteType].textColor,
                             fontSize: 12,
                             fontWeight: "400",
                             fontFamily: "Pretendard",
                             lineHeight: 14,
                           }}
                         >
-                          {comment.opinion}
+                          {comment.voteType}
                         </Text>
                       </View>
                     </View>
                   </View>
 
                   <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
-                    {comment.content}
+                    {comment.commentContent}
                   </Text>
 
                   <View style={[styles.commentActions, { paddingLeft: 40 }]}>
@@ -264,11 +299,15 @@ export default function PostScreen() {
                           width={24}
                           height={24}
                           stroke={
-                            likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"
+                            likedComments[comment.commentId]
+                              ? "#FF5A5F"
+                              : "#C4C4C4"
                           }
                         />
                         <Text style={styles.commentActionText}>
-                          {likedComments[comment.id] ? 11 : 10}
+                          {/* {likedComments[comment.commentId] ? 11 : 10} */}
+                          {likedComments[comment.commentId] ??
+                            comment.likeCount}
                         </Text>
                       </View>
                       <View style={styles.iconWithText}>
@@ -292,16 +331,16 @@ export default function PostScreen() {
                         marginTop: 12,
                       }}
                     >
-                      {comment.replies.map((reply) => (
-                        <View key={reply.id} style={styles.replyBox}>
+                      {comment.replies.map((reply: Reply) => (
+                        <View key={reply.replyId} style={styles.replyBox}>
                           <View style={styles.commentHeader}>
                             <View style={styles.commentUserIcon} />
                             <View>
                               <Text style={styles.commentUser}>
-                                {reply.user}
+                                {reply.nickname}
                               </Text>
                               <Text style={styles.commentTime}>
-                                {reply.time}
+                                {reply.createdAt}
                               </Text>
                             </View>
                             <View
@@ -309,21 +348,21 @@ export default function PostScreen() {
                                 styles.positiveTag,
                                 {
                                   backgroundColor:
-                                    opinionBgColors[reply.opinion] ||
+                                    opinionBgColors[reply.voteType] ||
                                     pollBgColor,
                                 },
                               ]}
                             >
                               <Text
                                 style={{
-                                  color: opinionTheme[reply.opinion].textColor,
+                                  color: opinionTheme[reply.voteType].textColor,
                                   fontSize: 12,
                                   fontWeight: "400",
                                   fontFamily: "Pretendard",
                                   lineHeight: 14,
                                 }}
                               >
-                                {reply.opinion}
+                                {reply.voteType}f
                               </Text>
                             </View>
                           </View>
@@ -331,7 +370,7 @@ export default function PostScreen() {
                           <Text
                             style={[styles.commentContent, { paddingLeft: 40 }]}
                           >
-                            {reply.content}
+                            {reply.replyContent}
                           </Text>
 
                           <View style={styles.commentActions}>
@@ -342,14 +381,14 @@ export default function PostScreen() {
                                 width={24}
                                 height={24}
                                 stroke={
-                                  likedComments[comment.id]
+                                  likedComments[comment.commentId]
                                     ? "#FF5A5F"
                                     : "#C4C4C4"
                                 }
                               />
 
                               <Text style={styles.commentActionText}>
-                                {likedComments[reply.id] ? 11 : 10}
+                                {likedComments[reply.replyId] ? 11 : 10}
                               </Text>
                             </View>
                             <TouchableOpacity style={{ marginLeft: "auto" }}>

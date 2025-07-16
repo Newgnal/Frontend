@@ -6,10 +6,10 @@ import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import TopicList from "@/components/ui/community/TopicList";
 import { Header } from "@/components/ui/Header";
 import { typography } from "@/styles/typography";
-import BottomSheet from "@gorhom/bottom-sheet";
 
+import { getPostList } from "@/api/postApi";
 import { useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -20,11 +20,39 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+type Post = {
+  postId: number;
+  postTitle: string;
+  postContent: string;
+  createdAt: string;
+  updatedAt?: string;
+  likeCount: number;
+  viewCount: number;
+  commentCount: number;
+  nickname: string;
+  thema: string;
+  articleUrl: string;
+  hasVote: string;
+  imageUrl: string;
+};
+
 export default function ComDetailScreen() {
   const router = useRouter();
-  const sheetRef = useRef<BottomSheet>(null);
-  const [order, setOrder] = useState<"latest" | "views">("latest");
+  const [order, setOrder] = useState<"LATEST" | "POPULAR">("LATEST");
   const [isVisible, setIsVisible] = useState(false);
+  const [postList, setPostList] = useState<Post[]>([]);
+
+  useEffect(() => {
+    getPostList({ sortType: order })
+      .then((res) => {
+        setPostList(res ?? []);
+      })
+      .catch((err) => {
+        console.error("게시글 목록 로딩 실패:", err);
+        setPostList([]); // 에러 시에도 빈 배열로 fallback
+      });
+  }, [order]);
+
   const handleCategorySelect = (category: string) => {
     setIsVisible(false);
     router.push({
@@ -45,7 +73,6 @@ export default function ComDetailScreen() {
           rightSlot={
             <>
               <SearchIcon />
-
               <Pressable onPress={() => setIsVisible(true)}>
                 <PlusIcon />
               </Pressable>
@@ -55,7 +82,7 @@ export default function ComDetailScreen() {
 
         <TouchableOpacity
           onPress={() =>
-            setOrder((prev) => (prev === "latest" ? "views" : "latest"))
+            setOrder((prev) => (prev === "LATEST" ? "POPULAR" : "LATEST"))
           }
           style={{
             paddingBottom: 4,
@@ -69,14 +96,14 @@ export default function ComDetailScreen() {
           <Text
             style={[typography.caption_c2_12_regular, { color: "#484F56" }]}
           >
-            {order === "latest" ? "최신순" : "조회순"}
+            {order === "LATEST" ? "최신순" : "조회순"}
           </Text>
           <OrderChangeIcon />
         </TouchableOpacity>
 
         <ScrollView contentContainerStyle={{ justifyContent: "center" }}>
           <View style={{ paddingHorizontal: 20 }}>
-            <TopicList data={[]} order={order} hasNews={true} />
+            <TopicList data={postList} order={order} hasNews={true} />
           </View>
         </ScrollView>
       </SafeAreaView>

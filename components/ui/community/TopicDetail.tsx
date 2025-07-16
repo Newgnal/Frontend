@@ -21,6 +21,7 @@ interface TopicDetailProps {
     viewCount: number;
     commentCount: number;
     updatedAt?: string;
+    postId: number;
   };
   isList?: boolean;
   hasNews?: boolean;
@@ -60,7 +61,12 @@ export default function TopicDetail({
 
       <Pressable
         style={{ paddingTop: 8 }}
-        onPress={() => router.push("/community/post")}
+        onPress={() =>
+          router.push({
+            pathname: "/community/post/[id]",
+            params: { id: String(item.postId) },
+          })
+        }
       >
         <Text
           style={[typography.subtitle_s3_15_semi_bold, { color: "#40454A" }]}
@@ -73,7 +79,6 @@ export default function TopicDetail({
             {
               paddingTop: 4,
               color: "#717D89",
-              ...(isList && { numberOfLines: 2 }),
             } as any,
           ]}
           numberOfLines={isList ? 2 : undefined}
