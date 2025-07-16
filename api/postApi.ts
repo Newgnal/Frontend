@@ -1,4 +1,3 @@
-// src/apis/postApi.ts
 import axiosInstance from "@/lib/axiosInstance";
 
 // 게시글 생성
