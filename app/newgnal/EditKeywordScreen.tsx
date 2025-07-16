@@ -1,9 +1,6 @@
+import { deleteKeyword, updateKeywordOrder } from "@/api/useKeywordApi";
 import IcDrag from "@/assets/images/ic_move_active.svg";
 import IcBack from "@/assets/images/icon_next_lg.svg";
-import {
-  deleteKeyword,
-  updateKeywordOrder,
-} from "@/components/api/useKeywordApi";
 import { Keyword, useKeywordStore } from "@/store/keywordStore";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -134,7 +131,7 @@ export default function EditKeywordScreen() {
 
                       setTimeout(() => {
                         router.replace("/mynewgnal");
-                      }, 1000); // 1초 뒤에 이동
+                      }, 1000);
                     } else {
                       Toast.show({
                         type: "success",

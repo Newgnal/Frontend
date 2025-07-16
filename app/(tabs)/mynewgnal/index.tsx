@@ -1,10 +1,10 @@
-import Icadd from "@/assets/images/Group (1).svg";
-import Icfix from "@/assets/images/ic_fix.svg";
 import {
   getKeywords,
   getPopularKeywords,
   postKeyword,
-} from "@/components/api/useKeywordApi";
+} from "@/api/useKeywordApi";
+import Icadd from "@/assets/images/Group (1).svg";
+import Icfix from "@/assets/images/ic_fix.svg";
 import AddKeywordModal from "@/components/ui/newgnal/AddKeywordModal";
 import { useKeywordStore } from "@/store/keywordStore"; //프론트 타입
 import { PopularKeyword, ServerKeyword } from "@/types/keyword"; //백엔드 타입

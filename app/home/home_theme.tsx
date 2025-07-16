@@ -1,13 +1,16 @@
+import { getThemeNews } from "@/api/getThemeNews";
 import UnionIcon from "@/assets/images/Union.svg";
 import IcVector from "@/assets/images/Vector.svg";
 import CategoryInfoBox from "@/components/CategoryInfoBox";
 import NewsVolumeChart from "@/components/chart/NewsVolumeChart";
 import SentimentChart from "@/components/chart/SentimentChart";
 import { sentimentData } from "@/data/sentimentDummy";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { NewsItem } from "@/types/news";
+import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -16,32 +19,14 @@ import {
   View,
 } from "react-native";
 
-const averageSentiment =
-  sentimentData.reduce((sum, val) => sum + val, 0) / sentimentData.length;
-const sentimentColor = averageSentiment >= 0 ? "#F63D55" : "#497AFA";
-const sentimentDisplay = `${
-  averageSentiment >= 0 ? "+" : ""
-}${averageSentiment.toFixed(1)}`;
-
-const dummyNews = [
-  {
-    id: "1",
-    title: "제목제목제목제목제목제목제목제목제목제목",
-    date: "2025.05.28",
-  },
-  {
-    id: "2",
-    title: "제목제목제목제목제목제목제목제목제목제목",
-    date: "2025.05.28",
-  },
-];
-
 interface Props {
   selectedCategoryId: string;
 }
 
 export default function HomeMain({ selectedCategoryId }: Props) {
   const router = useRouter();
+  const [mainNews, setMainNews] = useState<NewsItem[]>([]);
+  const [showTooltip, setShowTooltip] = useState(false);
 
   const categoryDisplayNames: Record<string, string> = {
     semiconductor: "반도체/AI",
@@ -57,12 +42,49 @@ export default function HomeMain({ selectedCategoryId }: Props) {
     mobility: "모빌리티",
     defense: "방산/항공우주",
   };
-  const displayName =
-    categoryDisplayNames[selectedCategoryId] ?? "semiconductor";
 
-  const { updatedCategory } = useLocalSearchParams();
+  const categoryCodeMap: Record<string, string> = {
+    semiconductor: "SEMICONDUCTOR_AI",
+    it: "IT_INTERNET",
+    finance: "FINANCE_INSURANCE",
+    bond: "BOND_INTEREST",
+    green: "SECONDARY_GREEN",
+    forex: "FOREX_EXCHANGE",
+    commodity: "RAW_MATERIAL",
+    realestate: "REAL_ESTATE_REIT",
+    health: "HEALTH_BIO",
+    etc: "ETC",
+    mobility: "MOBILITY",
+    defense: "DEFENSE_AERO",
+  };
 
-  const [showTooltip, setShowTooltip] = useState(false);
+  const displayName = categoryDisplayNames[selectedCategoryId] ?? "카테고리";
+
+  const averageSentiment =
+    sentimentData.reduce((sum, val) => sum + val, 0) / sentimentData.length;
+  const sentimentColor = averageSentiment >= 0 ? "#F63D55" : "#497AFA";
+  const sentimentDisplay = `${
+    averageSentiment >= 0 ? "+" : ""
+  }${averageSentiment.toFixed(1)}`;
+
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        const code = categoryCodeMap[selectedCategoryId];
+        if (!code) return;
+
+        const data = await getThemeNews(code, "views");
+
+        if (!data?.content || !Array.isArray(data.content)) return;
+
+        setMainNews(data.content.slice(0, 2));
+      } catch (err) {
+        console.error("주요 뉴스 불러오기 실패:", err);
+      }
+    };
+
+    fetchNews();
+  }, [selectedCategoryId]);
 
   return (
     <TouchableWithoutFeedback onPress={() => setShowTooltip(false)}>
@@ -89,10 +111,11 @@ export default function HomeMain({ selectedCategoryId }: Props) {
               <Text style={styles.moreText}>더 보기 &gt;</Text>
             </TouchableOpacity>
           </View>
+
           <FlatList
             horizontal
-            data={dummyNews}
-            keyExtractor={(item) => item.id}
+            data={mainNews}
+            keyExtractor={(item) => item.id.toString()}
             contentContainerStyle={{ paddingLeft: 0, paddingRight: 12 }}
             ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
             showsHorizontalScrollIndicator={false}
@@ -106,7 +129,12 @@ export default function HomeMain({ selectedCategoryId }: Props) {
                 }
               >
                 <View style={styles.newsCard}>
-                  <View style={styles.newsImage} />
+                  {item.imageUrl && (
+                    <Image
+                      source={{ uri: item.imageUrl }}
+                      style={styles.newsImage}
+                    />
+                  )}
                   <Text numberOfLines={2} style={styles.newsTitle}>
                     {item.title}
                   </Text>
@@ -140,6 +168,7 @@ export default function HomeMain({ selectedCategoryId }: Props) {
               )}
             </View>
           </View>
+
           <View style={styles.chartBox}>
             <SentimentChart color={sentimentColor} />
           </View>
@@ -150,15 +179,8 @@ export default function HomeMain({ selectedCategoryId }: Props) {
               { backgroundColor: "transparent", paddingHorizontal: 0 },
             ]}
           >
-            <View
-              style={[
-                styles.chartBox,
-                { backgroundColor: "transparent", paddingHorizontal: 0 },
-              ]}
-            >
-              <Text style={styles.newsVolumeTitle}>뉴스 수</Text>
-              <NewsVolumeChart color={sentimentColor} />
-            </View>
+            <Text style={styles.newsVolumeTitle}>뉴스 수</Text>
+            <NewsVolumeChart color={sentimentColor} />
           </View>
         </View>
       </View>
@@ -190,31 +212,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     minHeight: 140,
   },
-  chartStyle: {
-    marginVertical: 4,
-    borderRadius: 8,
-    marginLeft: 0,
-  },
-  labelBox: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    paddingHorizontal: 10,
-    backgroundColor: "#EAEAEA",
-    paddingVertical: 4,
-    borderRadius: 4,
-    marginTop: -8,
-    paddingLeft: 0,
-  },
-  labelText: { fontSize: 12, color: "#333" },
-  fullOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 10,
-    right: 10,
-    height: 170,
-    zIndex: 10,
-    pointerEvents: "none",
-  },
   newsCard: {
     width: 184,
     padding: 8,
@@ -244,7 +241,6 @@ const styles = StyleSheet.create({
     lineHeight: 18,
     letterSpacing: 0.072,
     color: "#0E0F15",
-
     marginBottom: 5,
   },
   tooltipWrapper: {
@@ -253,7 +249,6 @@ const styles = StyleSheet.create({
     left: 25,
     zIndex: 100,
   },
-
   tooltipText: {
     position: "absolute",
     top: 5,
