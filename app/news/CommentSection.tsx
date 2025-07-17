@@ -1,7 +1,9 @@
+/* eslint-disable react/display-name */
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import IcHeart from "@/assets/images/ic_hrt.svg";
 import IcSend from "@/assets/images/ic_send.svg";
 import IcComment from "@/assets/images/material-symbols-light_reply-rounded.svg";
+import { forwardRef } from "react";
 import {
   StyleSheet,
   Text,
@@ -33,134 +35,180 @@ type Props = {
   onToggleLike: (commentId: string) => void;
   opinionTheme: Record<string, any>;
   opinionBgColors: Record<string, string>;
-  commentRef?: React.RefObject<View>;
   onOpenOption: () => void;
+  newsId: number;
+  onSelectComment: (commentId: string) => void;
+
+  commentInput: string;
+  setCommentInput: (value: string) => void;
+  onPostComment: () => void;
+
+  isEditing: boolean;
+  selectedCommentId: string | null;
+  onEditComment: (
+    commentId: string,
+    newContent: string,
+    newsId: number
+  ) => Promise<void>;
+
+  setIsEditing: (value: boolean) => void;
+  onDeleteComment?: (commentId: string) => Promise<void>;
 };
 
-export default function CommentSection({
-  comments,
-  likedComments,
-  onToggleLike,
-  opinionTheme,
-  opinionBgColors,
-  commentRef,
-  onOpenOption,
-}: Props) {
-  return (
-    <View ref={commentRef} style={styles.commentSection}>
-      <Text style={styles.commentCount}>댓글 {comments.length}</Text>
+const CommentSection = forwardRef<View, Props>(
+  (
+    {
+      comments,
+      likedComments,
+      onToggleLike,
+      opinionTheme,
+      opinionBgColors,
+      onOpenOption,
+      commentInput,
+      setCommentInput,
+      onPostComment,
+      isEditing,
+      selectedCommentId,
+      onEditComment,
+      onSelectComment,
+      newsId,
+    },
+    ref
+  ) => {
+    return (
+      <View ref={ref} style={styles.commentSection}>
+        <Text style={styles.commentCount}>댓글 {comments.length}</Text>
 
-      {comments.map((comment) => (
-        <View key={comment.id} style={styles.commentBox}>
-          <View style={styles.commentHeader}>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-            >
-              <View style={styles.userIcon} />
-              <View>
-                <Text style={styles.user}>{comment.user}</Text>
-                <Text style={styles.time}>{comment.time}</Text>
-              </View>
-
+        {comments.map((comment) => (
+          <View key={comment.id} style={styles.commentBox}>
+            <View style={styles.commentHeader}>
               <View
-                style={[
-                  styles.tag,
-                  {
-                    backgroundColor: opinionBgColors[comment.opinion],
-                  },
-                ]}
+                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
               >
-                <Text
-                  style={{
-                    color: opinionTheme[comment.opinion].tagTextColor,
-                    fontSize: 12,
-                  }}
-                >
-                  {comment.opinion}
-                </Text>
-              </View>
-            </View>
-          </View>
-
-          <Text style={styles.content}>{comment.content}</Text>
-
-          <View style={styles.actions}>
-            <View style={styles.iconRow}>
-              <TouchableOpacity
-                onPress={() => onToggleLike(comment.id)}
-                style={styles.iconWithText}
-              >
-                <IcHeart
-                  width={24}
-                  height={24}
-                  stroke={likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"}
-                />
-                <Text style={styles.actionText}>
-                  {likedComments[comment.id] ? 11 : 10}
-                </Text>
-              </TouchableOpacity>
-              <View style={styles.iconWithText}>
-                <IcComment width={24} height={24} />
-                <Text style={styles.actionText}>답글 달기</Text>
-              </View>
-            </View>
-            <TouchableOpacity onPress={onOpenOption}>
-              <IcComntEtc width={20} height={20} />
-            </TouchableOpacity>
-          </View>
-
-          {comment.replies.length > 0 && (
-            <View style={styles.replyContainer}>
-              {comment.replies.map((reply) => (
-                <View key={reply.id} style={styles.replyBox}>
-                  <View style={styles.commentHeader}>
-                    <View style={styles.userIcon} />
-                    <View>
-                      <Text style={styles.user}>{reply.user}</Text>
-                      <Text style={styles.time}>{reply.time}</Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.tag,
-                        {
-                          backgroundColor: opinionBgColors[reply.opinion],
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={{
-                          color: opinionTheme[reply.opinion].tagTextColor,
-                          fontSize: 12,
-                        }}
-                      >
-                        {reply.opinion}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.content}>{reply.content}</Text>
+                <View style={styles.userIcon} />
+                <View>
+                  <Text style={styles.user}>{comment.user}</Text>
+                  <Text style={styles.time}>{comment.time}</Text>
                 </View>
-              ))}
-            </View>
-          )}
-        </View>
-      ))}
 
-      <View style={styles.inputContainer}>
-        <View style={styles.inputBox}>
-          <View style={styles.avatar} />
-          <TextInput
-            placeholder="댓글을 입력하세요"
-            style={styles.textInput}
-            placeholderTextColor="#9CA3AF"
-          />
+                <View
+                  style={[
+                    styles.tag,
+                    {
+                      backgroundColor: opinionBgColors[comment.opinion],
+                    },
+                  ]}
+                >
+                  <Text
+                    style={{
+                      color: opinionTheme[comment.opinion].tagTextColor,
+                      fontSize: 12,
+                    }}
+                  >
+                    {comment.opinion}
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            <Text style={styles.content}>{comment.content}</Text>
+
+            <View style={styles.actions}>
+              <View style={styles.iconRow}>
+                <TouchableOpacity
+                  onPress={() => onToggleLike(comment.id)}
+                  style={styles.iconWithText}
+                >
+                  <IcHeart
+                    width={24}
+                    height={24}
+                    stroke={likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"}
+                  />
+                  <Text style={styles.actionText}>
+                    {likedComments[comment.id] ? 11 : 10}
+                  </Text>
+                </TouchableOpacity>
+                <View style={styles.iconWithText}>
+                  <IcComment width={24} height={24} />
+                  <Text style={styles.actionText}>답글 달기</Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  onSelectComment(comment.id);
+                  onOpenOption();
+                }}
+              >
+                <IcComntEtc width={20} height={20} />
+              </TouchableOpacity>
+            </View>
+
+            {comment.replies.length > 0 && (
+              <View style={styles.replyContainer}>
+                {comment.replies.map((reply) => (
+                  <View key={reply.id} style={styles.replyBox}>
+                    <View style={styles.commentHeader}>
+                      <View style={styles.userIcon} />
+                      <View>
+                        <Text style={styles.user}>{reply.user}</Text>
+                        <Text style={styles.time}>{reply.time}</Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.tag,
+                          {
+                            backgroundColor: opinionBgColors[reply.opinion],
+                          },
+                        ]}
+                      >
+                        <Text
+                          style={{
+                            color: opinionTheme[reply.opinion].tagTextColor,
+                            fontSize: 12,
+                          }}
+                        >
+                          {reply.opinion}
+                        </Text>
+                      </View>
+                    </View>
+                    <Text style={styles.content}>{reply.content}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        ))}
+
+        <View style={styles.inputContainer}>
+          <View style={styles.inputBox}>
+            <View style={styles.avatar} />
+            <TextInput
+              placeholder="댓글을 입력하세요"
+              style={styles.textInput}
+              placeholderTextColor="#9CA3AF"
+              value={commentInput}
+              onChangeText={setCommentInput}
+            />
+          </View>
+          <TouchableOpacity
+            style={styles.sendButton}
+            onPress={() => {
+              if (isEditing && selectedCommentId !== null) {
+                onEditComment(selectedCommentId, commentInput, newsId);
+              } else {
+                onPostComment();
+              }
+            }}
+          >
+            <IcSend width={20} height={20} />
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.sendButton}>
-          <IcSend width={20} height={20} />
-        </TouchableOpacity>
       </View>
-    </View>
-  );
-}
+    );
+  }
+);
+
+export default CommentSection;
 
 const styles = StyleSheet.create({
   commentSection: { marginTop: 8, paddingTop: 8, paddingHorizontal: 20 },
