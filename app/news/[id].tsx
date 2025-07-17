@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import {
   Dimensions,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   ScrollView,
   Text,
   useWindowDimensions,
@@ -11,9 +13,15 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import {
+  deleteComment,
+  getComments,
+  postComment,
+  updateComment,
+} from "@/api/newscommentApi";
 import { getNewsById } from "@/api/useNewsApi";
-import { postVote } from "@/api/useVoteApi";
 import { NewsItem } from "@/types/news";
+import { CommentItem } from "@/types/newscomment";
 import { VoteType } from "@/types/vote";
 
 import CommentSection from "@/app/news/CommentSection";
@@ -21,9 +29,26 @@ import NewsContent from "@/app/news/NewsContent";
 import NewsHeader from "@/app/news/NewsHeader";
 import VoteSection from "@/app/news/PollSection";
 
+import { postVote } from "@/api/useVoteApi";
 import CommentOptionModal from "@/components/ui/modal/CommentOptionModal";
 import OptionSelectModal from "@/components/ui/modal/OptionSelectModal";
 import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
+type Reply = {
+  id: string;
+  user: string;
+  time: string;
+  content: string;
+  opinion: string;
+};
+
+type Comment = {
+  id: string;
+  user: string;
+  time: string;
+  content: string;
+  opinion: string;
+  replies: Reply[];
+};
 
 export default function NewsDetail() {
   const { id } = useLocalSearchParams();
@@ -47,6 +72,13 @@ export default function NewsDetail() {
     useState(false);
   const [isReportModalVisible, setReportModalVisible] = useState(false);
 
+  const [comments, setComments] = useState<Comment[] | undefined>(undefined);
+  const [commentInput, setCommentInput] = useState("");
+  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
+    null
+  );
+  const [isEditing, setIsEditing] = useState(false);
+
   const scrollRef = useRef<ScrollView>(null);
   const pollRef = useRef<View>(null);
   const commentRef = useRef<View>(null);
@@ -54,21 +86,26 @@ export default function NewsDetail() {
   const VOTE_KEY = `vote-${id}`;
 
   useEffect(() => {
+    if (!id) return;
     const fetchNews = async () => {
       const res = await getNewsById(id as string);
-
       setNews(res);
     };
-    if (id) fetchNews();
+    fetchNews();
   }, [id]);
 
   useEffect(() => {
-    if (!news?.content) return;
-
-    const plain = news.content;
-    const formatted = `<p>${plain.replace(/\n/g, "<br/>")}</p>`;
-
-    setHtmlContent(formatted);
+    if (!news?.contentUrl) return;
+    const fetchContentHtml = async () => {
+      try {
+        const res = await fetch(news.contentUrl);
+        const html = await res.text();
+        setHtmlContent(html);
+      } catch (e) {
+        console.error("본문 HTML 불러오기 실패", e);
+      }
+    };
+    fetchContentHtml();
   }, [news]);
 
   useEffect(() => {
@@ -84,6 +121,7 @@ export default function NewsDetail() {
   }, [news?.imageUrl]);
 
   useEffect(() => {
+    if (!id) return;
     const loadVoteStatus = async () => {
       try {
         const storedVote = await AsyncStorage.getItem(VOTE_KEY);
@@ -99,8 +137,122 @@ export default function NewsDetail() {
         setIsVoteLoaded(true);
       }
     };
-    if (id) loadVoteStatus();
+    loadVoteStatus();
   }, [id]);
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchComments = async () => {
+      try {
+        const res = await getComments(Number(id));
+        const commentArray = res.data?.data?.comments ?? [];
+        const adapted = commentArray.map(adaptComment);
+        setComments(adapted);
+      } catch (e) {
+        console.error("댓글 불러오기 실패", e);
+      }
+    };
+    fetchComments();
+  }, [id]);
+
+  const adaptComment = (item: CommentItem): Comment => ({
+    id: item.commentId.toString(),
+    user: item.nickName,
+    time: item.timeAgo,
+    content: item.comment,
+    opinion: mapVoteTypeToLabel(item.voteType),
+    replies: [],
+  });
+
+  const handlePostComment = async () => {
+    try {
+      if (!id) return;
+      const numericId = Number(Array.isArray(id) ? id[0] : id);
+      if (isNaN(numericId)) return;
+
+      await postComment(numericId, commentInput);
+      const res = await getComments(numericId);
+      const commentArray = res.data?.data?.comments ?? [];
+      const adapted = commentArray.map(adaptComment);
+
+      setComments(adapted);
+      setCommentInput("");
+    } catch (e) {
+      console.error("댓글 작성 실패", e);
+    }
+  };
+
+  const handleEditComment = async (
+    commentId: string,
+    newContent: string,
+    newsId: number
+  ) => {
+    try {
+      if (!newContent || newContent.trim() === "") {
+        console.error("댓글 내용이 비어 있음");
+        return;
+      }
+
+      if (!newsId || isNaN(newsId)) {
+        console.error("유효하지 않은 뉴스 ID", newsId);
+        return;
+      }
+
+      await updateComment(Number(commentId), {
+        comment: newContent,
+        newsId: newsId,
+      });
+
+      const refreshed = await getComments(newsId);
+      const commentArray = refreshed.data?.data?.comments ?? [];
+      const adapted = commentArray.map(adaptComment);
+      setComments(adapted);
+      setIsEditing(false);
+      setCommentInput("");
+      setSelectedCommentId(null);
+      setCommentOptionModalVisible(false);
+    } catch (e) {
+      console.error(" 댓글 수정 실패", e);
+    }
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    const currentNewsId = news?.newsId ?? Number(id);
+    if (!currentNewsId) {
+      return;
+    }
+
+    try {
+      await deleteComment(Number(commentId));
+
+      const res = await getComments(currentNewsId);
+      const commentArray = res.data?.data?.comments ?? [];
+      const adapted = commentArray.map(adaptComment);
+      setComments(adapted);
+
+      setCommentOptionModalVisible(false);
+      setSelectedCommentId(null);
+      setIsEditing(false);
+      setCommentInput("");
+    } catch (e) {}
+  };
+
+  const mapVoteTypeToLabel = (voteType: string) => {
+    switch (voteType) {
+      case "STRONGLY_POSITIVE":
+        return "강한 긍정";
+      case "POSITIVE":
+        return "약한 긍정";
+      case "NEUTRAL":
+        return "중립";
+      case "NEGATIVE":
+        return "약한 부정";
+      case "STRONGLY_NEGATIVE":
+        return "강한 부정";
+      default:
+        return "중립";
+    }
+  };
 
   const handleVote = async (selectedIndex: number) => {
     const voteMap: VoteType[] = [
@@ -113,10 +265,7 @@ export default function NewsDetail() {
     const voteType = voteMap[selectedIndex];
 
     try {
-      const response = await postVote({
-        newsId: Number(id),
-        voteType,
-      });
+      const response = await postVote({ newsId: Number(id), voteType });
       const resultArray = [
         response.stronglyNegativeCount,
         response.negativeCount,
@@ -141,10 +290,7 @@ export default function NewsDetail() {
   };
 
   const toggleLike = (commentId: string) => {
-    setLikedComments((prev) => ({
-      ...prev,
-      [commentId]: !prev[commentId],
-    }));
+    setLikedComments((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
   };
 
   const pollLabels = [
@@ -154,16 +300,7 @@ export default function NewsDetail() {
     "약한 긍정",
     "강한 긍정",
   ];
-  const opinionTheme: Record<
-    string,
-    {
-      dotColor: string;
-      labelColor: string;
-      barColor: string;
-      tagBgColor: string;
-      tagTextColor: string;
-    }
-  > = {
+  const opinionTheme = {
     "강한 부정": {
       dotColor: "#F99426",
       labelColor: "#F99426",
@@ -200,93 +337,87 @@ export default function NewsDetail() {
       tagTextColor: "#00BD73",
     },
   };
-  const opinionBgColors: Record<string, string> = {
+  const opinionBgColors = {
     "강한 부정": "#FFF1E6",
     "약한 부정": "#FFF7E8",
     중립: "#E4E6E7",
     "약한 긍정": "#E0FFF3",
     "강한 긍정": "#D6FFEF",
   };
-  const comments = Array.from({ length: 10 }, (_, i) => ({
-    id: i.toString(),
-    user: "테이비",
-    time: "16시간 전",
-    content:
-      "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.",
-    opinion: "강한 긍정",
-    replies: [
-      {
-        id: `${i}-r1`,
-        user: "테이비",
-        time: "16시간 전",
-        content: "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
-        opinion: "강한 긍정",
-      },
-      {
-        id: `${i}-r2`,
-        user: "테이비",
-        time: "16시간 전",
-        content:
-          "유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다. 유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다.유기농 야채들 맛을 아는 분들이 이 시대는 많지 않을겁니다",
-        opinion: "강한 긍정",
-      },
-    ],
-  }));
 
   if (!news) return <Text>뉴스를 찾을 수 없습니다</Text>;
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
-      <ScrollView ref={scrollRef}>
-        <NewsHeader
-          title={news.title}
-          date={news.date}
-          pollCount={pollResults.reduce((acc, val) => acc + val, 0)}
-          commentCount={comments.length}
-          onBack={() => router.back()}
-          onOpenOption={() => setOptionModalVisible(true)}
-          onPressPoll={() =>
-            pollRef.current?.measure((_, __, ___, ____, px, py) => {
-              scrollRef.current?.scrollTo({ y: py - 60, animated: true });
-            })
-          }
-          onPressComment={() =>
-            commentRef.current?.measure((_, __, ___, ____, px, py) => {
-              scrollRef.current?.scrollTo({ y: py - 60, animated: true });
-            })
-          }
-        />
-
-        <NewsContent
-          summary={news.summary}
-          htmlContent={htmlContent}
-          imageUrl={news.imageUrl}
-          imageCaption={news.imageCaption}
-          imageSize={imageSize}
-        />
-
-        <View ref={pollRef}>
-          <VoteSection
-            hasVoted={hasVoted}
-            isVoteLoaded={isVoteLoaded}
-            selectedPoll={selectedPoll}
-            pollResults={pollResults}
-            onVote={handleVote}
-            pollLabels={pollLabels}
-            opinionTheme={opinionTheme}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          ref={scrollRef}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+        >
+          <NewsHeader
+            title={news.title}
+            date={news.date}
+            pollCount={pollResults.reduce((acc, val) => acc + val, 0)}
+            commentCount={(comments ?? []).length}
+            onBack={() => router.back()}
+            onOpenOption={() => setOptionModalVisible(true)}
+            onPressPoll={() =>
+              pollRef.current?.measure((_, __, ___, ____, px, py) => {
+                scrollRef.current?.scrollTo({ y: py - 60, animated: true });
+              })
+            }
+            onPressComment={() =>
+              commentRef.current?.measure((_, __, ___, ____, px, py) => {
+                scrollRef.current?.scrollTo({ y: py - 60, animated: true });
+              })
+            }
           />
-        </View>
 
-        <CommentSection
-          comments={comments}
-          likedComments={likedComments}
-          onToggleLike={toggleLike}
-          opinionTheme={opinionTheme}
-          opinionBgColors={opinionBgColors}
-          onOpenOption={() => setCommentOptionModalVisible(true)}
-        />
-      </ScrollView>
+          <NewsContent
+            summary={news.summary}
+            htmlContent={htmlContent}
+            imageUrl={news.imageUrl}
+            imageCaption={news.imageCaption}
+            imageSize={imageSize}
+          />
 
+          <View ref={pollRef}>
+            <VoteSection
+              hasVoted={hasVoted}
+              isVoteLoaded={isVoteLoaded}
+              selectedPoll={selectedPoll}
+              pollResults={pollResults}
+              onVote={handleVote}
+              pollLabels={pollLabels}
+              opinionTheme={opinionTheme}
+            />
+          </View>
+
+          <CommentSection
+            comments={comments ?? []}
+            likedComments={likedComments}
+            onToggleLike={toggleLike}
+            opinionTheme={opinionTheme}
+            opinionBgColors={opinionBgColors}
+            ref={commentRef}
+            commentInput={commentInput}
+            setCommentInput={setCommentInput}
+            onPostComment={handlePostComment}
+            onOpenOption={() => setCommentOptionModalVisible(true)}
+            onSelectComment={(commentId) => setSelectedCommentId(commentId)}
+            isEditing={isEditing}
+            selectedCommentId={selectedCommentId}
+            onEditComment={handleEditComment}
+            setIsEditing={setIsEditing}
+            newsId={Number(id)}
+            onDeleteComment={handleDeleteComment}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
       <OptionSelectModal
         isVisible={isOptionModalVisible}
         onClose={() => setOptionModalVisible(false)}
@@ -295,8 +426,26 @@ export default function NewsDetail() {
       <CommentOptionModal
         isVisible={isCommentOptionModalVisible}
         onClose={() => setCommentOptionModalVisible(false)}
-        onEdit={() => console.log("댓글 수정")}
-        onDelete={() => console.log("댓글 삭제")}
+        onEdit={() => {
+          if (selectedCommentId !== null) {
+            const commentToEdit = comments?.find(
+              (c) => c.id === selectedCommentId.toString()
+            );
+            if (commentToEdit) {
+              setCommentInput(commentToEdit.content);
+              setIsEditing(true);
+              setCommentOptionModalVisible(false);
+              commentRef.current?.measure((_, __, ___, ____, px, py) => {
+                scrollRef.current?.scrollTo({ y: py - 60, animated: true });
+              });
+            }
+          }
+        }}
+        onDelete={() => {
+          if (selectedCommentId !== null) {
+            handleDeleteComment(selectedCommentId);
+          }
+        }}
       />
       <ReportOptionModal
         isVisible={isReportModalVisible}

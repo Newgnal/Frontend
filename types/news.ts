@@ -1,7 +1,8 @@
 export interface NewsItem {
+  newsId: number;
   id: number;
   title: string;
-  content: string;
+  contentUrl: string;
   source: string;
   thema: string;
   date: string;

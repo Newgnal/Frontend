@@ -1,19 +1,13 @@
 import IcPrepare from "@/assets/images/icon_hourglass.svg";
-import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import { Header } from "@/components/ui/Header";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function SimulateIndex() {
   return (
     <>
-      <SafeAreaView style={styles.safeArea}>
-        <View style={styles.container}>
-          <View style={{ flex: 1, alignItems: "center" }}>
-            <Text style={styles.headerTitle}>모의투자</Text>
-          </View>
-        </View>
-        <HorizontalLine />
-
+      <SafeAreaView style={styles.container}>
+        <Header title="모의투자" leftSlot={<Text></Text>} rightSlot={<></>} />
         <View style={styles.contentcontainer}>
           <View style={styles.content}>
             <IcPrepare width={40} height={40} />
@@ -29,30 +23,10 @@ export default function SimulateIndex() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-  },
-
   container: {
-    paddingTop: 15,
-    paddingHorizontal: 20,
-    backgroundColor: "#FFFFFF",
-    height: 60,
-    justifyContent: "flex-end",
+    flex: 1,
+    backgroundColor: "white",
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#0E0F15",
-    marginBottom: 13,
-  },
-
   contentcontainer: {
     flex: 1,
     justifyContent: "center",
@@ -73,7 +47,6 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    color: "#89939F",
     textAlign: "center",
     fontWeight: "400",
     marginTop: 8,
