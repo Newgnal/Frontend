@@ -1,3 +1,4 @@
+import { getAllNews } from "@/api/useNewsApi";
 import IcGraySearch from "@/assets/images/ic_search.gray.svg";
 import IcClose from "@/assets/images/icon_close.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
@@ -5,7 +6,7 @@ import NewsCard from "@/components/NewsCard";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   Pressable,
@@ -16,76 +17,39 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const dummyNews = [
-  {
-    id: "1",
-    title: "삼성, 2028년부터 반도체 유리기판 쓴다",
-    date: "2025.05.28",
-    category: "반도체/AI",
-    sentiment: "+0.8",
-    views: 21000,
-    url: "https://v.daum.net/v/20250712120333420",
-  },
-  {
-    id: "2",
-    title: "삼성전자, 차세대 AI 반도체 공개",
-    date: "2025.05.27",
-    category: "반도체/AI",
-    sentiment: "+0.9",
-    views: 50000,
-    url: "https://v.daum.net/v/20250712120333420",
-  },
-  {
-    id: "3",
-    title: "NVIDIA, GPT-5에 최적화된 GPU 출시",
-    date: "2025.05.26",
-    category: "반도체/AI",
-    sentiment: "+1.2",
-    views: 35000,
-    url: "https://v.daum.net/v/20250712120333420",
-  },
-  {
-    id: "4",
-    title: "AI 반도체 시장, 2030년 5배 성장 전망",
-    date: "2025.05.25",
-    category: "반도체/AI",
-    sentiment: "+1.0",
-    views: 12000,
-    url: "https://v.daum.net/v/20250712120333420",
-  },
-  {
-    id: "5",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "반도체/AI",
-    sentiment: "+0.7",
-    views: 27000,
-    url: "https://v.daum.net/v/20250712120333420",
-  },
-];
-
-type NewsType = {
+type NewsItem = {
   id: string;
   title: string;
   date: string;
   category: string;
   sentiment: string;
-  views: number;
   url: string;
   isSelected?: boolean;
   onPress?: () => void;
-  formTitle: string;
-  content: string;
-  newsCategory: string;
 };
 
 export default function SelectNewsScreen() {
   const [searchText, setSearchText] = useState("");
   const router = useRouter();
+  const [newsList, setNewsList] = useState<NewsItem[]>([]);
+  const [page, setPage] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const sortedNews = [...dummyNews].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
+  useEffect(() => {
+    const fetchNews = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getAllNews("latest", page);
+        setNewsList((prev) => (page === 0 ? data : [...prev, ...data]));
+      } catch (err) {
+        console.error("뉴스 로딩 실패:", err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchNews();
+  }, [page]);
+
   const { formTitle, content, category, hasVoted, postId } =
     useLocalSearchParams<{
       formTitle?: string;
@@ -94,7 +58,9 @@ export default function SelectNewsScreen() {
       hasVoted?: string;
       postId?: string;
     }>();
-  const handleSelectNews = (news: (typeof dummyNews)[0]) => {
+  const isEdit = !!postId;
+
+  const handleSelectNews = (news: NewsItem) => {
     router.push({
       pathname: "/(tabs)/community/writeForm",
       params: {
@@ -110,18 +76,20 @@ export default function SelectNewsScreen() {
         category: category ?? "",
         hasVoted: hasVoted === "true" ? "true" : "false",
 
-        // 기존 글 수정 정보 유지
-        postId: postId ?? "",
-        editTitle: formTitle ?? "",
-        editContent: content ?? "",
-        editHasVoted: hasVoted === "true" ? "true" : "false",
-        editArticleUrl: news.url,
-        editThema: category ?? "",
+        // 수정 중일 경우 기존 글 수정 정보 유지
+        ...(isEdit && {
+          postId,
+          editTitle: formTitle ?? "",
+          editContent: content ?? "",
+          editHasVoted: hasVoted === "true" ? "true" : "false",
+          editArticleUrl: news.url,
+          editThema: category ?? "",
+        }),
       },
     });
   };
 
-  const renderItem = ({ item }: { item: NewsType }) => (
+  const renderItem = ({ item }: { item: NewsItem }) => (
     <NewsCard
       {...item}
       isSelected={false}
@@ -155,10 +123,12 @@ export default function SelectNewsScreen() {
       <Text style={styles.time}>18:49 기준</Text>
 
       <FlatList
-        data={sortedNews}
-        keyExtractor={(item) => item.id}
+        data={newsList}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
+        onEndReached={() => setPage((prev) => prev + 1)}
+        onEndReachedThreshold={0.5}
       />
     </SafeAreaView>
   );
