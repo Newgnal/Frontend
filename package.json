@@ -44,6 +44,7 @@
     "react-native-chart-kit": "^6.12.0",
     "react-native-draggable-flatlist": "^4.0.3",
     "react-native-gesture-handler": "~2.24.0",
+    "react-native-linear-gradient": "^2.8.3",
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-modal-datetime-picker": "^18.0.0",
     "react-native-paper": "^5.14.5",
@@ -58,7 +59,8 @@
     "react-native-webview": "13.13.5",
     "uuid": "^11.1.0",
     "victory-native": "^41.17.4",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "expo-linear-gradient": "~14.1.5"
   },
   "devDependencies": {
     "@babel/core": "^7.27.7",
