@@ -1,12 +1,13 @@
+import { submitInquiry } from "@/api/inquiryApi";
 import VerDotIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import { Header } from "@/components/ui/Header";
+import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
-import { typography } from "@/styles/typography";
+import Toast from "react-native-toast-message";
 
 export default function QuestionScreen() {
   const router = useRouter();
@@ -16,6 +17,23 @@ export default function QuestionScreen() {
   const [content, setContent] = useState("");
 
   const isValid = email.trim() && title.trim() && content.trim();
+
+  const handleSubmit = async () => {
+    try {
+      await submitInquiry(email, title, content);
+      Toast.show({
+        type: "success",
+        text1: "문의가 등록되었어요!",
+      });
+      router.back();
+    } catch (err) {
+      Toast.show({
+        type: "error",
+        text1: "등록 실패",
+        text2: "잠시 후 다시 시도해주세요.",
+      });
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -105,7 +123,11 @@ export default function QuestionScreen() {
             borderRadius: 12,
           }}
         >
-          <Pressable style={[{ alignItems: "center", paddingVertical: 12.5 }]}>
+          <Pressable
+            style={[{ alignItems: "center", paddingVertical: 12.5 }]}
+            onPress={handleSubmit}
+            disabled={!isValid}
+          >
             <Text
               style={[
                 typography.subtitle_s3_15_semi_bold,

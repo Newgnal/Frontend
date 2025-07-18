@@ -29,12 +29,26 @@ axiosInstance.interceptors.response.use(
       const pureToken = newAccessToken.replace(/^Bearer\s/, "");
       await AsyncStorage.setItem("access_token", pureToken);
     }
+
+    // 로그인 응답인 경우 nickName, userId 저장
+    const data = response.data?.data;
+    if (data?.nickName) {
+      await AsyncStorage.setItem("nickName", data.nickName);
+    }
+    if (data?.userId !== undefined) {
+      await AsyncStorage.setItem("userId", String(data.userId));
+    }
     return response;
   },
   async (error) => {
     if (error.response?.status === 401) {
       // 로그아웃 처리
-      await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
+      await AsyncStorage.multiRemove([
+        "access_token",
+        "refresh_token",
+        "nickName",
+        "userId",
+      ]);
       router.replace("/login");
     }
     return Promise.reject(error);

@@ -3,6 +3,7 @@ import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import SettingIcon from "@/assets/images/setting.svg";
 import { Header } from "@/components/ui/Header";
 import { MyPageRow } from "@/components/ui/mypage/MyPageRow";
+import { useAuth } from "@/context/authContext";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -10,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function MyPageScreen() {
   const router = useRouter();
+  const { nickName } = useAuth();
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -32,13 +34,13 @@ export default function MyPageScreen() {
           <Text
             style={[typography.title_t2_18_semi_bold, { paddingVertical: 16 }]}
           >
-            알림잇슈지킴이
+            {nickName}
           </Text>
           <Pressable
             onPress={() => router.push("/mp/edit")}
             style={({ pressed }) => [
               {
-                backgroundColor: pressed ? "#E0E1E2" : "#F4F5F7", // 눌렀을 때 더 진한 색
+                backgroundColor: pressed ? "#E0E1E2" : "#F4F5F7",
                 paddingHorizontal: 12,
                 paddingVertical: 8,
                 borderRadius: 100,
