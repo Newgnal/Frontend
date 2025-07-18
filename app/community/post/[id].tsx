@@ -15,6 +15,7 @@ import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import PostModal from "@/components/ui/modal/PostModal";
 import { typography } from "@/styles/typography";
+import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -34,7 +35,7 @@ interface Reply {
   replyContent: string;
   nickname: string;
   createdAt: string;
-  voteType: "BUY" | "SELL" | "HOLD";
+  voteType?: "BUY" | "SELL" | "HOLD";
   likeCount: number;
 }
 
@@ -54,6 +55,16 @@ interface Post {
   commentCount: number;
 }
 
+interface Comment {
+  commentId: number;
+  commentContent: string;
+  likeCount: number;
+  voteType?: "BUY" | "SELL" | "HOLD";
+  nickname: string;
+  createdAt: string;
+  replies?: Reply[];
+}
+
 export default function PostScreen() {
   const { id } = useLocalSearchParams();
   const numericPostId = Number(id);
@@ -64,7 +75,7 @@ export default function PostScreen() {
 
   const [post, setPost] = useState<Post | null>(null);
   const [vote, setVote] = useState<any | null>(null);
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
@@ -260,31 +271,33 @@ export default function PostScreen() {
                           {comment.nickname}
                         </Text>
                         <Text style={styles.commentTime}>
-                          {comment.createdAt}
+                          {getTimeAgo(comment.createdAt)}
                         </Text>
                       </View>
-
-                      <View
-                        style={[
-                          styles.positiveTag,
-                          {
-                            backgroundColor:
-                              opinionBgColors[comment.voteType] || pollBgColor,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={{
-                            color: opinionTheme[comment.voteType].textColor,
-                            fontSize: 12,
-                            fontWeight: "400",
-                            fontFamily: "Pretendard",
-                            lineHeight: 14,
-                          }}
+                      {comment.voteType ? (
+                        <View
+                          style={[
+                            styles.positiveTag,
+                            {
+                              backgroundColor:
+                                opinionBgColors[comment.voteType] ||
+                                pollBgColor,
+                            },
+                          ]}
                         >
-                          {comment.voteType}
-                        </Text>
-                      </View>
+                          <Text
+                            style={{
+                              color: opinionTheme[comment.voteType].textColor,
+                              fontSize: 12,
+                              fontWeight: "400",
+                              fontFamily: "Pretendard",
+                              lineHeight: 14,
+                            }}
+                          >
+                            {comment.voteType}
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
                   </View>
 
@@ -293,7 +306,7 @@ export default function PostScreen() {
                   </Text>
 
                   <View style={[styles.commentActions, { paddingLeft: 40 }]}>
-                    <View style={{ flexDirection: "row", gap: 12 }}>
+                    <View style={{ flexDirection: "row", gap: 8 }}>
                       <View style={styles.iconWithText}>
                         <IcHeart
                           width={24}
@@ -340,31 +353,34 @@ export default function PostScreen() {
                                 {reply.nickname}
                               </Text>
                               <Text style={styles.commentTime}>
-                                {reply.createdAt}
+                                {getTimeAgo(reply.createdAt)}
                               </Text>
                             </View>
-                            <View
-                              style={[
-                                styles.positiveTag,
-                                {
-                                  backgroundColor:
-                                    opinionBgColors[reply.voteType] ||
-                                    pollBgColor,
-                                },
-                              ]}
-                            >
-                              <Text
-                                style={{
-                                  color: opinionTheme[reply.voteType].textColor,
-                                  fontSize: 12,
-                                  fontWeight: "400",
-                                  fontFamily: "Pretendard",
-                                  lineHeight: 14,
-                                }}
+                            {reply.voteType ? (
+                              <View
+                                style={[
+                                  styles.positiveTag,
+                                  {
+                                    backgroundColor:
+                                      opinionBgColors[reply.voteType] ||
+                                      pollBgColor,
+                                  },
+                                ]}
                               >
-                                {reply.voteType}f
-                              </Text>
-                            </View>
+                                <Text
+                                  style={{
+                                    color:
+                                      opinionTheme[reply.voteType].textColor,
+                                    fontSize: 12,
+                                    fontWeight: "400",
+                                    fontFamily: "Pretendard",
+                                    lineHeight: 14,
+                                  }}
+                                >
+                                  {reply.voteType}
+                                </Text>
+                              </View>
+                            ) : null}
                           </View>
 
                           <Text
@@ -388,7 +404,8 @@ export default function PostScreen() {
                               />
 
                               <Text style={styles.commentActionText}>
-                                {likedComments[reply.replyId] ? 11 : 10}
+                                {likedComments[reply.replyId] ??
+                                  reply.likeCount}
                               </Text>
                             </View>
                             <TouchableOpacity style={{ marginLeft: "auto" }}>
@@ -463,9 +480,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#ddd",
     marginRight: 8,
   },
-  commentUser: { fontWeight: "bold", fontSize: 14 },
-  commentTime: { fontSize: 12, color: "#999" },
-  commentContent: { fontSize: 14, color: "#333", marginTop: 4 },
+  commentUser: { ...typography.label_l2_13_medium, color: "#0E0F15" },
+  commentTime: { ...typography.label_l3_13_regular, color: "#40454A" },
+  commentContent: {
+    ...typography.body_b3_14_regular,
+    color: "#0E0F15",
+    marginTop: 4,
+  },
   commentActions: {
     flexDirection: "row",
     gap: 12,
