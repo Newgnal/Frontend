@@ -7,10 +7,12 @@ type NewsProps = {
   date: string;
   category: string;
   sentiment: string;
+  source: string;
 };
 
 export default function News({
   id,
+  source,
   title,
   date,
   category,
@@ -39,7 +41,7 @@ export default function News({
             <View
               style={{ flexDirection: "row", gap: 4, alignItems: "center" }}
             >
-              <Text style={styles.subtitle}>매일 경제</Text>
+              <Text style={styles.subtitle}>{source}</Text>
               <Text style={styles.subtitle}>|</Text>
               <Text style={styles.subtitle}>{date}</Text>
             </View>

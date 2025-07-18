@@ -4,7 +4,7 @@ import axiosInstance from "@/lib/axiosInstance";
 interface CreatePostRequest {
   postTitle: string;
   postContent: string;
-  articleUrl?: string;
+  newsId?: number;
   thema: string;
   hasVote: boolean;
 }
@@ -20,7 +20,7 @@ export const updatePost = async (
   data: {
     postTitle?: string;
     postContent?: string;
-    articleUrl?: string;
+    newsId?: number;
     thema?: string;
     hasVote?: boolean;
   }

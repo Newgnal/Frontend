@@ -7,20 +7,27 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 interface NewsItem {
   id: string;
   title: string;
+  source: string;
+  thema: string;
   date: string;
-  category: string;
   sentiment: string;
-  views: number;
+  view: number;
+  commentNum: string;
+  voteNum: string;
   isSelected: boolean;
   onPress: () => void;
 }
 
 export default function NewsCard({
   title,
+  id,
   date,
-  category,
+  thema,
   sentiment,
-  views,
+  view,
+  source,
+  voteNum,
+  commentNum,
   isSelected,
   onPress,
 }: NewsItem) {
@@ -35,24 +42,26 @@ export default function NewsCard({
       ]}
     >
       <View style={styles.header}>
-        <Text style={styles.category}>{category}</Text>
+        <Text style={styles.category}>{thema}</Text>
         <Text style={styles.sentiment}>{sentiment}</Text>
       </View>
 
       <View style={styles.contentRow}>
         <View style={styles.textContent}>
           <Text style={styles.title}>{title}</Text>
-          <Text style={styles.subtitle}>매일 경제 | {date}</Text>
+          <Text style={styles.subtitle}>
+            {source} | {date}
+          </Text>
 
           <View style={styles.metaRow}>
-            <Text style={styles.meta}>조회 {Math.floor(views / 10000)}만</Text>
+            <Text style={styles.meta}>조회 {Math.floor(view / 10000)}만</Text>
             <View style={styles.iconWithText}>
               <IcComnt width={24} height={24} />
-              <Text style={styles.meta}>234</Text>
+              <Text style={styles.meta}>{commentNum}</Text>
             </View>
             <View style={styles.iconWithText}>
               <IcPoll width={24} height={24} />
-              <Text style={styles.meta}>402</Text>
+              <Text style={styles.meta}>{voteNum}</Text>
             </View>
           </View>
         </View>

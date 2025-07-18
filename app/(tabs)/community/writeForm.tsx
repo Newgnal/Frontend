@@ -35,15 +35,15 @@ export default function WriteFormScreen() {
     editTitle,
     editContent,
     editVoteEnabled,
-    editArticleUrl,
+    editNewsId,
     editThema,
 
-    id: newsId,
+    id,
     title: newsTitle,
     newsCategory,
+    newsSource,
     date: newsDate,
     sentiment: newsSentiment,
-    url: newsUrl,
     formTitle: initialTitle,
     content: initialContent,
     category: initialThema,
@@ -53,9 +53,10 @@ export default function WriteFormScreen() {
     editTitle?: string;
     editContent?: string;
     editVoteEnabled?: string;
-    editArticleUrl?: string;
+    editNewsId?: string;
     editThema?: string;
     category?: string;
+    newsSource?: string;
     newsCategory?: string;
     id?: string;
     title?: string;
@@ -84,9 +85,7 @@ export default function WriteFormScreen() {
     isEdit ? editThema ?? "UNKNOWN" : initialThema ?? "UNKNOWN"
   );
 
-  const [articleUrl, setArticleUrl] = useState(
-    isEdit ? editArticleUrl ?? "" : newsUrl ?? ""
-  );
+  const [newsId, setNewsId] = useState(isEdit ? editNewsId ?? "" : id ?? "");
 
   const categoryMap: { [key: string]: string } = {
     "반도체/AI": "SEMICONDUCTOR_AI",
@@ -110,16 +109,17 @@ export default function WriteFormScreen() {
         await updatePost(Number(postId), {
           postTitle: title,
           postContent: content,
-          articleUrl: articleUrl ?? "",
+          newsId: newsId ? Number(newsId) : undefined,
           thema: categoryMap[thema] ?? "UNKNOWN",
           hasVote: voteEnabled,
         });
         Toast.show({ type: "success", text1: "글이 수정되었어요" });
       } else {
+        const parsedNewsId = parseInt(newsId ?? "", 10);
         await createPost({
           postTitle: title,
           postContent: content,
-          articleUrl: newsId ? articleUrl : "",
+          newsId: !isNaN(parsedNewsId) ? parsedNewsId : undefined,
           thema: categoryMap[thema] ?? "UNKNOWN",
           hasVote: voteEnabled,
         });
@@ -150,14 +150,14 @@ export default function WriteFormScreen() {
   }, []);
 
   const handleRemoveNews = () => {
-    setArticleUrl("");
+    setNewsId("");
     router.replace({
       pathname: "/(tabs)/community/writeForm",
       params: {
         category: thema,
         formTitle: title,
         content,
-        articleUrl: articleUrl ?? "",
+        newsId: newsId ?? "",
         voteEnabled: voteEnabled.toString(),
       },
     });
@@ -222,7 +222,7 @@ export default function WriteFormScreen() {
           <View style={[styles.footer, { marginBottom: keyboardHeight }]}>
             <HorizontalLine />
             <View style={styles.footerRow}>
-              {newsId ? (
+              {newsId !== "" ? (
                 <View
                   style={{
                     flexDirection: "row",
@@ -232,11 +232,12 @@ export default function WriteFormScreen() {
                   }}
                 >
                   <News
-                    id={newsId ?? 0}
+                    id={newsId ?? ""}
                     title={newsTitle ?? ""}
                     date={newsDate ?? ""}
                     category={newsCategory ?? ""}
                     sentiment={newsSentiment ?? ""}
+                    source={newsSource ?? ""}
                   />
                   <Pressable
                     onPress={handleRemoveNews}
@@ -268,7 +269,7 @@ export default function WriteFormScreen() {
                             category: thema,
                             formTitle: title,
                             content,
-                            articleUrl: "",
+                            newsId: "",
                             voteEnabled: voteEnabled.toString(),
                             ...(postId && { postId }),
                           },

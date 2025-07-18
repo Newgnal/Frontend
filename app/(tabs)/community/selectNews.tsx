@@ -21,9 +21,12 @@ type NewsItem = {
   id: string;
   title: string;
   date: string;
-  category: string;
+  thema: string;
   sentiment: string;
-  url: string;
+  source: string;
+  voteNum: string;
+  view: number;
+  commentNum: string;
   isSelected?: boolean;
   onPress?: () => void;
 };
@@ -40,7 +43,20 @@ export default function SelectNewsScreen() {
       try {
         setIsLoading(true);
         const data = await getAllNews("latest", page);
-        setNewsList((prev) => (page === 0 ? data : [...prev, ...data]));
+        const mappedNews = data.map((item: any) => ({
+          id: String(item.id),
+          title: item.title,
+          source: item.source,
+          thema: item.thema,
+          date: item.date,
+          sentiment: String(item.sentiment),
+          view: item.view,
+          commentNum: String(item.commentNum),
+          voteNum: String(item.voteNum),
+        }));
+        setNewsList((prev) =>
+          page === 0 ? mappedNews : [...prev, ...mappedNews]
+        );
       } catch (err) {
         console.error("뉴스 로딩 실패:", err);
       } finally {
@@ -68,9 +84,10 @@ export default function SelectNewsScreen() {
         id: news.id,
         title: news.title,
         date: news.date,
-        newsCategory: news.category,
+        newsSource: news.source,
+        newsCategory: news.thema,
+        source: news.source,
         sentiment: news.sentiment,
-        url: news.url,
         formTitle: formTitle ?? "",
         content: content ?? "",
         category: category ?? "",
@@ -82,7 +99,7 @@ export default function SelectNewsScreen() {
           editTitle: formTitle ?? "",
           editContent: content ?? "",
           editHasVoted: hasVoted === "true" ? "true" : "false",
-          editArticleUrl: news.url,
+          // editArticleUrl: news.url, -> Id로 수정
           editThema: category ?? "",
         }),
       },
