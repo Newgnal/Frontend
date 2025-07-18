@@ -1,4 +1,3 @@
-import { getAllNews } from "@/api/useNewsApi";
 import IcGraySearch from "@/assets/images/ic_search.gray.svg";
 import IcClose from "@/assets/images/icon_close.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
@@ -42,8 +41,34 @@ export default function SelectNewsScreen() {
     const fetchNews = async () => {
       try {
         setIsLoading(true);
-        const data = await getAllNews("latest", page);
-        const mappedNews = data.map((item: any) => ({
+        const dummyData = [
+          {
+            id: 1,
+            title: "삼성전자, AI 반도체 시장 진출",
+            date: "2025-07-15",
+            thema: "반도체/AI",
+            sentiment: "+1.2",
+            likeCount: "120",
+            source: "매일경제",
+            voteNum: "45",
+            view: 900,
+            commentNum: "22",
+          },
+          {
+            id: 2,
+            title: "테슬라, 자율주행 기술 개선 발표",
+            date: "2025-07-14",
+            thema: "모빌리티",
+            sentiment: "-0.5",
+            likeCount: "95",
+            source: "조선일보",
+            voteNum: "30",
+            view: 670,
+            commentNum: "15",
+          },
+        ];
+        // const data = await getAllNews("latest", page);
+        const mappedNews = dummyData.map((item: any) => ({
           id: String(item.id),
           title: item.title,
           source: item.source,
