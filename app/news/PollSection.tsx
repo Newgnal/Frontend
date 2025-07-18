@@ -1,3 +1,4 @@
+import { typography } from "@/styles/typography";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type OpinionTheme = {
@@ -7,6 +8,7 @@ type OpinionTheme = {
 };
 
 type Props = {
+  thema: string;
   hasVoted: boolean;
   isVoteLoaded: boolean;
   selectedPoll: number | null;
@@ -17,6 +19,7 @@ type Props = {
 };
 
 export default function VoteSection({
+  thema,
   hasVoted,
   isVoteLoaded,
   selectedPoll,
@@ -31,7 +34,7 @@ export default function VoteSection({
     <View style={styles.container}>
       <View style={styles.pollContainer}>
         <Text style={styles.pollQuestion}>
-          이 뉴스가 [반도체/AI]에 어떤 영향을 줄까요?
+          이 뉴스가 {thema}에 어떤 영향을 줄까요?
         </Text>
 
         {isVoteLoaded && (
@@ -126,8 +129,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
   },
   pollQuestion: {
-    fontSize: 16,
-    fontWeight: "600",
+    ...typography.subtitle_s3_15_semi_bold,
     textAlign: "center",
   },
   pollOptions: {
@@ -164,6 +166,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   pollLabel: {
+    ...typography.caption_c2_12_regular,
     fontSize: 10,
     color: "#4B5563",
     textAlign: "center",
@@ -178,12 +181,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   resultTitle: {
-    fontWeight: "bold",
-    fontSize: 15,
+    ...typography.subtitle_s3_15_semi_bold,
   },
   resultCount: {
+    ...typography.caption_c2_12_regular,
     fontSize: 12,
-    color: "#666",
+    color: "#484F56",
   },
   resultBarRow: {
     flexDirection: "row",
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
   },
   resultLabel: {
     width: 70,
-    fontSize: 12,
+    ...typography.caption_c2_12_regular,
     color: "#484F56",
   },
   resultBarBg: {
@@ -207,7 +210,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   resultPercent: {
+    ...typography.caption_c2_12_regular,
     width: 30,
-    fontSize: 12,
+    marginLeft: 20,
   },
 });

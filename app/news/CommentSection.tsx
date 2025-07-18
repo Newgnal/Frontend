@@ -3,7 +3,8 @@ import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import IcHeart from "@/assets/images/ic_hrt.svg";
 import IcSend from "@/assets/images/ic_send.svg";
 import IcComment from "@/assets/images/material-symbols-light_reply-rounded.svg";
-import { forwardRef } from "react";
+import { typography } from "@/styles/typography";
+import { forwardRef, useState } from "react";
 import {
   StyleSheet,
   Text,
@@ -53,6 +54,7 @@ type Props = {
 
   setIsEditing: (value: boolean) => void;
   onDeleteComment?: (commentId: string) => Promise<void>;
+  onPostReply?: (parentId: string, reply: string) => void;
 };
 
 const CommentSection = forwardRef<View, Props>(
@@ -72,9 +74,13 @@ const CommentSection = forwardRef<View, Props>(
       onEditComment,
       onSelectComment,
       newsId,
+      onPostReply,
     },
     ref
   ) => {
+    const [replyTargetId, setReplyTargetId] = useState<string | null>(null);
+    const [replyInput, setReplyInput] = useState("");
+
     return (
       <View ref={ref} style={styles.commentSection}>
         <Text style={styles.commentCount}>댓글 {comments.length}</Text>
@@ -103,6 +109,7 @@ const CommentSection = forwardRef<View, Props>(
                     style={{
                       color: opinionTheme[comment.opinion].tagTextColor,
                       fontSize: 12,
+                      fontWeight: "400",
                     }}
                   >
                     {comment.opinion}
@@ -128,10 +135,16 @@ const CommentSection = forwardRef<View, Props>(
                     {likedComments[comment.id] ? 11 : 10}
                   </Text>
                 </TouchableOpacity>
-                <View style={styles.iconWithText}>
+                <TouchableOpacity
+                  onPress={() => {
+                    setReplyTargetId(comment.id);
+                    setReplyInput("");
+                  }}
+                  style={styles.iconWithText}
+                >
                   <IcComment width={24} height={24} />
                   <Text style={styles.actionText}>답글 달기</Text>
-                </View>
+                </TouchableOpacity>
               </View>
               <TouchableOpacity
                 onPress={() => {
@@ -163,7 +176,9 @@ const CommentSection = forwardRef<View, Props>(
                       >
                         <Text
                           style={{
-                            color: opinionTheme[reply.opinion].tagTextColor,
+                            color:
+                              opinionTheme[reply.opinion].tagTextColor ??
+                              "#000",
                             fontSize: 12,
                           }}
                         >
@@ -211,14 +226,17 @@ const CommentSection = forwardRef<View, Props>(
 export default CommentSection;
 
 const styles = StyleSheet.create({
-  commentSection: { marginTop: 8, paddingTop: 8, paddingHorizontal: 20 },
+  commentSection: {
+    marginTop: 20,
+    paddingTop: 8,
+    paddingHorizontal: 20,
+  },
   commentCount: {
-    fontSize: 13,
-    fontWeight: "500",
+    ...typography.label_l3_13_regular,
     color: "#40454A",
   },
   commentBox: {
-    marginTop: 12,
+    marginTop: 20,
     marginBottom: 24,
     paddingBottom: 16,
     borderBottomColor: "#F4F5F7",
@@ -236,22 +254,25 @@ const styles = StyleSheet.create({
     backgroundColor: "#dcdcdc",
     marginRight: 8,
   },
-  user: { fontWeight: "bold", fontSize: 14 },
-  time: { fontSize: 12, color: "#888" },
+  user: {
+    ...typography.label_l2_13_medium,
+    color: "#0E0F15",
+  },
+  time: { ...typography.label_l3_13_regular, color: "#40454A" },
   tag: {
     marginLeft: "auto",
     borderRadius: 4,
     paddingHorizontal: 4,
     paddingVertical: 4,
-    minWidth: 55,
-    height: 22,
+    width: 57,
+    height: 25,
     justifyContent: "center",
     alignItems: "center",
     flexDirection: "row",
   },
   content: {
-    fontSize: 14,
-    color: "#333",
+    ...typography.body_b3_14_regular,
+    color: "#0E0F15",
     lineHeight: 20,
     paddingLeft: 40,
   },

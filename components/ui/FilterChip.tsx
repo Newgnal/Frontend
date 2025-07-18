@@ -1,4 +1,4 @@
-import React from "react";
+import { typography } from "@/styles/typography";
 import { Pressable, StyleSheet, Text } from "react-native";
 
 interface Props {
@@ -43,11 +43,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F1F3F5",
   },
   text: {
-    fontFamily: "Pretendard",
-    fontSize: 13,
-    fontStyle: "normal",
-    fontWeight: "500",
-    lineHeight: 18,
+    ...typography.label_l2_13_medium,
     letterSpacing: 0.078,
     textAlign: "center",
   },

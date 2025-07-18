@@ -1,4 +1,5 @@
 import IcAisummary from "@/assets/images/Vector 2212.svg";
+import { typography } from "@/styles/typography";
 import { Dimensions, Image, StyleSheet, Text, View } from "react-native";
 import RenderHTML from "react-native-render-html";
 
@@ -63,9 +64,11 @@ const styles = StyleSheet.create({
     borderLeftWidth: 2,
     borderLeftColor: "#D0D0D0",
     paddingLeft: 12,
-    marginTop: 16,
+    marginTop: 29,
+    marginBottom: 11,
   },
   labelRow: {
+    color: "#89939F",
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 8,
@@ -85,8 +88,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   imageCaption: {
-    fontSize: 12,
-    color: "#666",
+    ...typography.caption_c2_12_regular,
+    color: "#89939F",
     paddingTop: 10,
   },
 });
