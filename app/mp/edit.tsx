@@ -1,3 +1,4 @@
+import { deleteUser } from "@/api/userApi";
 import KakaoIcon from "@/assets/images/ic_kakao.svg";
 import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
 import PlusIcon from "@/assets/images/icn_plus.svg";
@@ -8,12 +9,31 @@ import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { useAuth } from "@/context/authContext";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileEditScreen() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, nickName } = useAuth();
+
+  const handleDeleteUser = () => {
+    Alert.alert("정말 탈퇴하시겠습니까?", "탈퇴 시 모든 정보가 삭제됩니다.", [
+      { text: "취소", style: "cancel" },
+      {
+        text: "탈퇴",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await deleteUser();
+            await logout();
+            router.replace("/login");
+          } catch (err) {
+            console.error("탈퇴 실패:", err);
+          }
+        },
+      },
+    ]);
+  };
 
   return (
     <>
@@ -60,7 +80,7 @@ export default function ProfileEditScreen() {
               <Text
                 style={[typography.body_b3_14_regular, { color: "#5E6974" }]}
               >
-                알림잇슈지킴이
+                {nickName}
               </Text>
               <NextSmIcon />
             </Pressable>
@@ -150,35 +170,42 @@ export default function ProfileEditScreen() {
         </View>
         <View style={styles.footer}>
           <Pressable
-            style={{ backgroundColor: "#F4F5F7", borderRadius: 12 }}
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? "#2E3439" : "#F4F5F7",
+              borderRadius: 12,
+            })}
             onPress={logout}
           >
+            {({ pressed }) => (
+              <Text
+                style={[
+                  typography.subtitle_s3_15_semi_bold,
+                  {
+                    color: pressed ? "F4F5F7" : "#717D89",
+                    textAlign: "center",
+                    paddingVertical: 12.5,
+                  },
+                ]}
+              >
+                로그아웃
+              </Text>
+            )}
+          </Pressable>
+          <HorizontalLine style={{ marginVertical: 46 }} />
+          <Pressable onPress={handleDeleteUser}>
             <Text
               style={[
-                typography.subtitle_s3_15_semi_bold,
+                typography.caption_c2_12_regular,
                 {
-                  color: "#717D89",
+                  color: "#F4F5F7",
                   textAlign: "center",
-                  paddingVertical: 12.5,
+                  textDecorationLine: "underline",
                 },
               ]}
             >
-              로그아웃
+              회원 탈퇴
             </Text>
           </Pressable>
-          <HorizontalLine style={{ marginVertical: 46 }} />
-          <Text
-            style={[
-              typography.caption_c2_12_regular,
-              {
-                color: "#717D89",
-                textAlign: "center",
-                textDecorationLine: "underline",
-              },
-            ]}
-          >
-            회원 탈퇴
-          </Text>
         </View>
       </SafeAreaView>
     </>
