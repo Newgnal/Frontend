@@ -34,7 +34,7 @@ export default function WriteFormScreen() {
     postId,
     editTitle,
     editContent,
-    editHasVoted,
+    editVoteEnabled,
     editArticleUrl,
     editThema,
 
@@ -47,12 +47,12 @@ export default function WriteFormScreen() {
     formTitle: initialTitle,
     content: initialContent,
     category: initialThema,
-    hasVoted: initialHasVoted,
+    voteEnabled: initialVoteEnabled,
   } = useLocalSearchParams<{
     postId?: string;
     editTitle?: string;
     editContent?: string;
-    editHasVoted?: string;
+    editVoteEnabled?: string;
     editArticleUrl?: string;
     editThema?: string;
     category?: string;
@@ -65,7 +65,7 @@ export default function WriteFormScreen() {
     url?: string;
     content?: string;
     formTitle?: string;
-    hasVoted?: string;
+    voteEnabled?: string;
   }>();
 
   const isEdit = !!postId;
@@ -77,7 +77,7 @@ export default function WriteFormScreen() {
     isEdit ? editContent ?? "" : initialContent ?? ""
   );
   const [voteEnabled, setVoteEnabled] = useState(
-    isEdit ? editHasVoted === "true" : initialHasVoted === "true"
+    isEdit ? editVoteEnabled === "true" : initialVoteEnabled === "true"
   );
 
   const [thema, setThema] = useState(
@@ -158,7 +158,7 @@ export default function WriteFormScreen() {
         formTitle: title,
         content,
         articleUrl: articleUrl ?? "",
-        hasVoted: voteEnabled.toString(),
+        voteEnabled: voteEnabled.toString(),
       },
     });
   };
@@ -269,7 +269,7 @@ export default function WriteFormScreen() {
                             formTitle: title,
                             content,
                             articleUrl: "",
-                            hasVoted: voteEnabled.toString(),
+                            voteEnabled: voteEnabled.toString(),
                             ...(postId && { postId }),
                           },
                         })

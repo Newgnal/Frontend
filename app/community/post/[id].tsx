@@ -116,7 +116,7 @@ export default function PostScreen() {
 
   const handlePostUpdate = () => {
     if (!post) return;
-    console.log("editHasVoted:", hasVoted);
+    // console.log("editHasVoted:", hasVoted);
     router.push({
       pathname: "/(tabs)/community/writeForm",
       params: {
@@ -125,7 +125,7 @@ export default function PostScreen() {
         editContent: post.postContent,
         editArticleUrl: post.articleUrl,
         editThema: convertThemaToKor(post.thema),
-        editHasVoted: post.hasVote.toString(),
+        editVoteEnabled: post.hasVote.toString(),
         mode: "edit",
       },
     });
@@ -239,7 +239,7 @@ export default function PostScreen() {
           </View>
 
           <HorizontalLine height={8} />
-          {hasVoted && (
+          {post.hasVote && (
             <>
               <View style={styles.content}>
                 <PollSection
