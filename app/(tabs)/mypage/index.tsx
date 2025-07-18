@@ -40,7 +40,7 @@ export default function MyPageScreen() {
             onPress={() => router.push("/mp/edit")}
             style={({ pressed }) => [
               {
-                backgroundColor: pressed ? "#E0E1E2" : "#F4F5F7", // 눌렀을 때 더 진한 색
+                backgroundColor: pressed ? "#E0E1E2" : "#F4F5F7",
                 paddingHorizontal: 12,
                 paddingVertical: 8,
                 borderRadius: 100,

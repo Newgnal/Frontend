@@ -7,6 +7,7 @@ interface AuthContextType {
   userId: number | undefined;
   checkAuth: () => Promise<void>;
   logout: () => Promise<void>;
+  updateNickname: (newNickname: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -53,6 +54,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const updateNickname = async (newNickname: string) => {
+    setNickName(newNickname);
+    try {
+      await AsyncStorage.setItem("nickName", newNickname);
+    } catch (err) {
+      console.error("닉네임 저장 실패:", err);
+    }
+  };
+
   // 앱 시작 시 로그인 여부 확인
   useEffect(() => {
     checkAuth();
@@ -60,7 +70,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <AuthContext.Provider
-      value={{ isLoggedIn, checkAuth, logout, nickName, userId }}
+      value={{
+        isLoggedIn,
+        checkAuth,
+        logout,
+        nickName,
+        userId,
+        updateNickname,
+      }}
     >
       {children}
     </AuthContext.Provider>

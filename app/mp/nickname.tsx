@@ -1,14 +1,41 @@
+import { updateNickname as updateNicknameApi } from "@/api/userApi";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import { Header } from "@/components/ui/Header";
+import { useAuth } from "@/context/authContext";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function NicknameEditScreen() {
   const router = useRouter();
   const [nickname, setNickname] = useState("");
+  const { updateNickname } = useAuth();
+  const trimmed = nickname.trim();
+  console.log("변경할 닉네임:", trimmed);
+  const handleUpdateNickname = async () => {
+    try {
+      const res = await updateNicknameApi(trimmed);
+      await updateNickname(nickname.trim());
+      Toast.show({
+        type: "success",
+        text1: "닉네임이 변경되었어요",
+      });
+      router.back();
+    } catch (err: any) {
+      console.error(
+        "닉네임 변경 실패 상세:",
+        err.response?.data || err.message
+      );
+      Toast.show({
+        type: "error",
+        text1: "닉네임 변경 실패",
+        text2: err.response?.data?.message || "다시 시도해주세요.",
+      });
+    }
+  };
   return (
     <SafeAreaView style={styles.container}>
       <Header
@@ -44,13 +71,27 @@ export default function NicknameEditScreen() {
             </Text>
           </View>
         </View>
-        <View style={styles.button}>
+        <Pressable
+          style={[
+            styles.button,
+            nickname.trim() === ""
+              ? styles.buttonDisabled
+              : styles.buttonEnabled,
+          ]}
+          onPress={handleUpdateNickname}
+          disabled={nickname.trim() === ""}
+        >
           <Text
-            style={[typography.subtitle_s3_15_semi_bold, { color: "#F4F5F7" }]}
+            style={[
+              typography.subtitle_s3_15_semi_bold,
+              nickname.trim() === ""
+                ? styles.buttonTextDisabled
+                : styles.buttonTextEnabled,
+            ]}
           >
             완료
           </Text>
-        </View>
+        </Pressable>
       </View>
     </SafeAreaView>
   );
@@ -105,10 +146,21 @@ const styles = StyleSheet.create({
   },
   button: {
     alignItems: "center",
-    backgroundColor: "#2E3439",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
+  },
+  buttonEnabled: {
+    backgroundColor: "#2E3439",
+  },
+  buttonDisabled: {
+    backgroundColor: "#D9D9D9",
+  },
+  buttonTextEnabled: {
+    color: "#F4F5F7",
+  },
+  buttonTextDisabled: {
+    color: "#717D89",
   },
 });
 

@@ -14,7 +14,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileEditScreen() {
   const router = useRouter();
-  const { logout } = useAuth();
+  const { logout, nickName } = useAuth();
+
   const handleDeleteUser = () => {
     Alert.alert("정말 탈퇴하시겠습니까?", "탈퇴 시 모든 정보가 삭제됩니다.", [
       { text: "취소", style: "cancel" },
@@ -79,7 +80,7 @@ export default function ProfileEditScreen() {
               <Text
                 style={[typography.body_b3_14_regular, { color: "#5E6974" }]}
               >
-                알림잇슈지킴이
+                {nickName}
               </Text>
               <NextSmIcon />
             </Pressable>
@@ -196,7 +197,7 @@ export default function ProfileEditScreen() {
               style={[
                 typography.caption_c2_12_regular,
                 {
-                  color: "#717D89",
+                  color: "#F4F5F7",
                   textAlign: "center",
                   textDecorationLine: "underline",
                 },
