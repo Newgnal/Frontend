@@ -5,6 +5,7 @@ import CategoryInfoBox from "@/components/CategoryInfoBox";
 import NewsVolumeChart from "@/components/chart/NewsVolumeChart";
 import SentimentChart from "@/components/chart/SentimentChart";
 import { sentimentData } from "@/data/sentimentDummy";
+import { typography } from "@/styles/typography";
 import { NewsItem } from "@/types/news";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -116,44 +117,51 @@ export default function HomeMain({ selectedCategoryId }: Props) {
             horizontal
             data={mainNews}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingLeft: 0, paddingRight: 12 }}
+            contentContainerStyle={{ paddingRight: 0 }}
             ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
             showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                onPress={() =>
-                  router.push({
-                    pathname: "/news/[id]",
-                    params: { id: item.id },
-                  })
-                }
-              >
-                <View style={styles.newsCard}>
-                  {item.imageUrl && (
-                    <Image
-                      source={{ uri: item.imageUrl }}
-                      style={styles.newsImage}
-                    />
-                  )}
-                  <Text numberOfLines={2} style={styles.newsTitle}>
-                    {item.title}
-                  </Text>
-                  <Text style={styles.newsMeta}>{item.date}</Text>
-                </View>
-              </TouchableOpacity>
-            )}
+            renderItem={({ item }) => {
+              const formattedDate = new Date(item.date)
+                .toISOString()
+                .slice(0, 10)
+                .replace(/-/g, ".");
+
+              return (
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: "/news/[id]",
+                      params: { id: item.id },
+                    })
+                  }
+                >
+                  <View style={styles.newsCard}>
+                    {item.imageUrl && (
+                      <Image
+                        source={{ uri: item.imageUrl }}
+                        style={styles.newsImage}
+                      />
+                    )}
+                    <Text numberOfLines={2} style={styles.newsTitle}>
+                      {item.title}
+                    </Text>
+                    <Text style={styles.newsMeta}>{formattedDate}</Text>
+                  </View>
+                </TouchableOpacity>
+              );
+            }}
           />
         </View>
 
         <View style={styles.sectionContainer}>
           <View style={styles.sectionTitleWithIcon}>
-            <Text style={styles.sectionTitle}>감성 지표</Text>
+            <Text style={styles.sectionTitle2}>감성 지표</Text>
             <View style={{ position: "relative" }}>
               <Pressable onPress={() => setShowTooltip((prev) => !prev)}>
                 <IcVector
                   width={14}
                   height={14}
-                  style={{ marginLeft: 4, marginBottom: -2 }}
+                  style={{ marginLeft: 4, marginTop: 29, marginBottom: 8 }}
                 />
               </Pressable>
 
@@ -197,8 +205,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  sectionTitle: { fontSize: 16, fontWeight: "600", color: "#0E0F15" },
-  moreText: { fontSize: 13, fontWeight: "500", color: "#A8B2B8" },
+  sectionTitle: {
+    ...typography.subtitle_s2_16_semi_bold,
+  },
+  sectionTitle2: {
+    ...typography.subtitle_s2_16_semi_bold,
+    marginTop: 28,
+    marginBottom: 8,
+  },
+  moreText: {
+    ...typography.caption_c2_12_regular,
+    color: "#5E6974",
+  },
   sectionTitleWithIcon: {
     flexDirection: "row",
     alignItems: "center",
@@ -213,8 +231,9 @@ const styles = StyleSheet.create({
     minHeight: 140,
   },
   newsCard: {
-    width: 184,
-    padding: 8,
+    width: 182,
+    padding: 0,
+    marginTop: 8,
     backgroundColor: "white",
     borderRadius: 8,
   },
@@ -222,22 +241,21 @@ const styles = StyleSheet.create({
     height: 100,
     width: 182,
     backgroundColor: "#dcdcdc",
-    borderRadius: 4,
+    borderRadius: 8,
     marginBottom: 8,
   },
   newsTitle: {
-    fontSize: 14,
-    fontWeight: "500",
+    ...typography.subtitle_s3_15_semi_bold,
     color: "#0E0F15",
     marginBottom: 4,
+    marginTop: 8,
   },
   newsMeta: {
-    fontSize: 12,
-    color: "#717D89",
+    ...typography.caption_c1_11_regular,
+    color: "#5E6974",
   },
   newsVolumeTitle: {
-    fontSize: 13,
-    fontWeight: "600",
+    ...typography.caption_c1_12_semi_bold,
     lineHeight: 18,
     letterSpacing: 0.072,
     color: "#0E0F15",
@@ -245,7 +263,7 @@ const styles = StyleSheet.create({
   },
   tooltipWrapper: {
     position: "absolute",
-    top: -15,
+    top: 11,
     left: 25,
     zIndex: 100,
   },
@@ -253,9 +271,8 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 5,
     left: 22,
-    fontSize: 12,
     lineHeight: 20,
     color: "#FFFFFF",
-    fontWeight: "400",
+    ...typography.caption_c2_12_regular,
   },
 });

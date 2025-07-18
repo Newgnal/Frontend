@@ -14,6 +14,11 @@ export default function HomeScreen() {
   const [selectedTab, setSelectedTab] = useState<"theme" | "all">("theme");
   const [order, setOrder] = useState<"latest" | "views">("latest");
   const [selectedCategory, setSelectedCategory] = useState("semiconductor");
+  const now = new Date();
+  const formattedTime = `${now.getHours()}:${String(now.getMinutes()).padStart(
+    2,
+    "0"
+  )} 기준`;
 
   return (
     <SafeAreaView style={{ backgroundColor: "#FFFFFF", paddingVertical: 20 }}>
@@ -53,7 +58,7 @@ export default function HomeScreen() {
 
       {selectedTab === "all" && (
         <View style={styles.infoRow}>
-          <Text style={styles.timestamp}>18:49 기준</Text>
+          <Text style={styles.timestamp}>{formattedTime}</Text>
           <TouchableOpacity
             style={styles.orderRow}
             onPress={() =>
@@ -74,7 +79,6 @@ export default function HomeScreen() {
             selectedKey={selectedCategory}
             onSelect={(key) => {
               setSelectedCategory(key);
-              console.log("카테고리 선택됨:", key);
             }}
           />
         </View>
@@ -115,7 +119,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   timestamp: {
-    fontSize: 12,
+    ...typography.caption_c1_11_regular,
     color: "#717D89",
   },
   orderRow: {
@@ -124,13 +128,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   orderText: {
-    fontSize: 12,
-    fontFamily: "Pretendard",
-    fontWeight: "400",
-    fontStyle: "normal",
-    lineHeight: 18,
-    letterSpacing: 0.072,
-    color: "#484F56",
+    ...typography.label_l2_13_medium,
+    color: "#717D89",
   },
   orderIcon: {
     marginTop: 1,

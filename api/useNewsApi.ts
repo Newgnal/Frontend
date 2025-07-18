@@ -6,9 +6,11 @@ export const getAllNews = async (
   order: "latest" | "views",
   pageNum: number
 ): Promise<NewsItem[]> => {
+  const sortParam = order === "latest" ? "LATEST" : "VIEWEST";
+
   const res = await axiosInstance.get("/news/v1", {
     params: {
-      sortType: order.toUpperCase(),
+      sortType: sortParam,
       page: pageNum,
       size: 5,
     },

@@ -1,3 +1,4 @@
+import { typography } from "@/styles/typography";
 import { StyleSheet, Text, View } from "react-native";
 
 export default function CategoryInfoBox({
@@ -30,10 +31,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   categoryText: {
-    fontFamily: "Pretendard",
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#0E0F15",
+    ...typography.header_h3_20_bold,
     lineHeight: 30,
   },
   changeBox: {
@@ -41,11 +39,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     paddingHorizontal: 8,
     borderRadius: 8,
+    justifyContent: "center",
   },
   changeText: {
-    fontFamily: "Pretendard",
-    fontSize: 13,
-    fontWeight: "500",
-    letterSpacing: 0.078,
+    ...typography.label_l2_13_medium,
+    letterSpacing: 0.6,
   },
 });

@@ -2,6 +2,7 @@ import IcDropdown from "@/assets/images/ic_dropdown.svg";
 import IcMoveActive from "@/assets/images/ic_move_active.svg";
 import IcThemeModalActive from "@/assets/images/ic_them_modal-1.svg";
 import IcThemeModal from "@/assets/images/ic_them_modal.svg";
+import { typography } from "@/styles/typography";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
@@ -48,8 +49,11 @@ const DraggableChipItem = gestureHandlerRootHOC(function DraggableChipItem({
           <Text
             style={[
               styles.modalItemText,
-              styles.boldModalItemText,
-              selected === item.key && styles.selectedModalItemText,
+              isSortMode
+                ? styles.selectedModalItemText
+                : selected === item.key
+                ? styles.selectedModalItemText
+                : styles.unselectedModalItemText,
             ]}
           >
             {item.label}
@@ -218,9 +222,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F4F5F7",
   },
   chipText: {
-    fontSize: 13,
-    fontFamily: "Pretendard",
-    fontWeight: "500",
+    ...typography.label_l2_13_medium,
     color: "#484F56",
     letterSpacing: 0.078,
   },
@@ -228,6 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#484F56",
   },
   selectedChipText: {
+    ...typography.label_l2_13_medium,
     color: "#F4F5F7",
   },
   dropdownButton: {
@@ -266,16 +269,12 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   modalTitle: {
-    fontSize: 20,
-    fontFamily: "Pretendard",
-    fontWeight: "700",
+    ...typography.header_h3_20_bold,
     color: "#0E0F15",
     lineHeight: 30,
   },
   modalSubtitle: {
-    fontSize: 13,
-    fontFamily: "Pretendard",
-    fontWeight: "400",
+    ...typography.label_l3_13_regular,
     color: "#717D89",
     letterSpacing: 0.078,
     marginTop: 4,
@@ -294,13 +293,12 @@ const styles = StyleSheet.create({
     letterSpacing: 0.096,
     lineHeight: 24,
   },
-  selectedModalItemText: {
-    color: "#0E0F15",
+  unselectedModalItemText: {
+    ...typography.body_b1_16_medium,
+    color: "#A8B2B8",
   },
-  boldModalItemText: {
-    fontSize: 16,
-    fontFamily: "Pretendard",
-    fontWeight: "500",
+  selectedModalItemText: {
+    ...typography.body_b1_16_medium,
     color: "#2E3439",
   },
 });
