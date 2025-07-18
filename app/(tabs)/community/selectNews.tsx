@@ -86,25 +86,37 @@ export default function SelectNewsScreen() {
   const sortedNews = [...dummyNews].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
-  const { formTitle, content, category } = useLocalSearchParams<{
-    formTitle?: string;
-    content?: string;
-    category?: string;
-  }>();
+  const { formTitle, content, category, hasVoted, postId } =
+    useLocalSearchParams<{
+      formTitle?: string;
+      content?: string;
+      category?: string;
+      hasVoted?: string;
+      postId?: string;
+    }>();
   const handleSelectNews = (news: (typeof dummyNews)[0]) => {
     router.push({
       pathname: "/(tabs)/community/writeForm",
       params: {
+        // 뉴스 정보
         id: news.id,
         title: news.title,
         date: news.date,
         newsCategory: news.category,
         sentiment: news.sentiment,
-        views: String(news.views),
         url: news.url,
         formTitle: formTitle ?? "",
         content: content ?? "",
         category: category ?? "",
+        hasVoted: hasVoted === "true" ? "true" : "false",
+
+        // 기존 글 수정 정보 유지
+        postId: postId ?? "",
+        editTitle: formTitle ?? "",
+        editContent: content ?? "",
+        editHasVoted: hasVoted === "true" ? "true" : "false",
+        editArticleUrl: news.url,
+        editThema: category ?? "",
       },
     });
   };

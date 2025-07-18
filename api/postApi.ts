@@ -17,7 +17,13 @@ export const createPost = async (data: CreatePostRequest) => {
 // 게시글 수정
 export const updatePost = async (
   postId: number,
-  data: { title?: string; content?: string }
+  data: {
+    postTitle?: string;
+    postContent?: string;
+    articleUrl?: string;
+    thema?: string;
+    hasVote?: boolean;
+  }
 ) => {
   const res = await axiosInstance.patch(`/post/v1/${postId}`, data);
   return res.data;

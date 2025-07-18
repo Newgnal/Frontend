@@ -4,7 +4,7 @@ import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
 import CloseIcon from "@/assets/images/ic_out.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 
-import { createPost } from "@/api/postApi";
+import { createPost, updatePost } from "@/api/postApi";
 import News from "@/components/ui/community/News";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
@@ -29,20 +29,32 @@ import Toast from "react-native-toast-message";
 export default function WriteFormScreen() {
   const router = useRouter();
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [voteEnabled, setVoteEnabled] = useState(false);
 
   const {
-    category,
-    newsCategory,
+    postId,
+    editTitle,
+    editContent,
+    editHasVoted,
+    editArticleUrl,
+    editThema,
+
     id: newsId,
     title: newsTitle,
-    date,
-    sentiment,
-    views,
-    url: articleUrl,
+    newsCategory,
+    date: newsDate,
+    sentiment: newsSentiment,
+    url: newsUrl,
     formTitle: initialTitle,
     content: initialContent,
+    category: initialThema,
+    hasVoted: initialHasVoted,
   } = useLocalSearchParams<{
+    postId?: string;
+    editTitle?: string;
+    editContent?: string;
+    editHasVoted?: string;
+    editArticleUrl?: string;
+    editThema?: string;
     category?: string;
     newsCategory?: string;
     id?: string;
@@ -53,10 +65,29 @@ export default function WriteFormScreen() {
     url?: string;
     content?: string;
     formTitle?: string;
+    hasVoted?: string;
   }>();
 
-  const [title, setTitle] = useState(initialTitle ?? "");
-  const [content, setContent] = useState(initialContent ?? "");
+  const isEdit = !!postId;
+
+  const [title, setTitle] = useState(
+    isEdit ? editTitle ?? "" : initialTitle ?? ""
+  );
+  const [content, setContent] = useState(
+    isEdit ? editContent ?? "" : initialContent ?? ""
+  );
+  const [voteEnabled, setVoteEnabled] = useState(
+    isEdit ? editHasVoted === "true" : initialHasVoted === "true"
+  );
+
+  const [thema, setThema] = useState(
+    isEdit ? editThema ?? "UNKNOWN" : initialThema ?? "UNKNOWN"
+  );
+
+  const [articleUrl, setArticleUrl] = useState(
+    isEdit ? editArticleUrl ?? "" : newsUrl ?? ""
+  );
+
   const categoryMap: { [key: string]: string } = {
     "반도체/AI": "SEMICONDUCTOR_AI",
     "IT/인터넷": "IT_INTERNET",
@@ -71,21 +102,29 @@ export default function WriteFormScreen() {
     "원자재/귀금속": "RAW_MATERIAL_METALS",
     기타: "ETC",
   };
-  // const reverseCategoryMap = Object.fromEntries(
-  //   Object.entries(categoryMap).map(([ko, en]) => [en, ko])
-  // );
+
   const handleSubmit = async () => {
     if (!title || !content) return;
-
     try {
-      await createPost({
-        postTitle: title,
-        postContent: content,
-        articleUrl: newsId ? articleUrl : "",
-        thema: category ? categoryMap[category] ?? "UNKNOWN" : "UNKNOWN",
-        hasVote: voteEnabled,
-      });
-      Toast.show({ type: "success", text1: "글이 등록되었어요" });
+      if (isEdit) {
+        await updatePost(Number(postId), {
+          postTitle: title,
+          postContent: content,
+          articleUrl: articleUrl ?? "",
+          thema: categoryMap[thema] ?? "UNKNOWN",
+          hasVote: voteEnabled,
+        });
+        Toast.show({ type: "success", text1: "글이 수정되었어요" });
+      } else {
+        await createPost({
+          postTitle: title,
+          postContent: content,
+          articleUrl: newsId ? articleUrl : "",
+          thema: categoryMap[thema] ?? "UNKNOWN",
+          hasVote: voteEnabled,
+        });
+        Toast.show({ type: "success", text1: "글이 등록되었어요" });
+      }
       // 등록 후 이동 (예: 커뮤니티 메인으로)
       router.replace("/(tabs)/community");
     } catch (error) {
@@ -96,6 +135,7 @@ export default function WriteFormScreen() {
       });
     }
   };
+
   useEffect(() => {
     const showSub = Keyboard.addListener("keyboardDidShow", (e) => {
       setKeyboardHeight(e.endCoordinates.height);
@@ -110,12 +150,15 @@ export default function WriteFormScreen() {
   }, []);
 
   const handleRemoveNews = () => {
+    setArticleUrl("");
     router.replace({
       pathname: "/(tabs)/community/writeForm",
       params: {
-        category,
+        category: thema,
         formTitle: title,
         content,
+        articleUrl: articleUrl ?? "",
+        hasVoted: voteEnabled.toString(),
       },
     });
   };
@@ -128,7 +171,7 @@ export default function WriteFormScreen() {
           style={styles.container}
         >
           <Header
-            title={category ?? ""}
+            title={thema ?? ""}
             leftSlot={
               <Pressable onPress={() => router.back()}>
                 <NextLgIcon />
@@ -142,7 +185,7 @@ export default function WriteFormScreen() {
                     { color: title && content ? "#111" : "#89939F" },
                   ]}
                 >
-                  등록
+                  {isEdit ? "수정" : "등록"}
                 </Text>
               </Pressable>
             }
@@ -191,9 +234,9 @@ export default function WriteFormScreen() {
                   <News
                     id={newsId ?? 0}
                     title={newsTitle ?? ""}
-                    date={date ?? ""}
-                    category={category ?? ""}
-                    sentiment={sentiment ?? ""}
+                    date={newsDate ?? ""}
+                    category={newsCategory ?? ""}
+                    sentiment={newsSentiment ?? ""}
                   />
                   <Pressable
                     onPress={handleRemoveNews}
@@ -222,9 +265,12 @@ export default function WriteFormScreen() {
                         router.push({
                           pathname: "/(tabs)/community/selectNews",
                           params: {
-                            category,
+                            category: thema,
                             formTitle: title,
                             content,
+                            articleUrl: "",
+                            hasVoted: voteEnabled.toString(),
+                            ...(postId && { postId }),
                           },
                         })
                       }
@@ -238,7 +284,7 @@ export default function WriteFormScreen() {
                       router.push({
                         pathname: "/(tabs)/community/selectNews",
                         params: {
-                          category,
+                          category: initialThema,
                           formTitle: title,
                           content,
                         },

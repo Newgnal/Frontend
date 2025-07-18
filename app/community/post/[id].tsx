@@ -15,6 +15,7 @@ import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import PostModal from "@/components/ui/modal/PostModal";
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
@@ -71,7 +72,7 @@ export default function PostScreen() {
 
   const router = useRouter();
 
-  console.log("받은 postId:", id);
+  // console.log("받은 postId:", id);
 
   const [post, setPost] = useState<Post | null>(null);
   const [vote, setVote] = useState<any | null>(null);
@@ -114,11 +115,19 @@ export default function PostScreen() {
   }, [numericPostId]);
 
   const handlePostUpdate = () => {
+    if (!post) return;
+    console.log("editHasVoted:", hasVoted);
     router.push({
       pathname: "/(tabs)/community/writeForm",
-      // params: {
-
-      // },
+      params: {
+        postId: post.postId.toString(),
+        editTitle: post.postTitle,
+        editContent: post.postContent,
+        editArticleUrl: post.articleUrl,
+        editThema: convertThemaToKor(post.thema),
+        editHasVoted: post.hasVote.toString(),
+        mode: "edit",
+      },
     });
   };
 
@@ -230,24 +239,25 @@ export default function PostScreen() {
           </View>
 
           <HorizontalLine height={8} />
-
-          <View style={styles.content}>
-            <PollSection
-              pollLabels={pollLabels}
-              pollResults={pollResults}
-              pollTotalCount={pollTotalCount}
-              opinionTheme={opinionTheme}
-              selectedPoll={selectedPoll}
-              hasVoted={hasVoted}
-              onSelectPoll={(idx) => {
-                setSelectedPoll(idx);
-                setHasVoted(true);
-              }}
-            />
-          </View>
-
-          <HorizontalLine height={8} />
-
+          {hasVoted && (
+            <>
+              <View style={styles.content}>
+                <PollSection
+                  pollLabels={pollLabels}
+                  pollResults={pollResults}
+                  pollTotalCount={pollTotalCount}
+                  opinionTheme={opinionTheme}
+                  selectedPoll={selectedPoll}
+                  hasVoted={hasVoted}
+                  onSelectPoll={(idx) => {
+                    setSelectedPoll(idx);
+                    setHasVoted(true);
+                  }}
+                />
+              </View>
+              <HorizontalLine height={8} />
+            </>
+          )}
           <View style={styles.content}>
             <View style={styles.commentSection}>
               <View style={styles.commentContainer}>
