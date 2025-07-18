@@ -1,4 +1,4 @@
-import { deletePostbyId, getPostById } from "@/api/postApi";
+import { deletePostById, getPostById, reportPostById } from "@/api/postApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import HoldIcon from "@/assets/images/ic_com_poll.svg";
@@ -14,6 +14,7 @@ import TopicDetail from "@/components/ui/community/TopicDetail";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import PostModal from "@/components/ui/modal/PostModal";
+import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
 import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { getTimeAgo } from "@/utils/getTimeAgo";
@@ -85,11 +86,13 @@ export default function PostScreen() {
     [key: string]: boolean;
   }>({});
   const [isVisible, setIsVisible] = useState(false);
+  const [modalType, setModalType] = useState<"post" | "report" | null>(null);
   const [commentText, setCommentText] = useState("");
   const pollLabels = ["매도", "보유", "매수"];
   const pollResults = [20, 20, 15]; // 각 항목 비율(%)
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
 
+  // useAuth();
   useEffect(() => {
     if (!numericPostId || isNaN(numericPostId)) return;
     const fetchDetail = async () => {
@@ -133,13 +136,27 @@ export default function PostScreen() {
 
   const handlePostDelete = async () => {
     try {
-      await deletePostbyId(numericPostId);
+      await deletePostById(numericPostId);
       Toast.show({ type: "success", text1: "글이 삭제되었어요" });
       router.replace("/(tabs)/community");
     } catch (error) {
       Toast.show({
         type: "error",
         text1: "삭제 실패",
+        text2: "다시 시도해주세요",
+      });
+    }
+  };
+
+  const handleReport = async () => {
+    if (!post?.postId) return;
+    try {
+      await reportPostById(post.postId);
+    } catch (error) {
+      console.error("신고 실패:", error);
+      Toast.show({
+        type: "error",
+        text1: "신고 실패",
         text2: "다시 시도해주세요",
       });
     }
@@ -211,6 +228,14 @@ export default function PostScreen() {
               <ShareIcon />
               <Pressable
                 onPress={() => {
+                  //   if (post.nickname === myNickname) {
+                  //     setModalType("post");
+                  //   } else {
+                  //     setModalType("report");
+                  //   }
+                  //   setIsVisible(true);
+                  // }}
+                  setModalType("report");
                   setIsVisible(true);
                 }}
               >
@@ -448,18 +473,27 @@ export default function PostScreen() {
           </View>
         </View>
       </SafeAreaView>
-      <PostModal
-        isVisible={isVisible}
-        onClose={() => setIsVisible(false)}
-        onSelect={(action) => {
-          if (action === "update") {
-            handlePostUpdate();
-          } else if (action === "delete") {
-            handlePostDelete();
-          }
-          setIsVisible(false);
-        }}
-      />
+      {modalType === "post" && (
+        <PostModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onSelect={(action) => {
+            if (action === "update") {
+              handlePostUpdate();
+            } else if (action === "delete") {
+              handlePostDelete();
+            }
+            setIsVisible(false);
+          }}
+        />
+      )}
+      {modalType === "report" && (
+        <ReportOptionModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onReport={handleReport}
+        />
+      )}
     </>
   );
 }

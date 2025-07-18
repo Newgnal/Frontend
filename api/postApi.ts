@@ -30,13 +30,13 @@ export const updatePost = async (
 };
 
 // 게시글 삭제
-export const deletePostbyId = async (postId: number) => {
+export const deletePostById = async (postId: number) => {
   const res = await axiosInstance.delete(`/post/v1/${postId}`);
   return res.data;
 };
 
 // 게시글 신고
-export const reportPost = async (postId: number) => {
+export const reportPostById = async (postId: number) => {
   const res = await axiosInstance.patch(`/post/v1/${postId}/report`);
   return res.data;
 };
