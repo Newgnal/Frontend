@@ -1,5 +1,6 @@
+import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   SafeAreaView,
@@ -10,15 +11,11 @@ import IcCloseTag from "@/assets/images/Group 200.svg";
 import BackIcon from "@/assets/images/icon_next_lg.svg";
 import SearchBar from "@/components/ui/HeaderIcon/searchBar";
 
-const initialKeywords = [
-  "반도체",
-  "삼성전자",
-  "SK하이닉스",
-  "감자폭등",
-  "금리 인하",
-  "대출",
-  "한국은행",
-];
+import { getSearchNews } from "@/api/newsSearchApi";
+import { SearchNewsItem } from "@/types/newsSearch";
+
+import NewsCard from "@/components/ui/home/NewsCard";
+import { NewsItem } from "@/types/news";
 
 export const options = {
   headerShown: false,
@@ -28,10 +25,42 @@ export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const [keywords, setKeywords] = useState(initialKeywords);
+  const [keywords, setKeywords] = useState<string[]>([]);
 
   const removeKeyword = (word: string) => {
     setKeywords((prev) => prev.filter((k) => k !== word));
+  };
+
+  const [searchResults, setSearchResults] = useState<SearchNewsItem[]>([]);
+
+  useEffect(() => {
+    const fetchRecentSearches = async () => {
+      try {
+        const res = await getSearchNews("", 0, 20);
+        const recent = res.recentSearches.map((s) => s.content);
+        setKeywords(recent);
+      } catch (err) {
+        console.error("최근 검색어 로딩 실패", err);
+      }
+    };
+    fetchRecentSearches();
+  }, []);
+
+  const handleSearch = async () => {
+    if (!query.trim()) return;
+
+    setKeywords((prev) => {
+      const filtered = prev.filter((k) => k !== query.trim());
+      return [query.trim(), ...filtered];
+    });
+
+    try {
+      const res = await getSearchNews(query.trim(), 0, 20);
+      setSearchResults(res.newsList);
+    } catch (err) {
+      console.error("검색 실패", err);
+    }
+    setQuery("");
   };
 
   return (
@@ -46,27 +75,25 @@ export default function SearchScreen() {
             <SearchBar
               value={query}
               onChangeText={setQuery}
-              onSubmitEditing={() => {
-                if (!query.trim()) return;
-                setKeywords((prev) => {
-                  const filtered = prev.filter((k) => k !== query.trim());
-                  return [query.trim(), ...filtered];
-                });
-                setQuery("");
-              }}
+              onSubmitEditing={handleSearch}
               onClear={() => setQuery("")}
             />
           </View>
         </View>
       </View>
       <View style={styles.divider} />
-
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.recentTitle}>최근 검색어</Text>
+        <Text style={{ ...typography.title_t2_18_semi_bold, color: "#111" }}>
+          최근 검색어
+        </Text>
         <View style={styles.tagContainer}>
           {keywords.map((word) => (
             <View key={word} style={styles.tag}>
-              <Text style={styles.tagText}>{word}</Text>
+              <Text
+                style={{ ...typography.label_l1_14_regular, color: "#484F56" }}
+              >
+                {word}
+              </Text>
               <Pressable
                 onPress={() => removeKeyword(word)}
                 style={styles.tagXWrapper}
@@ -76,6 +103,14 @@ export default function SearchScreen() {
             </View>
           ))}
         </View>
+
+        {searchResults.length > 0 && (
+          <View style={{ marginTop: 32 }}>
+            {searchResults.map((item) => (
+              <NewsCard key={item.id} item={item as NewsItem} />
+            ))}
+          </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -138,6 +173,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 8,
     columnGap: 4,
+    marginTop: 8,
   },
   tag: {
     flexDirection: "row",
