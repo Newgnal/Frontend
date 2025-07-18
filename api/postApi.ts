@@ -36,7 +36,15 @@ export const deletePostById = async (postId: number) => {
 };
 
 // 게시글 신고
-export const reportPostById = async (postId: number) => {
+interface ReportPostResponse {
+  reportId: number;
+  reported: boolean;
+  targetType: string;
+}
+
+export const reportPostById = async (
+  postId: number
+): Promise<ReportPostResponse> => {
   const res = await axiosInstance.patch(`/post/v1/${postId}/report`);
   return res.data;
 };
@@ -62,5 +70,33 @@ export const getPostList = async ({
 // 게시글 상세 조회
 export const getPostById = async (postId: number) => {
   const res = await axiosInstance.get(`/post/v1/detail/${postId}`);
+  return res.data;
+};
+
+// 댓글 신고
+interface ReportCommentResponse {
+  commentId: number;
+  reported: boolean;
+  targetType: string;
+}
+
+export const reportCommentById = async (
+  commentId: number
+): Promise<ReportCommentResponse> => {
+  const res = await axiosInstance.patch(`/post/v1/comment/${commentId}/report`);
+  return res.data;
+};
+
+// 대댓글 신고
+interface ReportReplyResponse {
+  reportId: number;
+  reported: boolean;
+  targetType: string;
+}
+
+export const reportReplyById = async (
+  replyId: number
+): Promise<ReportReplyResponse> => {
+  const res = await axiosInstance.patch(`/post/v1/reply/${replyId}/report`);
   return res.data;
 };

@@ -1,4 +1,10 @@
-import { deletePostById, getPostById, reportPostById } from "@/api/postApi";
+import {
+  deletePostById,
+  getPostById,
+  reportCommentById,
+  reportPostById,
+  reportReplyById,
+} from "@/api/postApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import HoldIcon from "@/assets/images/ic_com_poll.svg";
@@ -15,6 +21,7 @@ import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import PostModal from "@/components/ui/modal/PostModal";
 import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
+import { useAuth } from "@/context/authContext";
 import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { getTimeAgo } from "@/utils/getTimeAgo";
@@ -85,14 +92,30 @@ export default function PostScreen() {
   const [likedComments, setLikedComments] = useState<{
     [key: string]: boolean;
   }>({});
+
   const [isVisible, setIsVisible] = useState(false);
-  const [modalType, setModalType] = useState<"post" | "report" | null>(null);
+  const [reportTargetReplyId, setReportTargetReplyId] = useState<number | null>(
+    null
+  );
+  const [reportTargetCommentId, setReportTargetCommentId] = useState<
+    number | null
+  >(null);
+
+  const [modalType, setModalType] = useState<
+    | "post"
+    | "report"
+    | "reply"
+    | "replyReport"
+    | "comment"
+    | "commentReport"
+    | null
+  >(null);
   const [commentText, setCommentText] = useState("");
   const pollLabels = ["매도", "보유", "매수"];
   const pollResults = [20, 20, 15]; // 각 항목 비율(%)
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
 
-  // useAuth();
+  const { nickName: myNickname } = useAuth();
   useEffect(() => {
     if (!numericPostId || isNaN(numericPostId)) return;
     const fetchDetail = async () => {
@@ -148,12 +171,76 @@ export default function PostScreen() {
     }
   };
 
-  const handleReport = async () => {
+  const handlePostReport = async () => {
     if (!post?.postId) return;
     try {
-      await reportPostById(post.postId);
+      const res = await reportPostById(post.postId);
+
+      if (res.reported) {
+        Toast.show({
+          type: "success",
+          text1: "신고가 접수되었어요",
+        });
+      } else {
+        Toast.show({
+          type: "info",
+          text1: "이미 신고된 게시글이에요",
+        });
+      }
     } catch (error) {
       console.error("신고 실패:", error);
+      Toast.show({
+        type: "error",
+        text1: "신고 실패",
+        text2: "다시 시도해주세요",
+      });
+    } finally {
+      setIsVisible(false);
+    }
+  };
+
+  const handleCommentReport = async () => {
+    if (reportTargetCommentId == null) return;
+    try {
+      const res = await reportCommentById(reportTargetCommentId);
+      if (res.reported) {
+        Toast.show({
+          type: "success",
+          text1: "댓글이 신고되었어요",
+        });
+      } else {
+        Toast.show({
+          type: "info",
+          text1: "이미 신고된 댓글이에요",
+        });
+      }
+    } catch (err) {
+      console.error("댓글 신고 실패", err);
+      Toast.show({
+        type: "error",
+        text1: "신고 실패",
+        text2: "다시 시도해주세요",
+      });
+    }
+  };
+
+  const handleReplyReport = async () => {
+    if (reportTargetReplyId == null) return;
+    try {
+      const res = await reportReplyById(reportTargetReplyId);
+      if (res.reported) {
+        Toast.show({
+          type: "success",
+          text1: "대댓글이 신고되었어요",
+        });
+      } else {
+        Toast.show({
+          type: "info",
+          text1: "이미 신고된 대댓글이에요",
+        });
+      }
+    } catch (err) {
+      console.error("대댓글 신고 실패", err);
       Toast.show({
         type: "error",
         text1: "신고 실패",
@@ -228,14 +315,11 @@ export default function PostScreen() {
               <ShareIcon />
               <Pressable
                 onPress={() => {
-                  //   if (post.nickname === myNickname) {
-                  //     setModalType("post");
-                  //   } else {
-                  //     setModalType("report");
-                  //   }
-                  //   setIsVisible(true);
-                  // }}
-                  setModalType("report");
+                  if (post.nickname === myNickname) {
+                    setModalType("post");
+                  } else {
+                    setModalType("report");
+                  }
                   setIsVisible(true);
                 }}
               >
@@ -363,7 +447,18 @@ export default function PostScreen() {
                         <Text style={styles.commentActionText}>답글 달기</Text>
                       </View>
                     </View>
-                    <TouchableOpacity style={{ marginLeft: "auto" }}>
+                    <TouchableOpacity
+                      style={{ marginLeft: "auto" }}
+                      onPress={() => {
+                        setReportTargetCommentId(comment.commentId);
+                        if (comment.nickname === myNickname) {
+                          setModalType("comment");
+                        } else {
+                          setModalType("commentReport");
+                        }
+                        setIsVisible(true);
+                      }}
+                    >
                       <IcComntEtc width={20} height={20} />
                     </TouchableOpacity>
                   </View>
@@ -417,7 +512,6 @@ export default function PostScreen() {
                               </View>
                             ) : null}
                           </View>
-
                           <Text
                             style={[styles.commentContent, { paddingLeft: 40 }]}
                           >
@@ -443,7 +537,18 @@ export default function PostScreen() {
                                   reply.likeCount}
                               </Text>
                             </View>
-                            <TouchableOpacity style={{ marginLeft: "auto" }}>
+                            <TouchableOpacity
+                              style={{ marginLeft: "auto" }}
+                              onPress={() => {
+                                setReportTargetReplyId(reply.replyId);
+                                if (reply.nickname === myNickname) {
+                                  setModalType("reply");
+                                } else {
+                                  setModalType("replyReport");
+                                }
+                                setIsVisible(true);
+                              }}
+                            >
                               <IcComntEtc width={20} height={20} />
                             </TouchableOpacity>
                           </View>
@@ -491,7 +596,31 @@ export default function PostScreen() {
         <ReportOptionModal
           isVisible={isVisible}
           onClose={() => setIsVisible(false)}
-          onReport={handleReport}
+          onReport={handlePostReport}
+        />
+      )}
+      {/* 
+          {modalType === "reply" && (
+            
+          )} */}
+
+      {modalType === "replyReport" && (
+        <ReportOptionModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onReport={handleReplyReport}
+        />
+      )}
+
+      {/* 
+          {modalType === "comment" && (
+            
+          )} */}
+      {modalType === "commentReport" && (
+        <ReportOptionModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onReport={handleCommentReport}
         />
       )}
     </>
