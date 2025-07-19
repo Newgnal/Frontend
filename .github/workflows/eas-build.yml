@@ -21,24 +21,14 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Authenticate with EAS
-        run: eas whoami
-        env:
-          EAS_BUILD_TOKEN: ${{ secrets.EAS_BUILD_TOKEN }}
+      # - name: Authenticate with EAS
+      #   env:
+      #     EAS_BUILD_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
         run: npm install
 
       - name: Build Android app with EAS
-        run: eas build --platform android --profile production --non-interactive
+        run: eas build --platform android --profile apk --non-interactive
         env:
-          EAS_BUILD_TOKEN: ${{ secrets.EAS_BUILD_TOKEN }}
-
-      # - name: Submit to Google Play
-      #   run: |
-      #     eas submit --platform android \
-      #     --key ./google-service-account.json \
-      #     --track internal
-      #   env:
-      #     EAS_BUILD_TOKEN: ${{ secrets.EAS_BUILD_TOKEN }}
-      #     # Submit 시 필요한 추가 Secret이 있다면 여기에 추가
+          EAS_BUILD_TOKEN: ${{ secrets.EXPO_TOKEN }}
