@@ -22,7 +22,9 @@ jobs:
         run: npm install -g eas-cli
 
       - name: Authenticate with EAS
-        run: eas login --token ${{ secrets.EXPO_TOKEN }}
+        run: eas login
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Install dependencies
         run: npm install
