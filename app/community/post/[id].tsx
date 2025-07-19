@@ -1,5 +1,7 @@
 import {
+  deleteCommentById,
   deletePostById,
+  deleteReplyById,
   getPostById,
   reportCommentById,
   reportPostById,
@@ -160,6 +162,35 @@ export default function PostScreen() {
   const handlePostDelete = async () => {
     try {
       await deletePostById(numericPostId);
+      Toast.show({ type: "success", text1: "글이 삭제되었어요" });
+      router.replace("/(tabs)/community");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "삭제 실패",
+        text2: "다시 시도해주세요",
+      });
+    }
+  };
+  const numericCommentId = Number(reportTargetCommentId);
+  const handleCommentDelete = async () => {
+    try {
+      await deleteCommentById(numericCommentId);
+      Toast.show({ type: "success", text1: "글이 삭제되었어요" });
+      router.replace("/(tabs)/community");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "삭제 실패",
+        text2: "다시 시도해주세요",
+      });
+    }
+  };
+
+  const numericReplyId = Number(reportTargetReplyId);
+  const handleReplyDelete = async () => {
+    try {
+      await deleteReplyById(numericReplyId);
       Toast.show({ type: "success", text1: "글이 삭제되었어요" });
       router.replace("/(tabs)/community");
     } catch (error) {
@@ -596,6 +627,7 @@ export default function PostScreen() {
             }
             setIsVisible(false);
           }}
+          modalType="post"
         />
       )}
       {modalType === "report" && (
@@ -605,10 +637,20 @@ export default function PostScreen() {
           onReport={handlePostReport}
         />
       )}
-      {/* 
-          {modalType === "reply" && (
-            
-          )} */}
+
+      {modalType === "reply" && (
+        <PostModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onSelect={(action) => {
+            if (action === "delete") {
+              handleReplyDelete();
+            }
+            setIsVisible(false);
+          }}
+          modalType="reply"
+        />
+      )}
 
       {modalType === "replyReport" && (
         <ReportOptionModal
@@ -618,10 +660,19 @@ export default function PostScreen() {
         />
       )}
 
-      {/* 
-          {modalType === "comment" && (
-            
-          )} */}
+      {modalType === "comment" && (
+        <PostModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onSelect={(action) => {
+            if (action === "delete") {
+              handleCommentDelete();
+            }
+            setIsVisible(false);
+          }}
+          modalType="comment"
+        />
+      )}
       {modalType === "commentReport" && (
         <ReportOptionModal
           isVisible={isVisible}

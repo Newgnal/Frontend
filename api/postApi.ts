@@ -142,3 +142,15 @@ export const toggleReplyLikeById = async (
   const res = await axiosInstance.patch(`/post/v1/reply/${replyId}/likes`);
   return res.data;
 };
+
+// 댓글 삭제
+export const deleteCommentById = async (commentId: number) => {
+  const res = await axiosInstance.delete(`/post/v1/comment/${commentId}`);
+  return res.data;
+};
+
+// 대댓글 삭제
+export const deleteReplyById = async (replyId: number) => {
+  const res = await axiosInstance.delete(`/post/v1/comment/reply/${replyId}`);
+  return res.data;
+};
