@@ -21,10 +21,9 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      - name: Authenticate with EAS
-        run: eas whoami
-        env:
-          EAS_BUILD_TOKEN: ${{ secrets.EAS_BUILD_TOKEN }}
+      # - name: Authenticate with EAS
+      #   env:
+      #     EAS_BUILD_TOKEN: ${{ secrets.EAS_BUILD_TOKEN }}
 
       - name: Install dependencies
         run: npm install
