@@ -21,14 +21,10 @@ jobs:
       - name: Install EAS CLI
         run: npm install -g eas-cli
 
-      # - name: Authenticate with EAS
-      #   env:
-      #     EAS_BUILD_TOKEN: ${{ secrets.EXPO_TOKEN }}
-
       - name: Install dependencies
         run: npm install
 
       - name: Build Android app with EAS
         run: eas build --platform android --profile apk --non-interactive
         env:
-          EAS_BUILD_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
