@@ -95,6 +95,7 @@ export default function TopicDetail({
             date="2025.05.28"
             category="반도체/AI"
             sentiment="-0.8"
+            source="매일경제"
           />
         </View>
       )}

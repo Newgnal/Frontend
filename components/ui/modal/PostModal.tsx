@@ -1,20 +1,26 @@
 import { typography } from "@/styles/typography";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import Modal from "react-native-modal";
-
+type ModalType = "post" | "reply" | "comment";
 interface Props {
   isVisible: boolean;
   onClose: () => void;
   onSelect: (category: string) => void;
+  modalType: ModalType;
 }
 
-export default function PostModal({ isVisible, onClose, onSelect }: Props) {
+export default function PostModal({
+  isVisible,
+  onClose,
+  onSelect,
+  modalType,
+}: Props) {
   const handlePostUpdate = () => {
     onClose();
     onSelect("update");
   };
 
-  const handlePostDelete = () => {
+  const handleDelete = () => {
     onClose();
     onSelect("delete");
   };
@@ -26,19 +32,21 @@ export default function PostModal({ isVisible, onClose, onSelect }: Props) {
           <Text style={styles.title}>옵션 선택</Text>
         </View>
         <View style={styles.itemContainer}>
-          <Pressable onPress={handlePostUpdate} style={styles.itemBox}>
-            <Text
-              style={[
-                styles.itemText,
-                {
-                  color: "#2E3439",
-                },
-              ]}
-            >
-              수정하기
-            </Text>
-          </Pressable>
-          <Pressable onPress={handlePostDelete} style={styles.itemBox}>
+          {modalType === "post" && (
+            <Pressable onPress={handlePostUpdate} style={styles.itemBox}>
+              <Text
+                style={[
+                  styles.itemText,
+                  {
+                    color: "#2E3439",
+                  },
+                ]}
+              >
+                수정하기
+              </Text>
+            </Pressable>
+          )}
+          <Pressable onPress={handleDelete} style={styles.itemBox}>
             <Text
               style={[
                 styles.itemText,

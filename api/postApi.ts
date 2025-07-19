@@ -4,7 +4,7 @@ import axiosInstance from "@/lib/axiosInstance";
 interface CreatePostRequest {
   postTitle: string;
   postContent: string;
-  articleUrl?: string;
+  newsId?: number;
   thema: string;
   hasVote: boolean;
 }
@@ -17,21 +17,21 @@ export const createPost = async (data: CreatePostRequest) => {
 // 게시글 수정
 export const updatePost = async (
   postId: number,
-  data: { title?: string; content?: string }
+  data: {
+    postTitle?: string;
+    postContent?: string;
+    newsId?: number;
+    thema?: string;
+    hasVote?: boolean;
+  }
 ) => {
   const res = await axiosInstance.patch(`/post/v1/${postId}`, data);
   return res.data;
 };
 
 // 게시글 삭제
-export const deletePostbyId = async (postId: number) => {
+export const deletePostById = async (postId: number) => {
   const res = await axiosInstance.delete(`/post/v1/${postId}`);
-  return res.data;
-};
-
-// 게시글 신고
-export const reportPost = async (postId: number) => {
-  const res = await axiosInstance.patch(`/post/v1/${postId}/report`);
   return res.data;
 };
 
@@ -56,5 +56,101 @@ export const getPostList = async ({
 // 게시글 상세 조회
 export const getPostById = async (postId: number) => {
   const res = await axiosInstance.get(`/post/v1/detail/${postId}`);
+  return res.data;
+};
+
+// 게시글 신고
+interface ReportPostResponse {
+  reportId: number;
+  reported: boolean;
+  targetType: string;
+}
+
+export const reportPostById = async (
+  postId: number
+): Promise<ReportPostResponse> => {
+  const res = await axiosInstance.patch(`/post/v1/${postId}/report`);
+  return res.data;
+};
+
+// 댓글 신고
+interface ReportCommentResponse {
+  commentId: number;
+  reported: boolean;
+  targetType: string;
+}
+
+export const reportCommentById = async (
+  commentId: number
+): Promise<ReportCommentResponse> => {
+  const res = await axiosInstance.patch(`/post/v1/comment/${commentId}/report`);
+  return res.data;
+};
+
+// 대댓글 신고
+interface ReportReplyResponse {
+  reportId: number;
+  reported: boolean;
+  targetType: string;
+}
+
+export const reportReplyById = async (
+  replyId: number
+): Promise<ReportReplyResponse> => {
+  const res = await axiosInstance.patch(`/post/v1/reply/${replyId}/report`);
+  return res.data;
+};
+
+// 게시글 좋아요
+interface TogglePostLikeResponse {
+  likeId: number;
+  liked: boolean;
+  targetType: string;
+}
+
+export const togglePostLikeById = async (
+  postId: number
+): Promise<TogglePostLikeResponse> => {
+  const res = await axiosInstance.patch(`/post/v1/${postId}/likes`);
+  return res.data;
+};
+
+// 댓글 좋아요
+interface ToggleCommentLikeResponse {
+  likeId: number;
+  liked: boolean;
+  targetType: string;
+}
+
+export const toggleCommentLikeById = async (
+  commentId: number
+): Promise<ToggleCommentLikeResponse> => {
+  const res = await axiosInstance.patch(`/post/v1/comment/${commentId}/likes`);
+  return res.data;
+};
+
+// 대댓글 좋아요
+interface ToggleReplyLikeResponse {
+  likeId: number;
+  liked: boolean;
+  targetType: string;
+}
+
+export const toggleReplyLikeById = async (
+  replyId: number
+): Promise<ToggleReplyLikeResponse> => {
+  const res = await axiosInstance.patch(`/post/v1/reply/${replyId}/likes`);
+  return res.data;
+};
+
+// 댓글 삭제
+export const deleteCommentById = async (commentId: number) => {
+  const res = await axiosInstance.delete(`/post/v1/comment/${commentId}`);
+  return res.data;
+};
+
+// 대댓글 삭제
+export const deleteReplyById = async (replyId: number) => {
+  const res = await axiosInstance.delete(`/post/v1/comment/reply/${replyId}`);
   return res.data;
 };

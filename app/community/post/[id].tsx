@@ -1,4 +1,12 @@
-import { deletePostbyId, getPostById } from "@/api/postApi";
+import {
+  deleteCommentById,
+  deletePostById,
+  deleteReplyById,
+  getPostById,
+  reportCommentById,
+  reportPostById,
+  reportReplyById,
+} from "@/api/postApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import HoldIcon from "@/assets/images/ic_com_poll.svg";
@@ -14,7 +22,11 @@ import TopicDetail from "@/components/ui/community/TopicDetail";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import PostModal from "@/components/ui/modal/PostModal";
+import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
+import { useAuth } from "@/context/authContext";
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
+import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -34,7 +46,7 @@ interface Reply {
   replyContent: string;
   nickname: string;
   createdAt: string;
-  voteType: "BUY" | "SELL" | "HOLD";
+  voteType?: "BUY" | "SELL" | "HOLD";
   likeCount: number;
 }
 
@@ -54,17 +66,27 @@ interface Post {
   commentCount: number;
 }
 
+interface Comment {
+  commentId: number;
+  commentContent: string;
+  likeCount: number;
+  voteType?: "BUY" | "SELL" | "HOLD";
+  nickname: string;
+  createdAt: string;
+  replies?: Reply[];
+}
+
 export default function PostScreen() {
   const { id } = useLocalSearchParams();
   const numericPostId = Number(id);
 
   const router = useRouter();
 
-  console.log("받은 postId:", id);
+  // console.log("받은 postId:", id);
 
   const [post, setPost] = useState<Post | null>(null);
   const [vote, setVote] = useState<any | null>(null);
-  const [comments, setComments] = useState<any[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
   const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
@@ -72,12 +94,30 @@ export default function PostScreen() {
   const [likedComments, setLikedComments] = useState<{
     [key: string]: boolean;
   }>({});
+
   const [isVisible, setIsVisible] = useState(false);
+  const [reportTargetReplyId, setReportTargetReplyId] = useState<number | null>(
+    null
+  );
+  const [reportTargetCommentId, setReportTargetCommentId] = useState<
+    number | null
+  >(null);
+
+  const [modalType, setModalType] = useState<
+    | "post"
+    | "report"
+    | "reply"
+    | "replyReport"
+    | "comment"
+    | "commentReport"
+    | null
+  >(null);
   const [commentText, setCommentText] = useState("");
   const pollLabels = ["매도", "보유", "매수"];
   const pollResults = [20, 20, 15]; // 각 항목 비율(%)
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
 
+  const { nickName: myNickname } = useAuth();
   useEffect(() => {
     if (!numericPostId || isNaN(numericPostId)) return;
     const fetchDetail = async () => {
@@ -103,17 +143,25 @@ export default function PostScreen() {
   }, [numericPostId]);
 
   const handlePostUpdate = () => {
+    if (!post) return;
+    // console.log("editHasVoted:", hasVoted);
     router.push({
       pathname: "/(tabs)/community/writeForm",
-      // params: {
-
-      // },
+      params: {
+        postId: post.postId.toString(),
+        editTitle: post.postTitle,
+        editContent: post.postContent,
+        editArticleUrl: post.articleUrl,
+        editThema: convertThemaToKor(post.thema),
+        editVoteEnabled: post.hasVote.toString(),
+        mode: "edit",
+      },
     });
   };
 
   const handlePostDelete = async () => {
     try {
-      await deletePostbyId(numericPostId);
+      await deletePostById(numericPostId);
       Toast.show({ type: "success", text1: "글이 삭제되었어요" });
       router.replace("/(tabs)/community");
     } catch (error) {
@@ -122,6 +170,119 @@ export default function PostScreen() {
         text1: "삭제 실패",
         text2: "다시 시도해주세요",
       });
+    }
+  };
+  const numericCommentId = Number(reportTargetCommentId);
+  const handleCommentDelete = async () => {
+    try {
+      await deleteCommentById(numericCommentId);
+      Toast.show({ type: "success", text1: "글이 삭제되었어요" });
+      router.replace("/(tabs)/community");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "삭제 실패",
+        text2: "다시 시도해주세요",
+      });
+    }
+  };
+
+  const numericReplyId = Number(reportTargetReplyId);
+  const handleReplyDelete = async () => {
+    try {
+      await deleteReplyById(numericReplyId);
+      Toast.show({ type: "success", text1: "글이 삭제되었어요" });
+      router.replace("/(tabs)/community");
+    } catch (error) {
+      Toast.show({
+        type: "error",
+        text1: "삭제 실패",
+        text2: "다시 시도해주세요",
+      });
+    }
+  };
+
+  const handlePostReport = async () => {
+    if (!post?.postId) return;
+    try {
+      const res = await reportPostById(post.postId);
+
+      if (!res.reported) {
+        Toast.show({
+          type: "success",
+          text1: "신고가 접수되었어요",
+        });
+      } else {
+        Toast.show({
+          type: "info",
+          text1: "이미 신고된 게시글이에요",
+        });
+      }
+    } catch (error) {
+      console.error("신고 실패:", error);
+      Toast.show({
+        type: "error",
+        text1: "신고 실패",
+        text2: "다시 시도해주세요",
+      });
+    } finally {
+      setIsVisible(false);
+    }
+  };
+
+  const handleCommentReport = async () => {
+    if (reportTargetCommentId == null) return;
+    try {
+      const res = await reportCommentById(reportTargetCommentId);
+      if (!res.reported) {
+        Toast.show({
+          type: "success",
+          text1: "댓글이 신고되었어요",
+        });
+      } else {
+        Toast.show({
+          type: "info",
+          text1: "이미 신고된 댓글이에요",
+        });
+      }
+    } catch (err) {
+      console.error("댓글 신고 실패", err);
+      Toast.show({
+        type: "error",
+        text1: "신고 실패",
+        text2: "다시 시도해주세요",
+      });
+    } finally {
+      setIsVisible(false);
+      setReportTargetCommentId(null);
+    }
+  };
+
+  const handleReplyReport = async () => {
+    if (reportTargetReplyId == null) return;
+    try {
+      const res = await reportReplyById(reportTargetReplyId);
+      if (!res.reported) {
+        Toast.show({
+          type: "success",
+          text1: "대댓글이 신고되었어요",
+        });
+      } else {
+        Toast.show({
+          type: "info",
+          text1: "이미 신고된 대댓글이에요",
+        });
+      }
+    } catch (err) {
+      console.error("대댓글 신고 실패", err);
+      Toast.show({
+        type: "error",
+        text1: "신고 실패",
+        text2: "다시 시도해주세요",
+      });
+    } finally {
+      setIsVisible(false);
+      setReportTargetReplyId(null);
     }
   };
 
@@ -191,6 +352,11 @@ export default function PostScreen() {
               <ShareIcon />
               <Pressable
                 onPress={() => {
+                  if (post.nickname === myNickname) {
+                    setModalType("post");
+                  } else {
+                    setModalType("report");
+                  }
                   setIsVisible(true);
                 }}
               >
@@ -219,24 +385,25 @@ export default function PostScreen() {
           </View>
 
           <HorizontalLine height={8} />
-
-          <View style={styles.content}>
-            <PollSection
-              pollLabels={pollLabels}
-              pollResults={pollResults}
-              pollTotalCount={pollTotalCount}
-              opinionTheme={opinionTheme}
-              selectedPoll={selectedPoll}
-              hasVoted={hasVoted}
-              onSelectPoll={(idx) => {
-                setSelectedPoll(idx);
-                setHasVoted(true);
-              }}
-            />
-          </View>
-
-          <HorizontalLine height={8} />
-
+          {post.hasVote && (
+            <>
+              <View style={styles.content}>
+                <PollSection
+                  pollLabels={pollLabels}
+                  pollResults={pollResults}
+                  pollTotalCount={pollTotalCount}
+                  opinionTheme={opinionTheme}
+                  selectedPoll={selectedPoll}
+                  hasVoted={hasVoted}
+                  onSelectPoll={(idx) => {
+                    setSelectedPoll(idx);
+                    setHasVoted(true);
+                  }}
+                />
+              </View>
+              <HorizontalLine height={8} />
+            </>
+          )}
           <View style={styles.content}>
             <View style={styles.commentSection}>
               <View style={styles.commentContainer}>
@@ -260,31 +427,33 @@ export default function PostScreen() {
                           {comment.nickname}
                         </Text>
                         <Text style={styles.commentTime}>
-                          {comment.createdAt}
+                          {getTimeAgo(comment.createdAt)}
                         </Text>
                       </View>
-
-                      <View
-                        style={[
-                          styles.positiveTag,
-                          {
-                            backgroundColor:
-                              opinionBgColors[comment.voteType] || pollBgColor,
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={{
-                            color: opinionTheme[comment.voteType].textColor,
-                            fontSize: 12,
-                            fontWeight: "400",
-                            fontFamily: "Pretendard",
-                            lineHeight: 14,
-                          }}
+                      {comment.voteType ? (
+                        <View
+                          style={[
+                            styles.positiveTag,
+                            {
+                              backgroundColor:
+                                opinionBgColors[comment.voteType] ||
+                                pollBgColor,
+                            },
+                          ]}
                         >
-                          {comment.voteType}
-                        </Text>
-                      </View>
+                          <Text
+                            style={{
+                              color: opinionTheme[comment.voteType].textColor,
+                              fontSize: 12,
+                              fontWeight: "400",
+                              fontFamily: "Pretendard",
+                              lineHeight: 14,
+                            }}
+                          >
+                            {comment.voteType}
+                          </Text>
+                        </View>
+                      ) : null}
                     </View>
                   </View>
 
@@ -293,7 +462,7 @@ export default function PostScreen() {
                   </Text>
 
                   <View style={[styles.commentActions, { paddingLeft: 40 }]}>
-                    <View style={{ flexDirection: "row", gap: 12 }}>
+                    <View style={{ flexDirection: "row", gap: 8 }}>
                       <View style={styles.iconWithText}>
                         <IcHeart
                           width={24}
@@ -315,7 +484,18 @@ export default function PostScreen() {
                         <Text style={styles.commentActionText}>답글 달기</Text>
                       </View>
                     </View>
-                    <TouchableOpacity style={{ marginLeft: "auto" }}>
+                    <TouchableOpacity
+                      style={{ marginLeft: "auto" }}
+                      onPress={() => {
+                        setReportTargetCommentId(comment.commentId);
+                        if (comment.nickname === myNickname) {
+                          setModalType("comment");
+                        } else {
+                          setModalType("commentReport");
+                        }
+                        setIsVisible(true);
+                      }}
+                    >
                       <IcComntEtc width={20} height={20} />
                     </TouchableOpacity>
                   </View>
@@ -340,33 +520,35 @@ export default function PostScreen() {
                                 {reply.nickname}
                               </Text>
                               <Text style={styles.commentTime}>
-                                {reply.createdAt}
+                                {getTimeAgo(reply.createdAt)}
                               </Text>
                             </View>
-                            <View
-                              style={[
-                                styles.positiveTag,
-                                {
-                                  backgroundColor:
-                                    opinionBgColors[reply.voteType] ||
-                                    pollBgColor,
-                                },
-                              ]}
-                            >
-                              <Text
-                                style={{
-                                  color: opinionTheme[reply.voteType].textColor,
-                                  fontSize: 12,
-                                  fontWeight: "400",
-                                  fontFamily: "Pretendard",
-                                  lineHeight: 14,
-                                }}
+                            {reply.voteType ? (
+                              <View
+                                style={[
+                                  styles.positiveTag,
+                                  {
+                                    backgroundColor:
+                                      opinionBgColors[reply.voteType] ||
+                                      pollBgColor,
+                                  },
+                                ]}
                               >
-                                {reply.voteType}f
-                              </Text>
-                            </View>
+                                <Text
+                                  style={{
+                                    color:
+                                      opinionTheme[reply.voteType].textColor,
+                                    fontSize: 12,
+                                    fontWeight: "400",
+                                    fontFamily: "Pretendard",
+                                    lineHeight: 14,
+                                  }}
+                                >
+                                  {reply.voteType}
+                                </Text>
+                              </View>
+                            ) : null}
                           </View>
-
                           <Text
                             style={[styles.commentContent, { paddingLeft: 40 }]}
                           >
@@ -388,10 +570,22 @@ export default function PostScreen() {
                               />
 
                               <Text style={styles.commentActionText}>
-                                {likedComments[reply.replyId] ? 11 : 10}
+                                {likedComments[reply.replyId] ??
+                                  reply.likeCount}
                               </Text>
                             </View>
-                            <TouchableOpacity style={{ marginLeft: "auto" }}>
+                            <TouchableOpacity
+                              style={{ marginLeft: "auto" }}
+                              onPress={() => {
+                                setReportTargetReplyId(reply.replyId);
+                                if (reply.nickname === myNickname) {
+                                  setModalType("reply");
+                                } else {
+                                  setModalType("replyReport");
+                                }
+                                setIsVisible(true);
+                              }}
+                            >
                               <IcComntEtc width={20} height={20} />
                             </TouchableOpacity>
                           </View>
@@ -421,18 +615,71 @@ export default function PostScreen() {
           </View>
         </View>
       </SafeAreaView>
-      <PostModal
-        isVisible={isVisible}
-        onClose={() => setIsVisible(false)}
-        onSelect={(action) => {
-          if (action === "update") {
-            handlePostUpdate();
-          } else if (action === "delete") {
-            handlePostDelete();
-          }
-          setIsVisible(false);
-        }}
-      />
+      {modalType === "post" && (
+        <PostModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onSelect={(action) => {
+            if (action === "update") {
+              handlePostUpdate();
+            } else if (action === "delete") {
+              handlePostDelete();
+            }
+            setIsVisible(false);
+          }}
+          modalType="post"
+        />
+      )}
+      {modalType === "report" && (
+        <ReportOptionModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onReport={handlePostReport}
+        />
+      )}
+
+      {modalType === "reply" && (
+        <PostModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onSelect={(action) => {
+            if (action === "delete") {
+              handleReplyDelete();
+            }
+            setIsVisible(false);
+          }}
+          modalType="reply"
+        />
+      )}
+
+      {modalType === "replyReport" && (
+        <ReportOptionModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onReport={handleReplyReport}
+        />
+      )}
+
+      {modalType === "comment" && (
+        <PostModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onSelect={(action) => {
+            if (action === "delete") {
+              handleCommentDelete();
+            }
+            setIsVisible(false);
+          }}
+          modalType="comment"
+        />
+      )}
+      {modalType === "commentReport" && (
+        <ReportOptionModal
+          isVisible={isVisible}
+          onClose={() => setIsVisible(false)}
+          onReport={handleCommentReport}
+        />
+      )}
     </>
   );
 }
@@ -463,9 +710,13 @@ const styles = StyleSheet.create({
     backgroundColor: "#ddd",
     marginRight: 8,
   },
-  commentUser: { fontWeight: "bold", fontSize: 14 },
-  commentTime: { fontSize: 12, color: "#999" },
-  commentContent: { fontSize: 14, color: "#333", marginTop: 4 },
+  commentUser: { ...typography.label_l2_13_medium, color: "#0E0F15" },
+  commentTime: { ...typography.label_l3_13_regular, color: "#40454A" },
+  commentContent: {
+    ...typography.body_b3_14_regular,
+    color: "#0E0F15",
+    marginTop: 4,
+  },
   commentActions: {
     flexDirection: "row",
     gap: 12,
