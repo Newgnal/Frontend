@@ -49,7 +49,7 @@ export default function ComDetailScreen() {
       })
       .catch((err) => {
         console.error("게시글 목록 로딩 실패:", err);
-        setPostList([]); // 에러 시에도 빈 배열로 fallback
+        setPostList([]);
       });
   }, [order]);
 

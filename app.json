@@ -12,11 +12,13 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.daheejang.newgnalfe",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "bundler": "metro",
@@ -38,6 +40,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3ec21114-7a2f-46c0-bc41-00810a70c6c4"
+      }
     }
   }
 }

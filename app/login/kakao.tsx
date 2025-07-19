@@ -24,14 +24,6 @@ export default function LoginScreen() {
       if (code) {
         setIsHandled(true);
         try {
-          // const response = await fetch(
-          //   `https://newgnal.site/auth/v1/login/kakao?code=${code}`,
-          //   {
-          //     method: "POST",
-          //     headers: { "Content-Type": "application/json" },
-          //   }
-          // );
-          // const data = await response.json();
           const { data } = await axiosInstance.post(
             `/auth/v1/login/kakao?code=${code}`
           );
