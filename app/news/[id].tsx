@@ -359,6 +359,7 @@ export default function NewsDetail() {
           showsVerticalScrollIndicator={false}
         >
           <NewsHeader
+            source={news.source}
             title={news.title}
             date={news.date}
             pollCount={pollResults.reduce((acc, val) => acc + val, 0)}
@@ -387,6 +388,7 @@ export default function NewsDetail() {
 
           <View ref={pollRef}>
             <VoteSection
+              thema={news.thema}
               hasVoted={hasVoted}
               isVoteLoaded={isVoteLoaded}
               selectedPoll={selectedPoll}

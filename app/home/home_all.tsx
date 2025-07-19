@@ -3,6 +3,7 @@ import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { NewsItem } from "@/types/news";
+import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -27,6 +28,7 @@ export default function HomeAll({ order }: HomeAllProps) {
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const router = useRouter();
 
   const fetchNews = async (pageNum: number) => {
     try {
@@ -64,9 +66,10 @@ export default function HomeAll({ order }: HomeAllProps) {
 
     return (
       <Pressable
-        onPress={() =>
-          setSelectedId((prev) => (prev === item.id ? null : item.id))
-        }
+        onPress={() => {
+          setSelectedId((prev) => (prev === item.id ? null : item.id));
+          router.push(`/news/${item.id}`);
+        }}
         style={[
           styles.card,
           {
@@ -89,9 +92,8 @@ export default function HomeAll({ order }: HomeAllProps) {
             <Text style={styles.subtitle}>
               {item.source} | {item.date.split("T")[0]}
             </Text>
-
             <View style={styles.metaRow}>
-              <Text style={styles.meta}>
+              <Text style={[styles.meta, { marginBottom: 12 }]}>
                 조회 {Math.floor(item.view / 10000)}만
               </Text>
 
@@ -143,6 +145,7 @@ const styles = StyleSheet.create({
     alignSelf: "stretch",
     justifyContent: "space-between",
     marginBottom: 16,
+    width: "100%",
   },
   header: {
     flexDirection: "row",
@@ -183,7 +186,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    ...typography.body_b1_16_medium,
+    ...typography.subtitle_s3_15_semi_bold,
   },
   subtitle: {
     ...typography.caption_c2_12_regular,
@@ -192,12 +195,14 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 12,
+    gap: 8,
   },
   iconWithText: {
+    ...typography.caption_c2_12_regular,
     flexDirection: "row",
     alignItems: "center",
     gap: 4,
+    marginBottom: 10,
   },
   meta: {
     fontSize: 12,

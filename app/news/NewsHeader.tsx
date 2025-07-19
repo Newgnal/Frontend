@@ -2,10 +2,12 @@ import IcEtc from "@/assets/images/ic_cmnt_etc.svg";
 import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcHeader from "@/assets/images/ic_header.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
+import { typography } from "@/styles/typography";
 import { Ionicons } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
+  source: string;
   title: string;
   date: string;
   pollCount: number;
@@ -16,7 +18,22 @@ type Props = {
   onPressComment: () => void;
 };
 
+const formatKoreanDate = (isoString: string) => {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  let hours = date.getHours();
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const period = hours >= 12 ? "오후" : "오전";
+  hours = hours % 12 === 0 ? 12 : hours % 12;
+
+  return `${year}.${month}.${day}. ${period} ${hours}:${minutes}`;
+};
+
 export default function NewsHeader({
+  source,
   title,
   date,
   pollCount,
@@ -42,16 +59,18 @@ export default function NewsHeader({
         </View>
       </View>
 
+      <Text style={styles.source}>{source}</Text>
+
       <Text style={styles.title}>{title}</Text>
-      <Text style={styles.date}>입력 {date}</Text>
+      <Text style={styles.date}>입력 {formatKoreanDate(date)}</Text>
 
       <View style={styles.reactions}>
         <TouchableOpacity onPress={onPressPoll} style={styles.reactionItem}>
-          <IcPoll width={16} height={16} style={{ marginRight: 4 }} />
+          <IcPoll width={24} height={24} style={{ marginRight: 4 }} />
           <Text style={styles.reactionText}>{pollCount}</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={onPressComment} style={styles.reactionItem}>
-          <IcComnt width={16} height={16} style={{ marginRight: 4 }} />
+          <IcComnt width={24} height={24} style={{ marginRight: 4 }} />
           <Text style={styles.reactionText}>{commentCount}</Text>
         </TouchableOpacity>
       </View>
@@ -61,6 +80,11 @@ export default function NewsHeader({
 
 const styles = StyleSheet.create({
   container: { paddingHorizontal: 20, paddingTop: 20 },
+  source: {
+    ...typography.label_l2_13_medium,
+    color: "#717D89",
+    marginTop: 31,
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -68,21 +92,19 @@ const styles = StyleSheet.create({
   },
   headerIcons: { flexDirection: "row" },
   title: {
-    fontSize: 24,
-    fontWeight: "700",
+    ...typography.header_h2_24_bold,
     lineHeight: 36,
-    fontFamily: "Pretendard",
-    marginTop: 20,
+    marginTop: 12,
   },
   date: {
-    fontSize: 12,
-    color: "#888",
-    marginTop: 6,
+    ...typography.caption_c1_11_regular,
+    color: "#717D89",
+    marginTop: 8,
   },
   reactions: {
     flexDirection: "row",
     gap: 12,
-    marginTop: 12,
+    marginTop: 16,
   },
   reactionItem: {
     flexDirection: "row",
@@ -95,7 +117,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   reactionText: {
-    fontSize: 14,
-    color: "#6B7280",
+    fontSize: 12,
+    color: "#89939F",
   },
 });
