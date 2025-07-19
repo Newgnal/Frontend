@@ -176,7 +176,7 @@ export default function PostScreen() {
     try {
       const res = await reportPostById(post.postId);
 
-      if (res.reported) {
+      if (!res.reported) {
         Toast.show({
           type: "success",
           text1: "신고가 접수되었어요",
@@ -203,7 +203,7 @@ export default function PostScreen() {
     if (reportTargetCommentId == null) return;
     try {
       const res = await reportCommentById(reportTargetCommentId);
-      if (res.reported) {
+      if (!res.reported) {
         Toast.show({
           type: "success",
           text1: "댓글이 신고되었어요",
@@ -221,6 +221,9 @@ export default function PostScreen() {
         text1: "신고 실패",
         text2: "다시 시도해주세요",
       });
+    } finally {
+      setIsVisible(false);
+      setReportTargetCommentId(null);
     }
   };
 
@@ -228,7 +231,7 @@ export default function PostScreen() {
     if (reportTargetReplyId == null) return;
     try {
       const res = await reportReplyById(reportTargetReplyId);
-      if (res.reported) {
+      if (!res.reported) {
         Toast.show({
           type: "success",
           text1: "대댓글이 신고되었어요",
@@ -246,6 +249,9 @@ export default function PostScreen() {
         text1: "신고 실패",
         text2: "다시 시도해주세요",
       });
+    } finally {
+      setIsVisible(false);
+      setReportTargetReplyId(null);
     }
   };
 
