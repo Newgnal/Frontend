@@ -5,8 +5,8 @@
   "scripts": {
     "start": "expo start",
     "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint"
   },
@@ -60,7 +60,8 @@
     "react-native-webview": "13.13.5",
     "uuid": "^11.1.0",
     "victory-native": "^41.17.4",
-    "zustand": "^5.0.6"
+    "zustand": "^5.0.6",
+    "expo-dev-client": "~5.2.4"
   },
   "devDependencies": {
     "@babel/core": "^7.27.7",

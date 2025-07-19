@@ -7,6 +7,8 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 export default function Login() {
   const router = useRouter();
+  console.log("REDIRECT_URI:", process.env.EXPO_PUBLIC_REDIRECT_URI);
+  console.log("REST_API_KEY:", process.env.EXPO_PUBLIC_REST_API_KEY);
 
   return (
     <LinearGradient

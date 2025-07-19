@@ -1,0 +1,41 @@
+name: EAS Build and Submit (Android)
+
+on:
+  push:
+    branches:
+      - publish
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install EAS CLI
+        run: npm install -g eas-cli
+
+      - name: Authenticate with EAS
+        run: eas whoami || eas login --token ${{ secrets.EAS_ACCESS_TOKEN }}
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Android app with EAS
+        run: eas build --platform android --profile production --non-interactive
+        env:
+          EAS_ACCESS_TOKEN: ${{ secrets.EAS_ACCESS_TOKEN }}
+
+      # - name: Submit to Google Play
+      #   run: |
+      #     eas submit --platform android \
+      #     --key ./google-service-account.json \
+      #     --track internal
+      #   env:
+      #     EAS_ACCESS_TOKEN: ${{ secrets.EAS_ACCESS_TOKEN }}

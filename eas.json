@@ -1,0 +1,39 @@
+{
+  "cli": {
+    "version": ">=3.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_REDIRECT_URI": "http://192.168.45.220:8081/login/oauth2/code/kakao",
+        "EXPO_PUBLIC_REST_API_KEY": "874e11dff95cc5879de696573bab2afe"
+      }
+    },
+    "preview": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_REDIRECT_URI": "http://192.168.45.220:8081/login/oauth2/code/kakao",
+        "EXPO_PUBLIC_REST_API_KEY": "874e11dff95cc5879de696573bab2afe"
+      }
+    },
+    "production": {
+      "env": {
+        "EXPO_PUBLIC_REDIRECT_URI": "http://192.168.45.220:8081/login/oauth2/code/kakao",
+        "EXPO_PUBLIC_REST_API_KEY": "874e11dff95cc5879de696573bab2afe"
+      }
+    },
+    "apk": {
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_REDIRECT_URI": "http://192.168.45.220:8081/login/oauth2/code/kakao",
+        "EXPO_PUBLIC_REST_API_KEY": "874e11dff95cc5879de696573bab2afe"
+      }
+    }
+  }
+}
