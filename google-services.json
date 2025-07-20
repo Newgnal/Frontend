@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "932872452770",
+    "project_id": "newgnal",
+    "storage_bucket": "newgnal.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932872452770:android:e3991bb0e4105a2b3275fb",
+        "android_client_info": {
+          "package_name": "com.daheejang.newgnalfe"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgQz5nvb0gwCtNoJNrfjBoOKzpVyNiook"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:932872452770:android:340eeff3428c15c13275fb",
+        "android_client_info": {
+          "package_name": "com.tave.newgnal"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgQz5nvb0gwCtNoJNrfjBoOKzpVyNiook"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -49,6 +49,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await AsyncStorage.multiRemove(["access_token", "refresh_token"]);
       setIsLoggedIn(false);
       setNickName("");
+      await AsyncStorage.removeItem("fcm_registered");
     } catch (err) {
       console.error("logout 실패:", err);
     }

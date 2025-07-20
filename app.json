@@ -13,12 +13,12 @@
     },
     "android": {
       "package": "com.daheejang.newgnalfe",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
-      "googleServicesFile": "./google-services.json"
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "bundler": "metro",
@@ -36,7 +36,13 @@
           "backgroundColor": "#ffffff"
         }
       ],
-      "expo-build-properties"
+      "expo-build-properties",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/push_logo.png"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

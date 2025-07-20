@@ -38,6 +38,7 @@ axiosInstance.interceptors.response.use(
     if (data?.userId !== undefined) {
       await AsyncStorage.setItem("userId", String(data.userId));
     }
+
     return response;
   },
   async (error) => {

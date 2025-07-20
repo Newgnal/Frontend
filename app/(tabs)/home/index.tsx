@@ -2,6 +2,7 @@ import IcOrderChange from "@/assets/images/ic_orderchange.svg";
 import FilterChipList from "@/components/ui/FilterChipList";
 import HeaderIcons from "@/components/ui/HeaderIcon/HeaderIcons";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import { usePushTokenSetup } from "@/hooks/usePushTokenSetup";
 import { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -11,6 +12,7 @@ import HomeAll from "../../home/home_all";
 import HomeMain from "../../home/home_theme";
 
 export default function HomeScreen() {
+  usePushTokenSetup();
   const [selectedTab, setSelectedTab] = useState<"theme" | "all">("theme");
   const [order, setOrder] = useState<"latest" | "views">("latest");
   const [selectedCategory, setSelectedCategory] = useState("semiconductor");
