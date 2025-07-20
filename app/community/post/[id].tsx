@@ -2,12 +2,14 @@ import {
   deleteCommentById,
   reportCommentById,
   toggleCommentLikeById,
+  writeComment,
 } from "@/api/commentPostApi";
 import { deletePostById, getPostById, reportPostById } from "@/api/postApi";
 import {
   deleteReplyById,
   reportReplyById,
   toggleReplyLikeById,
+  writeReply,
 } from "@/api/replyPostApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
@@ -74,7 +76,7 @@ interface Comment {
   commentId: number;
   commentContent: string;
   likeCount: number;
-  voteType?: "BUY" | "SELL" | "HOLD";
+  voteType: "BUY" | "SELL" | "HOLD" | null | undefined;
   nickname: string;
   createdAt: string;
   replies?: Reply[];
@@ -103,6 +105,10 @@ export default function PostScreen() {
   }>({});
 
   const [isVisible, setIsVisible] = useState(false);
+
+  const [commentText, setCommentText] = useState(""); // 입력창 상태
+  const [replyTargetId, setReplyTargetId] = useState<null | number>(null);
+
   const [reportTargetReplyId, setReportTargetReplyId] = useState<number | null>(
     null
   );
@@ -119,7 +125,7 @@ export default function PostScreen() {
     | "commentReport"
     | null
   >(null);
-  const [commentText, setCommentText] = useState("");
+
   const pollLabels = ["매도", "보유", "매수"];
   const pollResults = [20, 20, 15]; // 각 항목 비율(%)
   const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
@@ -350,6 +356,34 @@ export default function PostScreen() {
     }
   };
 
+  const handleSubmit = async () => {
+    if (!commentText.trim()) return;
+
+    try {
+      if (replyTargetId) {
+        await writeReply(replyTargetId, { replyContent: commentText });
+      } else {
+        await writeComment(numericPostId, { comment: commentText });
+      }
+
+      setCommentText("");
+      setReplyTargetId(null);
+      refreshComments();
+    } catch (err) {
+      Toast.show({ type: "error", text1: "작성 실패" });
+    }
+  };
+
+  const refreshComments = async () => {
+    try {
+      const res = await getPostById(numericPostId);
+      setComments(res.data.comments);
+      setComments(res);
+    } catch (e) {
+      Toast.show({ type: "error", text1: "댓글을 불러오지 못했어요" });
+    }
+  };
+
   // ----------------- 스타일 ---------------------
 
   const opinionTheme: Record<
@@ -569,7 +603,13 @@ export default function PostScreen() {
                       </View>
                       <View style={styles.iconWithText}>
                         <IcComment width={24} height={24} />
-                        <Text style={styles.commentActionText}>답글 달기</Text>
+                        <TouchableOpacity
+                          onPress={() => setReplyTargetId(comment.commentId)}
+                        >
+                          <Text style={styles.commentActionText}>
+                            답글 달기
+                          </Text>
+                        </TouchableOpacity>
                       </View>
                     </View>
                     <TouchableOpacity
@@ -696,12 +736,14 @@ export default function PostScreen() {
             <View style={styles.avatarCircle} />
             <TextInput
               style={styles.textInput}
-              placeholder="댓글을 입력하세요"
+              placeholder={
+                replyTargetId ? "답글을 입력하세요..." : "댓글을 입력하세요..."
+              }
               placeholderTextColor="#9CA3AF"
               value={commentText}
               onChangeText={setCommentText}
             />
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleSubmit}>
               <IcSend width={20} height={20} />
             </TouchableOpacity>
           </View>
