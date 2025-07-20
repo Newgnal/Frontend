@@ -1,3 +1,4 @@
+import { togglePostLikeById } from "@/api/postApi";
 import DotIcon from "@/assets/images/ic_dot.svg";
 import EmptyProfileIcon from "@/assets/images/ic_ellipse.svg";
 import ViewIcon from "@/assets/images/ic_eyes.svg";
@@ -8,6 +9,7 @@ import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useRouter } from "expo-router";
 import { Pressable, StyleSheet, Text, View } from "react-native";
+import Toast from "react-native-toast-message";
 import News from "./News";
 
 interface TopicDetailProps {
@@ -26,6 +28,24 @@ interface TopicDetailProps {
   isList?: boolean;
   hasNews?: boolean;
 }
+
+const handlePostLike = async () => {
+  if (!post) return;
+  try {
+    const res = await togglePostLikeById(post.postId);
+    setLikedPost(res.liked);
+    setPost((prev) =>
+      prev
+        ? {
+            ...prev,
+            likeCount: res.liked ? prev.likeCount + 1 : prev.likeCount - 1,
+          }
+        : prev
+    );
+  } catch (err) {
+    Toast.show({ type: "error", text1: "게시글 좋아요 실패" });
+  }
+};
 
 export default function TopicDetail({
   item,

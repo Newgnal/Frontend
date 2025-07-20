@@ -1,12 +1,14 @@
 import {
   deleteCommentById,
-  deletePostById,
-  deleteReplyById,
-  getPostById,
   reportCommentById,
-  reportPostById,
+  toggleCommentLikeById,
+} from "@/api/commentPostApi";
+import { deletePostById, getPostById, reportPostById } from "@/api/postApi";
+import {
+  deleteReplyById,
   reportReplyById,
-} from "@/api/postApi";
+  toggleReplyLikeById,
+} from "@/api/replyPostApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import HoldIcon from "@/assets/images/ic_com_poll.svg";
@@ -40,6 +42,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
+
+// ----------------- 인터페이스 ---------------------
 
 interface Reply {
   replyId: number;
@@ -82,7 +86,7 @@ export default function PostScreen() {
 
   const router = useRouter();
 
-  // console.log("받은 postId:", id);
+  // ----------------- 상태 관리 ---------------------
 
   const [post, setPost] = useState<Post | null>(null);
   const [vote, setVote] = useState<any | null>(null);
@@ -91,6 +95,8 @@ export default function PostScreen() {
 
   const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
+
+  const [likedPost, setLikedPost] = useState(false);
   const [likedComments, setLikedComments] = useState<{
     [key: string]: boolean;
   }>({});
@@ -142,9 +148,10 @@ export default function PostScreen() {
     fetchDetail();
   }, [numericPostId]);
 
+  // ----------------- 핸들러 함수 ---------------------
+
   const handlePostUpdate = () => {
     if (!post) return;
-    // console.log("editHasVoted:", hasVoted);
     router.push({
       pathname: "/(tabs)/community/writeForm",
       params: {
@@ -286,6 +293,63 @@ export default function PostScreen() {
     }
   };
 
+  const handleCommentLike = async (commentId: number) => {
+    try {
+      const res = await toggleCommentLikeById(commentId);
+
+      setLikedComments((prev) => ({
+        ...prev,
+        [`comment-${commentId}`]: res.liked,
+      }));
+
+      // likeCount 업데이트
+      setComments((prev) =>
+        prev.map((c) =>
+          c.commentId === commentId
+            ? {
+                ...c,
+                likeCount: res.liked ? c.likeCount + 1 : c.likeCount - 1,
+              }
+            : c
+        )
+      );
+    } catch (err) {
+      Toast.show({ type: "error", text1: "댓글 좋아요 실패" });
+    }
+  };
+
+  const handleReplyLike = async (replyId: number) => {
+    try {
+      const res = await toggleReplyLikeById(replyId);
+
+      setLikedComments((prev) => ({
+        ...prev,
+        [`reply-${replyId}`]: res.liked,
+      }));
+
+      // 대댓글의 likeCount 업데이트
+      setComments((prev) =>
+        prev.map((comment) => ({
+          ...comment,
+          replies: comment.replies?.map((reply) =>
+            reply.replyId === replyId
+              ? {
+                  ...reply,
+                  likeCount: res.liked
+                    ? reply.likeCount + 1
+                    : reply.likeCount - 1,
+                }
+              : reply
+          ),
+        }))
+      );
+    } catch (err) {
+      Toast.show({ type: "error", text1: "대댓글 좋아요 실패" });
+    }
+  };
+
+  // ----------------- 스타일 ---------------------
+
   const opinionTheme: Record<
     string,
     {
@@ -336,6 +400,8 @@ export default function PostScreen() {
   };
 
   const pollBgColor = "#F4F5F7";
+
+  // ----------------- UI 렌더링 ---------------------
 
   if (loading || !post) {
     return <Text>로딩 중...</Text>;
@@ -463,22 +529,23 @@ export default function PostScreen() {
 
                   <View style={[styles.commentActions, { paddingLeft: 40 }]}>
                     <View style={{ flexDirection: "row", gap: 8 }}>
-                      <View style={styles.iconWithText}>
-                        <IcHeart
-                          width={24}
-                          height={24}
-                          stroke={
-                            likedComments[comment.commentId]
-                              ? "#FF5A5F"
-                              : "#C4C4C4"
-                          }
-                        />
+                      <TouchableOpacity style={styles.iconWithText}>
+                        <TouchableOpacity onPress={() => handleCommentLike}>
+                          <IcHeart
+                            width={24}
+                            height={24}
+                            stroke={
+                              likedComments[`comment-${comment.commentId}`]
+                                ? "#FF5A5F"
+                                : "#C4C4C4"
+                            }
+                          />
+                        </TouchableOpacity>
                         <Text style={styles.commentActionText}>
-                          {/* {likedComments[comment.commentId] ? 11 : 10} */}
-                          {likedComments[comment.commentId] ??
+                          {likedComments[`comment-${comment.commentId}`] ??
                             comment.likeCount}
                         </Text>
-                      </View>
+                      </TouchableOpacity>
                       <View style={styles.iconWithText}>
                         <IcComment width={24} height={24} />
                         <Text style={styles.commentActionText}>답글 달기</Text>
@@ -556,24 +623,26 @@ export default function PostScreen() {
                           </Text>
 
                           <View style={styles.commentActions}>
-                            <View
+                            <TouchableOpacity
                               style={[styles.iconWithText, { paddingLeft: 36 }]}
                             >
-                              <IcHeart
-                                width={24}
-                                height={24}
-                                stroke={
-                                  likedComments[comment.commentId]
-                                    ? "#FF5A5F"
-                                    : "#C4C4C4"
-                                }
-                              />
+                              <TouchableOpacity onPress={() => handleReplyLike}>
+                                <IcHeart
+                                  width={24}
+                                  height={24}
+                                  stroke={
+                                    likedComments[`reply-${reply.replyId}`]
+                                      ? "#FF5A5F"
+                                      : "#C4C4C4"
+                                  }
+                                />
+                              </TouchableOpacity>
 
                               <Text style={styles.commentActionText}>
-                                {likedComments[reply.replyId] ??
+                                {likedComments[`reply-${reply.replyId}`] ??
                                   reply.likeCount}
                               </Text>
-                            </View>
+                            </TouchableOpacity>
                             <TouchableOpacity
                               style={{ marginLeft: "auto" }}
                               onPress={() => {
