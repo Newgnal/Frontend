@@ -8,10 +8,11 @@ export default function CategoryInfoBox({
 }: {
   category: string;
   change: string;
-  color?: string;
+  color: string;
 }) {
-  const boxBackgroundColor = color === "#497AFA" ? "#E9EFFF" : "#FFE4E5";
-  const textColor = color === "#497AFA" ? "#497AFA" : "#E31B3E";
+  const isPositive = change.startsWith("+");
+  const boxBackgroundColor = isPositive ? "#E9EFFF" : "#FFE4E5";
+  const textColor = isPositive ? "#497AFA" : "#E31B3E";
 
   return (
     <View style={styles.container}>

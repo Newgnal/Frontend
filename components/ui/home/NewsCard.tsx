@@ -3,6 +3,7 @@ import IcPoll from "@/assets/images/ic_poll.svg";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
 import { NewsItem } from "@/types/news";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { useRouter } from "expo-router";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
@@ -12,16 +13,26 @@ interface Props {
 
 export default function NewsCard({ item }: Props) {
   const router = useRouter();
-
+  const roundedSentiment = parseFloat(item.sentiment.toFixed(1));
+  const sentimentColor = item.sentiment >= 0 ? "#E31B3E" : "#497AFA";
+  const sentimentBgColor = item.sentiment >= 0 ? "#FFE4E5" : "#E7EDFF";
   return (
     <Pressable
       onPress={() => router.push(`/news/${item.id}`)}
       style={styles.card}
     >
       <View style={styles.header}>
-        <Text style={styles.category}>{item.thema}</Text>
-        <Text style={styles.sentiment}>
-          {item.sentiment > 0 ? `+${item.sentiment}` : item.sentiment}
+        <Text style={styles.category}> {convertThemaToKor(item.thema)}</Text>
+        <Text
+          style={[
+            styles.sentiment,
+            {
+              color: sentimentColor,
+              backgroundColor: sentimentBgColor,
+            },
+          ]}
+        >
+          {roundedSentiment > 0 ? `+${roundedSentiment}` : roundedSentiment}
         </Text>
       </View>
 
@@ -75,11 +86,10 @@ const styles = StyleSheet.create({
   },
   sentiment: {
     ...typography.caption_c1_12_semi_bold,
-    backgroundColor: "#E7EDFF",
+
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    color: "#214DEF",
   },
   contentRow: {
     flexDirection: "row",
@@ -90,11 +100,11 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   title: {
-    ...typography.body_b1_16_medium, // 16pt, medium
+    ...typography.body_b1_16_medium,
   },
   subtitle: {
     ...typography.caption_c2_12_regular,
-    color: "#888", // 보조 색상 추가
+    color: "#888",
   },
   metaRow: {
     flexDirection: "row",
