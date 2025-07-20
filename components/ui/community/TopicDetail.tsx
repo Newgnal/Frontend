@@ -8,7 +8,13 @@ import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import Toast from "react-native-toast-message";
 import News from "./News";
 
@@ -27,32 +33,29 @@ interface TopicDetailProps {
   };
   isList?: boolean;
   hasNews?: boolean;
+  liked: boolean;
+  setLiked: (val: boolean) => void;
+  updatePost: (likeCount: number | ((prev: number) => number)) => void;
 }
-
-const handlePostLike = async () => {
-  if (!post) return;
-  try {
-    const res = await togglePostLikeById(post.postId);
-    setLikedPost(res.liked);
-    setPost((prev) =>
-      prev
-        ? {
-            ...prev,
-            likeCount: res.liked ? prev.likeCount + 1 : prev.likeCount - 1,
-          }
-        : prev
-    );
-  } catch (err) {
-    Toast.show({ type: "error", text1: "게시글 좋아요 실패" });
-  }
-};
 
 export default function TopicDetail({
   item,
   isList = false,
   hasNews = false,
+  setLiked,
+  updatePost,
 }: TopicDetailProps) {
   const router = useRouter();
+  const handlePostLike = async () => {
+    try {
+      const res = await togglePostLikeById(item.postId);
+      setLiked(res.liked);
+      updatePost((prevCount) => (res.liked ? prevCount + 1 : prevCount - 1));
+    } catch (err) {
+      Toast.show({ type: "error", text1: "게시글 좋아요 실패" });
+    }
+  };
+
   return (
     <View>
       <View style={styles.header}>
@@ -122,7 +125,9 @@ export default function TopicDetail({
 
       <View style={styles.buttonContainer}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <HeartIcon />
+          <TouchableOpacity onPress={handlePostLike}>
+            <HeartIcon />
+          </TouchableOpacity>
           <Text
             style={[
               typography.caption_c2_12_regular,

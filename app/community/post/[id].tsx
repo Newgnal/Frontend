@@ -95,8 +95,9 @@ export default function PostScreen() {
 
   const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
   const [hasVoted, setHasVoted] = useState(false);
-
   const [likedPost, setLikedPost] = useState(false);
+  const [postLikeCount, setPostLikeCount] = useState<number>(0);
+
   const [likedComments, setLikedComments] = useState<{
     [key: string]: boolean;
   }>({});
@@ -134,6 +135,7 @@ export default function PostScreen() {
         setPost(res.data.post);
         setVote(res.data.vote);
         setComments(res.data.comments);
+        setPostLikeCount(res.data.post.likeCount);
       } catch (err) {
         // console.error("게시글 조회 실패:", err);
         Toast.show({
@@ -431,11 +433,27 @@ export default function PostScreen() {
             </>
           }
         />
+        {/* ------------------ 게시글 ------------------- */}
         <ScrollView>
           <View style={styles.content}>
             <TopicDetail
               isList={false}
               hasNews
+              liked={likedPost}
+              setLiked={setLikedPost}
+              updatePost={(likeCountUpdater) =>
+                setPost((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        likeCount:
+                          typeof likeCountUpdater === "function"
+                            ? likeCountUpdater(prev.likeCount)
+                            : likeCountUpdater,
+                      }
+                    : prev
+                )
+              }
               item={{
                 postId: post.postId,
                 nickname: post.nickname,
@@ -450,6 +468,7 @@ export default function PostScreen() {
             />
           </View>
 
+          {/* ------------------ 투표 --------------------- */}
           <HorizontalLine height={8} />
           {post.hasVote && (
             <>
@@ -470,6 +489,7 @@ export default function PostScreen() {
               <HorizontalLine height={8} />
             </>
           )}
+          {/* -------------------- 댓글 -------------------- */}
           <View style={styles.content}>
             <View style={styles.commentSection}>
               <View style={styles.commentContainer}>
@@ -529,8 +549,10 @@ export default function PostScreen() {
 
                   <View style={[styles.commentActions, { paddingLeft: 40 }]}>
                     <View style={{ flexDirection: "row", gap: 8 }}>
-                      <TouchableOpacity style={styles.iconWithText}>
-                        <TouchableOpacity onPress={() => handleCommentLike}>
+                      <View style={styles.iconWithText}>
+                        <TouchableOpacity
+                          onPress={() => handleCommentLike(comment.commentId)}
+                        >
                           <IcHeart
                             width={24}
                             height={24}
@@ -542,10 +564,9 @@ export default function PostScreen() {
                           />
                         </TouchableOpacity>
                         <Text style={styles.commentActionText}>
-                          {likedComments[`comment-${comment.commentId}`] ??
-                            comment.likeCount}
+                          {comment.likeCount}
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                       <View style={styles.iconWithText}>
                         <IcComment width={24} height={24} />
                         <Text style={styles.commentActionText}>답글 달기</Text>
@@ -567,6 +588,7 @@ export default function PostScreen() {
                     </TouchableOpacity>
                   </View>
 
+                  {/* -------------------- 대댓글 -------------------- */}
                   {comment.replies && comment.replies.length > 0 && (
                     <View
                       style={{
@@ -623,10 +645,12 @@ export default function PostScreen() {
                           </Text>
 
                           <View style={styles.commentActions}>
-                            <TouchableOpacity
+                            <View
                               style={[styles.iconWithText, { paddingLeft: 36 }]}
                             >
-                              <TouchableOpacity onPress={() => handleReplyLike}>
+                              <TouchableOpacity
+                                onPress={() => handleReplyLike(reply.replyId)}
+                              >
                                 <IcHeart
                                   width={24}
                                   height={24}
@@ -639,10 +663,9 @@ export default function PostScreen() {
                               </TouchableOpacity>
 
                               <Text style={styles.commentActionText}>
-                                {likedComments[`reply-${reply.replyId}`] ??
-                                  reply.likeCount}
+                                {reply.likeCount}
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                             <TouchableOpacity
                               style={{ marginLeft: "auto" }}
                               onPress={() => {
