@@ -20,13 +20,24 @@ export default function NewsContent({
 
   return (
     <View style={styles.container}>
-      <View style={styles.summaryBox}>
-        <View style={styles.labelRow}>
-          <IcAisummary style={{ marginRight: 4, marginTop: 2.5 }} />
-          <Text style={styles.label}>AI 요약</Text>
+      {summary?.trim() ? (
+        <View style={styles.summaryBox}>
+          <View style={styles.labelRow}>
+            <IcAisummary style={{ marginRight: 4, marginTop: 2.5 }} />
+            <Text style={styles.label}>AI 요약</Text>
+          </View>
+          <Text style={styles.summaryText}>{summary}</Text>
         </View>
-        <Text style={styles.summaryText}>{summary}</Text>
-      </View>
+      ) : (
+        <View style={styles.summaryBox}>
+          <View style={styles.labelRow}>
+            <IcAisummary style={{ marginRight: 4, marginTop: 2.5 }} />
+            <Text style={styles.label}>AI 요약</Text>
+          </View>
+          <Text style={styles.summaryText}>요약 정보가 없습니다.</Text>
+        </View>
+      )}
+
       <View style={styles.contentBox}>
         {htmlContent?.trim() !== "" ? (
           <RenderHTML
