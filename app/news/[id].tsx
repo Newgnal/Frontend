@@ -33,6 +33,7 @@ import { postVote } from "@/api/useVoteApi";
 import CommentOptionModal from "@/components/ui/modal/CommentOptionModal";
 import OptionSelectModal from "@/components/ui/modal/OptionSelectModal";
 import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
+
 type Reply = {
   id: string;
   user: string;
@@ -47,7 +48,7 @@ type Comment = {
   time: string;
   content: string;
   opinion: string;
-  replies: Reply[];
+  replies: Comment[];
 };
 
 export default function NewsDetail() {
@@ -82,6 +83,10 @@ export default function NewsDetail() {
   const scrollRef = useRef<ScrollView>(null);
   const pollRef = useRef<View>(null);
   const commentRef = useRef<View>(null);
+  const [likedCounts, setLikedCounts] = useState<{ [key: string]: number }>({});
+  const [likedCommentIds, setLikedCommentIds] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const VOTE_KEY = `vote-${id}`;
 
@@ -161,7 +166,7 @@ export default function NewsDetail() {
     time: item.timeAgo,
     content: item.comment,
     opinion: mapVoteTypeToLabel(item.voteType),
-    replies: [],
+    replies: (item.replies ?? []).map(adaptComment),
   });
 
   const handlePostComment = async () => {
@@ -290,7 +295,38 @@ export default function NewsDetail() {
   };
 
   const toggleLike = (commentId: string) => {
-    setLikedComments((prev) => ({ ...prev, [commentId]: !prev[commentId] }));
+    setLikedCommentIds((prevLiked) => {
+      const isLiked = prevLiked[commentId] ?? false;
+
+      setLikedCounts((prevCounts) => ({
+        ...prevCounts,
+        [commentId]: (prevCounts[commentId] ?? 0) + (isLiked ? -1 : 1),
+      }));
+
+      return {
+        ...prevLiked,
+        [commentId]: !isLiked,
+      };
+    });
+  };
+
+  const handlePostReply = async (
+    newsId: number,
+    parentId: number,
+    reply: string
+  ) => {
+    try {
+      console.log("답글 요청", { newsId, reply, parentId });
+      await postComment(newsId, reply, Number(parentId));
+
+      const res = await getComments(newsId);
+      console.log("댓글 목록", JSON.stringify(res.data, null, 2));
+      const commentArray = res.data?.data?.comments ?? [];
+      const adapted = commentArray.map(adaptComment);
+      setComments(adapted);
+    } catch (e) {
+      console.error("답글 등록 실패", e);
+    }
   };
 
   const pollLabels = [
@@ -401,7 +437,7 @@ export default function NewsDetail() {
 
           <CommentSection
             comments={comments ?? []}
-            likedComments={likedComments}
+            likedCommentIds={likedComments}
             onToggleLike={toggleLike}
             opinionTheme={opinionTheme}
             opinionBgColors={opinionBgColors}
@@ -417,6 +453,10 @@ export default function NewsDetail() {
             setIsEditing={setIsEditing}
             newsId={Number(id)}
             onDeleteComment={handleDeleteComment}
+            onPostReply={(newsId, parentId, reply) =>
+              handlePostReply(newsId, parentId, reply)
+            }
+            likedCounts={likedCounts}
           />
         </ScrollView>
       </KeyboardAvoidingView>
