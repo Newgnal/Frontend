@@ -71,3 +71,7 @@ app-example
 # env
 .env
 
+#fcm
+newgnal-firebase-adminsdk-*.json
+
+# google-services.json
