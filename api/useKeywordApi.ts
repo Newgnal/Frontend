@@ -57,10 +57,18 @@ export const getPopularKeywords = async (
 
 // 키워드별 뉴스 조회
 export const getKeywordNews = async (
-  keywordId: number
+  keywordId: number,
+  lastId?: number,
+  size: number = 10
 ): Promise<KeywordNewsResponse> => {
   const res = await axiosInstance.get(
-    `/newsroom/v1/keywords/${keywordId}/news`
+    `/newsroom/v1/keywords/${keywordId}/news`,
+    {
+      params: {
+        ...(lastId && { lastId }),
+        size,
+      },
+    }
   );
 
   return res.data?.data;

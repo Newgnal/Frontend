@@ -90,7 +90,16 @@ export default function MyNewgnalScreen() {
           <Text style={styles.sectionTitle}>실시간 인기 키워드</Text>
           {popularKeywords.length > 0 ? (
             popularKeywords.map((item, idx) => (
-              <View key={idx} style={styles.keywordBox}>
+              <TouchableOpacity
+                key={idx}
+                style={styles.keywordBox}
+                onPress={() =>
+                  router.push({
+                    pathname: "/keyword/[keyword]",
+                    params: { keyword: item.keyword },
+                  })
+                }
+              >
                 <View style={styles.keywordTag}>
                   <Text style={styles.keywordText}>{item.keyword}</Text>
                 </View>
@@ -111,7 +120,7 @@ export default function MyNewgnalScreen() {
                     </Text>
                   )}
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           ) : (
             <Text style={styles.newsMeta}>
