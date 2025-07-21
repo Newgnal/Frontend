@@ -1,4 +1,5 @@
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type OpinionTheme = {
@@ -34,7 +35,7 @@ export default function VoteSection({
     <View style={styles.container}>
       <View style={styles.pollContainer}>
         <Text style={styles.pollQuestion}>
-          이 뉴스가 {thema}에 어떤 영향을 줄까요?
+          이 뉴스가 [{convertThemaToKor(thema)}]에 어떤 영향을 줄까요?
         </Text>
 
         {isVoteLoaded && (

@@ -1,11 +1,15 @@
 /* eslint-disable react/display-name */
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import IcHeart from "@/assets/images/ic_hrt.svg";
+import Icfillheart from "@/assets/images/ic_hrt_filled.svg";
 import IcSend from "@/assets/images/ic_send.svg";
 import IcComment from "@/assets/images/material-symbols-light_reply-rounded.svg";
 import { typography } from "@/styles/typography";
 import { forwardRef, useState } from "react";
 import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -32,7 +36,8 @@ type Comment = {
 
 type Props = {
   comments: Comment[];
-  likedComments: { [key: string]: boolean };
+  likedCounts: { [key: string]: number };
+  likedCommentIds: { [key: string]: boolean };
   onToggleLike: (commentId: string) => void;
   opinionTheme: Record<string, any>;
   opinionBgColors: Record<string, string>;
@@ -54,14 +59,14 @@ type Props = {
 
   setIsEditing: (value: boolean) => void;
   onDeleteComment?: (commentId: string) => Promise<void>;
-  onPostReply?: (parentId: string, reply: string) => void;
+  onPostReply?: (newsId: number, parentId: number, reply: string) => void;
 };
 
 const CommentSection = forwardRef<View, Props>(
   (
     {
       comments,
-      likedComments,
+      likedCounts,
       onToggleLike,
       opinionTheme,
       opinionBgColors,
@@ -75,150 +80,175 @@ const CommentSection = forwardRef<View, Props>(
       onSelectComment,
       newsId,
       onPostReply,
+      likedCommentIds,
     },
     ref
   ) => {
-    const [replyTargetId, setReplyTargetId] = useState<string | null>(null);
+    const [replyTargetId, setReplyTargetId] = useState<number | null>(null);
     const [replyInput, setReplyInput] = useState("");
 
     return (
-      <View ref={ref} style={styles.commentSection}>
-        <Text style={styles.commentCount}>댓글 {comments.length}</Text>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        keyboardVerticalOffset={90}
+      >
+        <View style={{ flex: 1 }}>
+          <ScrollView
+            contentContainerStyle={styles.commentSection}
+            showsVerticalScrollIndicator={false}
+          >
+            {comments.length > 0 && <View style={styles.divider} />}
 
-        {comments.map((comment) => (
-          <View key={comment.id} style={styles.commentBox}>
-            <View style={styles.commentHeader}>
-              <View
-                style={{ flexDirection: "row", alignItems: "center", flex: 1 }}
-              >
-                <View style={styles.userIcon} />
-                <View>
-                  <Text style={styles.user}>{comment.user}</Text>
-                  <Text style={styles.time}>{comment.time}</Text>
-                </View>
+            <Text style={styles.commentCount}>댓글 {comments.length}</Text>
 
-                <View
-                  style={[
-                    styles.tag,
-                    {
-                      backgroundColor: opinionBgColors[comment.opinion],
-                    },
-                  ]}
-                >
-                  <Text
+            {comments.map((comment) => (
+              <View key={comment.id} style={styles.commentBox}>
+                <View style={styles.commentHeader}>
+                  <View
                     style={{
-                      color: opinionTheme[comment.opinion].tagTextColor,
-                      fontSize: 12,
-                      fontWeight: "400",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      flex: 1,
                     }}
                   >
-                    {comment.opinion}
-                  </Text>
-                </View>
-              </View>
-            </View>
-
-            <Text style={styles.content}>{comment.content}</Text>
-
-            <View style={styles.actions}>
-              <View style={styles.iconRow}>
-                <TouchableOpacity
-                  onPress={() => onToggleLike(comment.id)}
-                  style={styles.iconWithText}
-                >
-                  <IcHeart
-                    width={24}
-                    height={24}
-                    stroke={likedComments[comment.id] ? "#FF5A5F" : "#C4C4C4"}
-                  />
-                  <Text style={styles.actionText}>
-                    {likedComments[comment.id] ? 11 : 10}
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() => {
-                    setReplyTargetId(comment.id);
-                    setReplyInput("");
-                  }}
-                  style={styles.iconWithText}
-                >
-                  <IcComment width={24} height={24} />
-                  <Text style={styles.actionText}>답글 달기</Text>
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity
-                onPress={() => {
-                  onSelectComment(comment.id);
-                  onOpenOption();
-                }}
-              >
-                <IcComntEtc width={20} height={20} />
-              </TouchableOpacity>
-            </View>
-
-            {comment.replies.length > 0 && (
-              <View style={styles.replyContainer}>
-                {comment.replies.map((reply) => (
-                  <View key={reply.id} style={styles.replyBox}>
-                    <View style={styles.commentHeader}>
-                      <View style={styles.userIcon} />
-                      <View>
-                        <Text style={styles.user}>{reply.user}</Text>
-                        <Text style={styles.time}>{reply.time}</Text>
-                      </View>
-                      <View
-                        style={[
-                          styles.tag,
-                          {
-                            backgroundColor: opinionBgColors[reply.opinion],
-                          },
-                        ]}
-                      >
-                        <Text
-                          style={{
-                            color:
-                              opinionTheme[reply.opinion].tagTextColor ??
-                              "#000",
-                            fontSize: 12,
-                          }}
-                        >
-                          {reply.opinion}
-                        </Text>
-                      </View>
+                    <View style={styles.userIcon} />
+                    <View>
+                      <Text style={styles.user}>{comment.user}</Text>
+                      <Text style={styles.time}>{comment.time}</Text>
                     </View>
-                    <Text style={styles.content}>{reply.content}</Text>
+                    <View
+                      style={[
+                        styles.tag,
+                        { backgroundColor: opinionBgColors[comment.opinion] },
+                      ]}
+                    >
+                      <Text
+                        style={{
+                          color: opinionTheme[comment.opinion].tagTextColor,
+                          fontSize: 12,
+                          fontWeight: "400",
+                        }}
+                      >
+                        {comment.opinion}
+                      </Text>
+                    </View>
                   </View>
-                ))}
-              </View>
-            )}
-          </View>
-        ))}
+                </View>
 
-        <View style={styles.inputContainer}>
-          <View style={styles.inputBox}>
-            <View style={styles.avatar} />
-            <TextInput
-              placeholder="댓글을 입력하세요"
-              style={styles.textInput}
-              placeholderTextColor="#9CA3AF"
-              value={commentInput}
-              onChangeText={setCommentInput}
-            />
+                <Text style={styles.content}>{comment.content}</Text>
+
+                <View style={styles.actions}>
+                  <View style={styles.iconRow}>
+                    <TouchableOpacity
+                      onPress={() => onToggleLike(comment.id)}
+                      style={styles.iconWithText}
+                    >
+                      {likedCommentIds[comment.id] ? (
+                        <Icfillheart width={24} height={24} />
+                      ) : (
+                        <IcHeart width={24} height={24} stroke="#C4C4C4" />
+                      )}
+                      <Text style={styles.actionText}>
+                        {likedCounts[comment.id] ?? 0}
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={() => {
+                        setReplyTargetId(Number(comment.id));
+                        setReplyInput("");
+                      }}
+                      style={styles.iconWithText}
+                    >
+                      <IcComment width={24} height={24} />
+                      <Text style={styles.actionText}>답글 달기</Text>
+                    </TouchableOpacity>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => {
+                      onSelectComment(comment.id);
+                      onOpenOption();
+                    }}
+                  >
+                    <IcComntEtc width={20} height={20} />
+                  </TouchableOpacity>
+                </View>
+
+                {comment.replies.length > 0 && (
+                  <View style={styles.replyContainer}>
+                    {comment.replies.map((reply) => (
+                      <View key={reply.id} style={styles.replyBox}>
+                        <View style={styles.commentHeader}>
+                          <View style={styles.userIcon} />
+                          <View>
+                            <Text style={styles.user}>{reply.user}</Text>
+                            <Text style={styles.time}>{reply.time}</Text>
+                          </View>
+                          <View
+                            style={[
+                              styles.tag,
+                              {
+                                backgroundColor: opinionBgColors[reply.opinion],
+                              },
+                            ]}
+                          >
+                            <Text
+                              style={{
+                                color: opinionTheme[reply.opinion].tagTextColor,
+                                fontSize: 12,
+                              }}
+                            >
+                              {reply.opinion}
+                            </Text>
+                          </View>
+                        </View>
+                        <Text style={styles.content}>{reply.content}</Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </View>
+            ))}
+          </ScrollView>
+
+          <View style={styles.inputContainer}>
+            <View style={styles.inputBox}>
+              <View style={styles.avatar} />
+              <TextInput
+                placeholder={
+                  replyTargetId ? "답글을 입력하세요" : "댓글을 입력하세요"
+                }
+                style={styles.textInput}
+                placeholderTextColor="#9CA3AF"
+                value={replyTargetId ? replyInput : commentInput}
+                onChangeText={replyTargetId ? setReplyInput : setCommentInput}
+              />
+            </View>
+
+            <TouchableOpacity
+              style={styles.sendButton}
+              onPress={() => {
+                if (replyTargetId !== null) {
+                  if (replyInput.trim() && onPostReply) {
+                    onPostReply(newsId, replyTargetId, replyInput);
+                    setReplyInput("");
+                    setReplyTargetId(null);
+                  }
+                } else {
+                  if (isEditing && selectedCommentId !== null) {
+                    onEditComment(selectedCommentId, commentInput, newsId);
+                  } else {
+                    onPostComment();
+                  }
+                }
+              }}
+            >
+              <IcSend width={20} height={20} />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.sendButton}
-            onPress={() => {
-              if (isEditing && selectedCommentId !== null) {
-                onEditComment(selectedCommentId, commentInput, newsId);
-              } else {
-                onPostComment();
-              }
-            }}
-          >
-            <IcSend width={20} height={20} />
-          </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     );
   }
 );
@@ -227,9 +257,15 @@ export default CommentSection;
 
 const styles = StyleSheet.create({
   commentSection: {
-    marginTop: 20,
     paddingTop: 8,
     paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  divider: {
+    borderBottomColor: "#F4F5F7",
+    borderBottomWidth: 8,
+    marginBottom: 16,
+    marginTop: 20,
   },
   commentCount: {
     ...typography.label_l3_13_regular,
@@ -258,7 +294,10 @@ const styles = StyleSheet.create({
     ...typography.label_l2_13_medium,
     color: "#0E0F15",
   },
-  time: { ...typography.label_l3_13_regular, color: "#40454A" },
+  time: {
+    ...typography.label_l3_13_regular,
+    color: "#40454A",
+  },
   tag: {
     marginLeft: "auto",
     borderRadius: 4,
@@ -304,12 +343,17 @@ const styles = StyleSheet.create({
     marginLeft: 40,
   },
   replyBox: {
+    backgroundColor: "#F4F5F7",
+    borderRadius: 8,
+    padding: 12,
     marginBottom: 12,
+    marginLeft: 40,
   },
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
     paddingVertical: 12,
+    paddingHorizontal: 16,
     borderTopColor: "#F0F0F0",
     borderTopWidth: 1,
     backgroundColor: "#FFFFFF",
@@ -335,7 +379,7 @@ const styles = StyleSheet.create({
   textInput: {
     flex: 1,
     fontSize: 14,
-    color: "#89939F",
+    color: "#0E0F15",
   },
   sendButton: {
     width: 24,

@@ -63,6 +63,8 @@ export default function HomeAll({ order }: HomeAllProps) {
 
   const renderItem = ({ item }: { item: NewsItem }) => {
     const isSelected = selectedId === item.id;
+    const sentimentColor = item.sentiment >= 0 ? "#E31B3E" : "#214DEF";
+    const sentimentBgColor = item.sentiment >= 0 ? "#FFE4E5" : "#E7EDFF";
 
     return (
       <Pressable
@@ -81,7 +83,15 @@ export default function HomeAll({ order }: HomeAllProps) {
       >
         <View style={styles.header}>
           <Text style={styles.category}>{item.thema}</Text>
-          <Text style={styles.sentiment}>
+          <Text
+            style={[
+              styles.sentiment,
+              {
+                color: sentimentColor,
+                backgroundColor: sentimentBgColor,
+              },
+            ]}
+          >
             {item.sentiment > 0 ? `+${item.sentiment}` : item.sentiment}
           </Text>
         </View>
@@ -165,8 +175,6 @@ const styles = StyleSheet.create({
   },
   sentiment: {
     fontSize: 12,
-    color: "#214DEF",
-    backgroundColor: "#E7EDFF",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
