@@ -1,7 +1,6 @@
 import axiosInstance from "@/lib/axiosInstance";
 import {
   CommentListResponse,
-  CommentResponse,
   DeleteCommentResponse,
   UpdateCommentRequest,
   UpdateCommentResponse,
@@ -11,13 +10,17 @@ import {
 export const postComment = (
   newsId: number,
   comment: string,
+  voteType: string = "NEUTRAL",
   parentId?: number
 ) => {
-  return axiosInstance.post<CommentResponse>("/news/v1/comment", {
+  const payload = {
     newsId,
     comment,
+    voteType: voteType ?? "NEUTRAL",
     ...(parentId !== undefined && { parentId }),
-  });
+  };
+  console.log(" postComment 최종 payload", payload);
+  return axiosInstance.post("/news/v1/comment", payload);
 };
 
 // 댓글 전체 조회
