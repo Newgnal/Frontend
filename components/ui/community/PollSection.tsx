@@ -1,3 +1,4 @@
+import { reverseVoteTypeMap } from "@/utils/convertVoteTypeToKor";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type OpinionTheme = {
@@ -8,13 +9,13 @@ type OpinionTheme = {
 };
 
 type PollSectionProps = {
-  pollLabels: string[];
-  pollResults: number[];
-  pollTotalCount: number;
-  opinionTheme: Record<string, OpinionTheme>;
-  selectedPoll: number | null;
-  hasVoted: boolean;
-  onSelectPoll: (index: number) => void;
+  pollLabels: string[]; // UI에 표시할 투표 항목 라벨 (["매수", "보류", "매도"])
+  pollResults: Record<"BUY" | "HOLD" | "SELL", number>; // 투표 항목 별 투표 수
+  pollTotalCount: number; // 전체 투표 수 합계
+  opinionTheme: Record<string, OpinionTheme>; // 각 투표 항목 라벨별 스타일 테마 설정
+  selectedPoll: "BUY" | "HOLD" | "SELL" | null; // 사용자가 선택한 항목 (투표 전에는 null)
+  hasVoted: boolean; // 사용자 투표 여부
+  onSelectPoll: (voteType: "BUY" | "HOLD" | "SELL") => void | Promise<void>; // 투표 항목 클릭 시 함수 호출
 };
 
 export const PollSection = ({
@@ -34,17 +35,25 @@ export const PollSection = ({
         <View style={styles.pollOptions}>
           {pollLabels.map((label, idx) => {
             const theme = opinionTheme[label];
-            const isSelected = selectedPoll === idx;
+            const voteType =
+              reverseVoteTypeMap[label as keyof typeof reverseVoteTypeMap];
+            const isSelected = selectedPoll === voteType;
+
             return (
               <TouchableOpacity
-                key={idx}
+                key={label}
                 style={[
                   styles.pollButton,
                   {
                     backgroundColor: isSelected ? theme.bgColor : "#FFFFFF",
                   },
                 ]}
-                onPress={() => onSelectPoll(idx)}
+                onPress={() => {
+                  if (!hasVoted) {
+                    onSelectPoll(voteType);
+                  }
+                }}
+                disabled={hasVoted}
               >
                 {theme.icon?.(isSelected ? theme.textColor : "#9CA3AF")}
                 <Text
@@ -77,21 +86,27 @@ export const PollSection = ({
           </View>
           {pollLabels.map((label, idx) => {
             const theme = opinionTheme[label];
+            const voteType =
+              reverseVoteTypeMap[label as keyof typeof reverseVoteTypeMap];
+
+            const percent = pollTotalCount
+              ? Math.round((pollResults[voteType] / pollTotalCount) * 100)
+              : 0;
             return (
-              <View key={idx} style={styles.resultRow}>
+              <View key={label} style={styles.resultRow}>
                 <Text style={styles.resultLabel}>{label}</Text>
                 <View style={styles.resultBarWrapper}>
                   <View
                     style={[
                       styles.resultBarFill,
                       {
-                        width: `${pollResults[idx]}%`,
+                        width: `${percent}%`,
                         backgroundColor: theme.barColor,
                       },
                     ]}
                   />
                 </View>
-                <Text style={styles.resultPercent}>{pollResults[idx]}%</Text>
+                <Text style={styles.resultPercent}>{percent}%</Text>
               </View>
             );
           })}

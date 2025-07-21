@@ -2,12 +2,19 @@ import DotIcon from "@/assets/images/ic_dot.svg";
 import EmptyProfileIcon from "@/assets/images/ic_ellipse.svg";
 import ViewIcon from "@/assets/images/ic_eyes.svg";
 import HeartIcon from "@/assets/images/ic_hrt_emt.svg";
+import HeartFilledIcon from "@/assets/images/ic_hrt_filled.svg";
 import MessageIcon from "@/assets/images/ic_message.svg";
 import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import News from "./News";
 
 interface TopicDetailProps {
@@ -25,14 +32,21 @@ interface TopicDetailProps {
   };
   isList?: boolean;
   hasNews?: boolean;
+  liked: boolean;
+  onTogglePostLike: () => void;
+  // setLiked: (val: boolean) => void;
+  // updatePost: (likeCount: number | ((prev: number) => number)) => void;
 }
 
 export default function TopicDetail({
   item,
   isList = false,
   hasNews = false,
+  liked,
+  onTogglePostLike,
 }: TopicDetailProps) {
   const router = useRouter();
+
   return (
     <View>
       <View style={styles.header}>
@@ -102,7 +116,9 @@ export default function TopicDetail({
 
       <View style={styles.buttonContainer}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <HeartIcon />
+          <TouchableOpacity onPress={onTogglePostLike}>
+            {liked ? <HeartFilledIcon /> : <HeartIcon />}
+          </TouchableOpacity>
           <Text
             style={[
               typography.caption_c2_12_regular,

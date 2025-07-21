@@ -73,34 +73,6 @@ export const reportPostById = async (
   return res.data;
 };
 
-// 댓글 신고
-interface ReportCommentResponse {
-  commentId: number;
-  reported: boolean;
-  targetType: string;
-}
-
-export const reportCommentById = async (
-  commentId: number
-): Promise<ReportCommentResponse> => {
-  const res = await axiosInstance.patch(`/post/v1/comment/${commentId}/report`);
-  return res.data;
-};
-
-// 대댓글 신고
-interface ReportReplyResponse {
-  reportId: number;
-  reported: boolean;
-  targetType: string;
-}
-
-export const reportReplyById = async (
-  replyId: number
-): Promise<ReportReplyResponse> => {
-  const res = await axiosInstance.patch(`/post/v1/reply/${replyId}/report`);
-  return res.data;
-};
-
 // 게시글 좋아요
 interface TogglePostLikeResponse {
   likeId: number;
@@ -112,45 +84,5 @@ export const togglePostLikeById = async (
   postId: number
 ): Promise<TogglePostLikeResponse> => {
   const res = await axiosInstance.patch(`/post/v1/${postId}/likes`);
-  return res.data;
-};
-
-// 댓글 좋아요
-interface ToggleCommentLikeResponse {
-  likeId: number;
-  liked: boolean;
-  targetType: string;
-}
-
-export const toggleCommentLikeById = async (
-  commentId: number
-): Promise<ToggleCommentLikeResponse> => {
-  const res = await axiosInstance.patch(`/post/v1/comment/${commentId}/likes`);
-  return res.data;
-};
-
-// 대댓글 좋아요
-interface ToggleReplyLikeResponse {
-  likeId: number;
-  liked: boolean;
-  targetType: string;
-}
-
-export const toggleReplyLikeById = async (
-  replyId: number
-): Promise<ToggleReplyLikeResponse> => {
-  const res = await axiosInstance.patch(`/post/v1/reply/${replyId}/likes`);
-  return res.data;
-};
-
-// 댓글 삭제
-export const deleteCommentById = async (commentId: number) => {
-  const res = await axiosInstance.delete(`/post/v1/comment/${commentId}`);
-  return res.data;
-};
-
-// 대댓글 삭제
-export const deleteReplyById = async (replyId: number) => {
-  const res = await axiosInstance.delete(`/post/v1/comment/reply/${replyId}`);
   return res.data;
 };
