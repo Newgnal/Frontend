@@ -641,7 +641,7 @@ export default function PostScreen() {
                             {getTimeAgo(comment.createdAt)}
                           </Text>
                         </View>
-                        {comment.voteType ? (
+                        {comment.voteType && opinionTheme[comment.voteType] ? (
                           <View
                             style={[
                               styles.positiveTag,
@@ -747,7 +747,8 @@ export default function PostScreen() {
                                     {getTimeAgo(reply.createdAt)}
                                   </Text>
                                 </View>
-                                {reply.voteType ? (
+                                {reply.voteType &&
+                                opinionTheme[reply.voteType] ? (
                                   <View
                                     style={[
                                       styles.positiveTag,
