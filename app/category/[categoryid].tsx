@@ -1,16 +1,18 @@
+import { getThemeNews } from "@/api/getThemeNews";
 import IcArrowDown from "@/assets/images/ic_arrow_down.svg";
 import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcOrderChange from "@/assets/images/ic_orderchange.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
 import BackIcon from "@/assets/images/icon_next_lg.svg";
-import CategoryFilterModal from "@/components/ui/modal/categoryFilterModal";
-
 import { Header as CategoryHeader } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import CategoryFilterModal from "@/components/ui/modal/categoryFilterModal";
+import { NewsItem } from "@/types/news";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   FlatList,
+  Image,
   Pressable,
   StyleSheet,
   Text,
@@ -25,105 +27,6 @@ export const options = {
 };
 
 type OrderType = "latest" | "views";
-
-const dummyNews = [
-  {
-    id: "1",
-    title: "삼성, 2028년부터 반도체 유리기판 쓴다",
-    date: "2025.05.28",
-    category: "semiconductor",
-    sentiment: "-0.8",
-    views: 21000,
-  },
-  {
-    id: "2",
-    title: "삼성전자, 차세대 AI 반도체 공개",
-    date: "2025.05.27",
-    category: "ai",
-    sentiment: "-0.9",
-    views: 50000,
-  },
-  {
-    id: "3",
-    title: "NVIDIA, GPT-5에 최적화된 GPU 출시",
-    date: "2025.05.26",
-    category: "ai",
-    sentiment: "-1.2",
-    views: 35000,
-  },
-  {
-    id: "4",
-    title: "AI 반도체 시장, 2030년 5배 성장 전망",
-    date: "2025.05.25",
-    category: "ai",
-    sentiment: "-1.0",
-    views: 12000,
-  },
-  {
-    id: "5",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "semiconductor",
-    sentiment: "-0.7",
-    views: 27000,
-  },
-  {
-    id: "6",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "semiconductor",
-    sentiment: "-0.7",
-    views: 27000,
-  },
-  {
-    id: "7",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "semiconductor",
-    sentiment: "-0.7",
-    views: 27000,
-  },
-  {
-    id: "8",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "semiconductor",
-    sentiment: "-0.7",
-    views: 27000,
-  },
-  {
-    id: "9",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "semiconductor",
-    sentiment: "-0.7",
-    views: 27000,
-  },
-  {
-    id: "10",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "it",
-    sentiment: "-0.7",
-    views: 27000,
-  },
-  {
-    id: "11",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "it",
-    sentiment: "-0.7",
-    views: 27000,
-  },
-  {
-    id: "12",
-    title: "삼성, 유리기판 반도체 대량 생산 기술 확보",
-    date: "2025.05.24",
-    category: "it",
-    sentiment: "-0.7",
-    views: 27000,
-  },
-];
 
 const categoryDisplayNames: Record<string, string> = {
   semiconductor: "반도체/AI",
@@ -140,26 +43,41 @@ const categoryDisplayNames: Record<string, string> = {
   etc: "기타",
 };
 
+const categoryCodeMap: Record<string, string> = {
+  semiconductor: "SEMICONDUCTOR_AI",
+  it: "IT_INTERNET",
+  finance: "FINANCE_INSURANCE",
+  defense: "DEFENSE_AEROSPACE",
+  green: "SECONDARY_BATTERY_ENVIRONMENT",
+  mobility: "MOBILITY",
+  realestate: "REAL_ESTATE_REIT",
+  bond: "BOND_INTEREST",
+  health: "HEALTHCARE_BIO",
+  forex: "EXCHANGE_RATE",
+  commodity: "RAW_MATERIAL_METALS",
+  etc: "ETC",
+};
+
 export default function CategoryScreen() {
   const [order, setOrder] = useState<OrderType>("latest");
-  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
   const { categoryid } = useLocalSearchParams();
+
+  const isValidCategory =
+    typeof categoryid === "string" && categoryCodeMap[categoryid];
+
   const [selectedCategory, setSelectedCategory] = useState(
-    typeof categoryid === "string" ? categoryid : "semiconductor"
+    isValidCategory ? categoryid : "semiconductor"
   );
+
+  const [isChipVisible, setIsChipVisible] = useState(false);
+  const [newsList, setNewsList] = useState<NewsItem[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const displayName =
     categoryDisplayNames[selectedCategory] ?? selectedCategory;
-
-  const filteredNews = dummyNews.filter(
-    (item) => item.category === selectedCategory
-  );
-
-  const sortedNews = [...filteredNews].sort((a, b) => {
-    return order === "views"
-      ? b.views - a.views
-      : new Date(b.date).getTime() - new Date(a.date).getTime();
-  });
 
   const getCurrentTimeString = () => {
     const now = new Date();
@@ -168,16 +86,56 @@ export default function CategoryScreen() {
     return `${hours}:${minutes}`;
   };
 
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [isChipVisible, setIsChipVisible] = useState(false);
-  const renderItem = ({ item }: { item: (typeof dummyNews)[0] }) => {
-    const isSelected = selectedId === item.id;
+  const fetchMoreNews = async (pageNum: number) => {
+    const code = categoryCodeMap[selectedCategory];
+    if (!code) {
+      console.warn("잘못된 카테고리 코드:", selectedCategory);
+      return;
+    }
+    if (loading || !hasMore) return;
 
+    try {
+      setLoading(true);
+      const res = await getThemeNews(code, order, pageNum);
+      const newItems = res?.content || [];
+
+      if (newItems.length === 0) {
+        setHasMore(false);
+      } else {
+        setNewsList((prev) => [...prev, ...newItems]);
+      }
+    } catch (err) {
+      console.error("카테고리 뉴스 로딩 실패", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    setNewsList([]);
+    setPage(0);
+    setHasMore(true);
+    fetchMoreNews(0);
+  }, [selectedCategory, order]);
+
+  const handleLoadMore = () => {
+    if (!loading && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchMoreNews(nextPage);
+    }
+  };
+
+  const renderItem = ({ item }: { item: NewsItem }) => {
+    const isSelected = selectedId === item.id;
     return (
       <Pressable
-        onPress={() =>
-          setSelectedId((prev) => (prev === item.id ? null : item.id))
-        }
+        onPress={() => {
+          router.push({
+            pathname: "/news/[id]",
+            params: { id: item.id },
+          });
+        }}
         style={[
           styles.card,
           {
@@ -189,32 +147,40 @@ export default function CategoryScreen() {
       >
         <View style={styles.header}>
           <Text style={styles.category}>{displayName}</Text>
-          <Text style={styles.sentiment}>{item.sentiment}</Text>
+          <Text style={styles.sentiment}>
+            {Number(item.sentiment).toFixed(1)}
+          </Text>
         </View>
 
         <View style={styles.contentRow}>
           <View style={styles.textContent}>
             <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.subtitle}>매일 경제 | {item.date}</Text>
+            <Text style={styles.subtitle}>
+              {item.source || "매일 경제"} | {item.date.split("T")[0]}
+            </Text>
 
             <View style={styles.metaRow}>
               <Text style={styles.meta}>
-                조회 {Math.floor(item.views / 10000)}만
+                조회 {Math.floor(item.view / 10000)}만
               </Text>
 
               <View style={styles.iconWithText}>
                 <IcComnt width={24} height={24} />
-                <Text style={styles.meta}>234</Text>
+                <Text style={styles.meta}>{item.commentNum ?? 0}</Text>
               </View>
 
               <View style={styles.iconWithText}>
                 <IcPoll width={24} height={24} />
-                <Text style={styles.meta}>402</Text>
+                <Text style={styles.meta}>{item.voteNum ?? 0}</Text>
               </View>
             </View>
           </View>
 
-          <View style={styles.imagePlaceholder} />
+          {item.imageUrl ? (
+            <Image source={{ uri: item.imageUrl }} style={styles.newsImage} />
+          ) : (
+            <View style={styles.imagePlaceholder} />
+          )}
         </View>
 
         <HorizontalLine />
@@ -242,7 +208,11 @@ export default function CategoryScreen() {
           </View>
         }
         leftSlot={
-          <TouchableOpacity onPress={() => router.back()}>
+          <TouchableOpacity
+            onPress={() => {
+              router.push("/home");
+            }}
+          >
             <BackIcon width={24} height={24} />
           </TouchableOpacity>
         }
@@ -260,16 +230,20 @@ export default function CategoryScreen() {
           </TouchableOpacity>
         }
       />
+
       <FlatList
-        data={sortedNews}
-        keyExtractor={(item) => item.id}
+        data={newsList}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={renderItem}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.5}
         contentContainerStyle={{
           paddingTop: 0,
           paddingHorizontal: 20,
           paddingBottom: 80,
         }}
       />
+
       {isChipVisible && (
         <CategoryFilterModal
           isVisible={isChipVisible}
@@ -287,11 +261,6 @@ export default function CategoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  centerContainer: {
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-  },
   topTitle: {
     fontSize: 18,
     fontWeight: "700",
@@ -303,22 +272,8 @@ const styles = StyleSheet.create({
     color: "#888",
     marginTop: 2,
   },
-  sortButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginRight: 4,
-    marginBottom: 13,
-    marginTop: 16,
-    gap: 0,
-  },
-  sortText: {
-    fontSize: 12,
-    color: "#484F56",
-    marginRight: 2,
-  },
   card: {
     minHeight: 120,
-    minWidth: "100%",
     justifyContent: "space-between",
     paddingTop: 16,
     paddingBottom: 0,
@@ -332,7 +287,6 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
-    flexWrap: "wrap",
     gap: 8,
     marginBottom: 8,
   },
@@ -383,6 +337,12 @@ const styles = StyleSheet.create({
   meta: {
     fontSize: 12,
     color: "#777",
+  },
+  newsImage: {
+    width: 76,
+    height: 76,
+    borderRadius: 4,
+    backgroundColor: "#dcdcdc",
   },
   imagePlaceholder: {
     width: 76,

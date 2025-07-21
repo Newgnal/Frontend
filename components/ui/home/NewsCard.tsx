@@ -13,9 +13,19 @@ interface Props {
 
 export default function NewsCard({ item }: Props) {
   const router = useRouter();
-  const roundedSentiment = parseFloat(item.sentiment.toFixed(1));
-  const sentimentColor = item.sentiment >= 0 ? "#E31B3E" : "#497AFA";
-  const sentimentBgColor = item.sentiment >= 0 ? "#FFE4E5" : "#E7EDFF";
+  const sentiment = parseFloat(item.sentiment.toFixed(2));
+
+  let sentimentColor = "#484F56";
+  let sentimentBgColor = "#EDEEEF";
+
+  if (sentiment > 0) {
+    sentimentColor = "#E31B3E";
+    sentimentBgColor = "#FFE4E5";
+  } else if (sentiment < 0) {
+    sentimentColor = "#497AFA";
+    sentimentBgColor = "#E7EDFF";
+  }
+
   return (
     <Pressable
       onPress={() => router.push(`/news/${item.id}`)}
@@ -32,7 +42,7 @@ export default function NewsCard({ item }: Props) {
             },
           ]}
         >
-          {roundedSentiment > 0 ? `+${roundedSentiment}` : roundedSentiment}
+          {sentiment > 0 ? `+${sentiment}` : sentiment}
         </Text>
       </View>
 
