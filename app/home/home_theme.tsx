@@ -48,15 +48,15 @@ export default function HomeMain({ selectedCategoryId }: Props) {
     semiconductor: "SEMICONDUCTOR_AI",
     it: "IT_INTERNET",
     finance: "FINANCE_INSURANCE",
-    bond: "BOND_INTEREST",
-    green: "SECONDARY_GREEN",
-    forex: "FOREX_EXCHANGE",
-    commodity: "RAW_MATERIAL",
-    realestate: "REAL_ESTATE_REIT",
-    health: "HEALTH_BIO",
-    etc: "ETC",
+    defense: "DEFENSE_AEROSPACE",
+    green: "SECONDARY_BATTERY_ENVIRONMENT",
     mobility: "MOBILITY",
-    defense: "DEFENSE_AERO",
+    realestate: "REAL_ESTATE_REIT",
+    bond: "BOND_INTEREST",
+    health: "HEALTHCARE_BIO",
+    forex: "EXCHANGE_RATE",
+    commodity: "RAW_MATERIAL_METALS",
+    etc: "ETC",
   };
 
   const displayName = categoryDisplayNames[selectedCategoryId] ?? "카테고리";

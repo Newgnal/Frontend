@@ -90,6 +90,13 @@ export default function NewsDetail() {
 
   const VOTE_KEY = `vote-${id}`;
 
+  const safeId = Array.isArray(id) ? id[0] : id;
+
+  useEffect(() => {
+    console.log("뉴스 디테일 API 요청", safeId);
+    getNewsById(safeId).then((res) => console.log("응답 view 수:", res?.view));
+  }, [safeId]);
+
   useEffect(() => {
     if (!id) return;
     const fetchNews = async () => {
