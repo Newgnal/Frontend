@@ -1,4 +1,3 @@
-import { togglePostLikeById } from "@/api/postApi";
 import DotIcon from "@/assets/images/ic_dot.svg";
 import EmptyProfileIcon from "@/assets/images/ic_ellipse.svg";
 import ViewIcon from "@/assets/images/ic_eyes.svg";
@@ -15,7 +14,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Toast from "react-native-toast-message";
 import News from "./News";
 
 interface TopicDetailProps {
@@ -30,31 +28,24 @@ interface TopicDetailProps {
     commentCount: number;
     updatedAt?: string;
     postId: number;
+    isLiked?: boolean;
   };
   isList?: boolean;
   hasNews?: boolean;
   liked: boolean;
-  setLiked: (val: boolean) => void;
-  updatePost: (likeCount: number | ((prev: number) => number)) => void;
+  onTogglePostLike: () => void;
+  // setLiked: (val: boolean) => void;
+  // updatePost: (likeCount: number | ((prev: number) => number)) => void;
 }
 
 export default function TopicDetail({
   item,
   isList = false,
   hasNews = false,
-  setLiked,
-  updatePost,
+  liked,
+  onTogglePostLike,
 }: TopicDetailProps) {
   const router = useRouter();
-  const handlePostLike = async () => {
-    try {
-      const res = await togglePostLikeById(item.postId);
-      setLiked(res.liked);
-      updatePost((prevCount) => (res.liked ? prevCount + 1 : prevCount - 1));
-    } catch (err) {
-      Toast.show({ type: "error", text1: "게시글 좋아요 실패" });
-    }
-  };
 
   return (
     <View>
@@ -125,7 +116,7 @@ export default function TopicDetail({
 
       <View style={styles.buttonContainer}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <TouchableOpacity onPress={handlePostLike}>
+          <TouchableOpacity onPress={onTogglePostLike}>
             <HeartIcon />
           </TouchableOpacity>
           <Text

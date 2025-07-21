@@ -4,13 +4,20 @@ import {
   toggleCommentLikeById,
   writeComment,
 } from "@/api/commentPostApi";
-import { deletePostById, getPostById, reportPostById } from "@/api/postApi";
+
+import {
+  deletePostById,
+  getPostById,
+  reportPostById,
+  togglePostLikeById,
+} from "@/api/postApi";
 import {
   deleteReplyById,
   reportReplyById,
   toggleReplyLikeById,
   writeReply,
 } from "@/api/replyPostApi";
+import { votePost } from "@/api/votePostApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import HoldIcon from "@/assets/images/ic_com_poll.svg";
@@ -70,6 +77,7 @@ interface Post {
   hasVote: boolean;
   viewCount: number;
   commentCount: number;
+  isLiked?: boolean; // 현재 사용자가 게시물에 좋아요를 눌렀는지 여부
 }
 
 interface Comment {
@@ -91,14 +99,11 @@ export default function PostScreen() {
   // ----------------- 상태 관리 ---------------------
 
   const [post, setPost] = useState<Post | null>(null);
-  const [vote, setVote] = useState<any | null>(null);
+  // const [vote, setVote] = useState<any | null>(null); // 사용되지 않아 주석 처리
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const [selectedPoll, setSelectedPoll] = useState<number | null>(null);
-  const [hasVoted, setHasVoted] = useState(false);
-  const [likedPost, setLikedPost] = useState(false);
-  const [postLikeCount, setPostLikeCount] = useState<number>(0);
+  const [likedPost, setLikedPost] = useState<boolean>(false);
 
   const [likedComments, setLikedComments] = useState<{
     [key: string]: boolean;
@@ -126,24 +131,120 @@ export default function PostScreen() {
     | null
   >(null);
 
-  const pollLabels = ["매도", "보유", "매수"];
-  const pollResults = [20, 20, 15]; // 각 항목 비율(%)
-  const pollTotalCount = pollResults.reduce((acc, val) => acc + val, 0);
-
   const { nickName: myNickname } = useAuth();
+
+  const convertEngToKorVoteType = (
+    engType: "BUY" | "SELL" | "HOLD" | null | undefined
+  ) => {
+    switch (engType) {
+      case "BUY":
+        return "매수";
+      case "SELL":
+        return "매도";
+      case "HOLD":
+        return "보유";
+      default:
+        return "";
+    }
+  };
+
+  // ----------------- 투표 관련 변수 -------------------
+
+  const [vote, setVote] = useState<any>(null);
+  const [selectedPoll, setSelectedPoll] = useState<
+    "BUY" | "HOLD" | "SELL" | null
+  >(null);
+
+  const [hasVoted, setHasVoted] = useState(false);
+  const pollLabels = ["매도", "보유", "매수"];
+
+  const pollResults = vote
+    ? {
+        SELL: vote.sellCount,
+        HOLD: vote.holdCount,
+        BUY: vote.buyCount,
+      }
+    : {
+        SELL: 25,
+        HOLD: 40,
+        BUY: 35,
+      };
+
+  const pollTotalCount = pollResults.SELL + pollResults.HOLD + pollResults.BUY;
+
+  // ----------------- 투표 스타일 ---------------------
+
+  const opinionTheme: Record<
+    string,
+    {
+      dotColor: string;
+      labelColor: string;
+      barColor: string;
+      bgColor: string;
+      textColor: string;
+      icon: (color: string) => React.ReactNode;
+    }
+  > = {
+    매도: {
+      dotColor: "#4880EE",
+      labelColor: "#4880EE",
+      barColor: "#4880EE",
+      bgColor: "#EDF3FF",
+      textColor: "#3366CC",
+      icon: (color: string) => (
+        <SellIcon width={20} height={20} fill={color} stroke={color} />
+      ),
+    },
+    보유: {
+      dotColor: "#9CA3AF",
+      labelColor: "#6B7280",
+      barColor: "#9CA3AF",
+      bgColor: "#F3F4F6",
+      textColor: "#000000ff",
+      icon: (color: string) => (
+        <HoldIcon width={20} height={20} fill={color} stroke={color} />
+      ),
+    },
+    매수: {
+      dotColor: "#EF4444",
+      labelColor: "#EF4444",
+      barColor: "#EF4444",
+      bgColor: "#FFE4E5",
+      textColor: "#B91C1C",
+      icon: (color: string) => (
+        <BuyIcon width={20} height={20} fill={color} stroke={color} />
+      ),
+    },
+  };
+
+  const opinionBgColors: Record<string, string> = {
+    매도: "#EDF3FF",
+    보유: "#F3F4F6",
+    매수: "#FEE2E2",
+  };
+
+  const pollBgColor = "#F4F5F7";
+
+  // 초기 Fetch
+
   useEffect(() => {
     if (!numericPostId || isNaN(numericPostId)) return;
+
     const fetchDetail = async () => {
       try {
         setLoading(true);
         const res = await getPostById(numericPostId);
-        // console.log("getPostById 응답:", res);
+
         setPost(res.data.post);
-        setVote(res.data.vote);
         setComments(res.data.comments);
-        setPostLikeCount(res.data.post.likeCount);
+        setVote(res.data.vote);
+        // setHasVoted(res.data.vote?.isVoted || false);
+        // if (res.data.vote?.myVoteType) { // API 응답에 내 투표 타입 필드가 있을 경우에 이 코드 사용
+        //         setSelectedPoll(res.data.vote.myVoteType);
+        //       }
+
+        setLikedPost(res.data.post.isLiked || false);
       } catch (err) {
-        // console.error("게시글 조회 실패:", err);
         Toast.show({
           type: "error",
           text1: "게시글 조회 실패",
@@ -153,10 +254,31 @@ export default function PostScreen() {
         setLoading(false);
       }
     };
+
     fetchDetail();
   }, [numericPostId]);
 
   // ----------------- 핸들러 함수 ---------------------
+
+  const handlePostLike = async () => {
+    if (!post?.postId) return;
+    try {
+      const res = await togglePostLikeById(post.postId);
+      // likedPost 상태 업데이트
+      setLikedPost(res.liked);
+      // post의 likeCount 업데이트
+      setPost((prev) =>
+        prev
+          ? {
+              ...prev,
+              likeCount: res.liked ? prev.likeCount + 1 : prev.likeCount - 1,
+            }
+          : prev
+      );
+    } catch (err) {
+      Toast.show({ type: "error", text1: "게시글 좋아요 실패" });
+    }
+  };
 
   const handlePostUpdate = () => {
     if (!post) return;
@@ -178,7 +300,7 @@ export default function PostScreen() {
     try {
       await deletePostById(numericPostId);
       Toast.show({ type: "success", text1: "글이 삭제되었어요" });
-      router.replace("/(tabs)/community");
+      router.replace("/(tabs)/community"); // 삭제 후 목록으로 이동
     } catch (error) {
       Toast.show({
         type: "error",
@@ -192,7 +314,7 @@ export default function PostScreen() {
     try {
       await deleteCommentById(numericCommentId);
       Toast.show({ type: "success", text1: "글이 삭제되었어요" });
-      router.replace("/(tabs)/community");
+      refreshComments(); // 댓글 삭제 후 댓글 목록 갱신
     } catch (error) {
       Toast.show({
         type: "error",
@@ -207,7 +329,7 @@ export default function PostScreen() {
     try {
       await deleteReplyById(numericReplyId);
       Toast.show({ type: "success", text1: "글이 삭제되었어요" });
-      router.replace("/(tabs)/community");
+      refreshComments(); // 대댓글 삭제 후 댓글 목록 갱신
     } catch (error) {
       Toast.show({
         type: "error",
@@ -378,64 +500,21 @@ export default function PostScreen() {
     try {
       const res = await getPostById(numericPostId);
       setComments(res.data.comments);
-      setComments(res);
     } catch (e) {
       Toast.show({ type: "error", text1: "댓글을 불러오지 못했어요" });
     }
   };
 
-  // ----------------- 스타일 ---------------------
-
-  const opinionTheme: Record<
-    string,
-    {
-      dotColor: string;
-      labelColor: string;
-      barColor: string;
-      bgColor: string;
-      textColor: string;
-      icon: (color: string) => React.ReactNode;
+  const handleVote = async (voteType: "BUY" | "HOLD" | "SELL") => {
+    try {
+      const updatedVote = await votePost({ postId: numericPostId, voteType }); // 여기서 데이터 가져올 수 있나 보기
+      setVote(updatedVote);
+      setHasVoted(true);
+      setSelectedPoll(voteType);
+    } catch (err) {
+      Toast.show({ type: "error", text1: "투표 실패" });
     }
-  > = {
-    매도: {
-      dotColor: "#4880EE",
-      labelColor: "#4880EE",
-      barColor: "#4880EE",
-      bgColor: "#EDF3FF",
-      textColor: "#3366CC",
-      icon: (color: string) => (
-        <SellIcon width={20} height={20} fill={color} stroke={color} />
-      ),
-    },
-    보유: {
-      dotColor: "#9CA3AF",
-      labelColor: "#6B7280",
-      barColor: "#9CA3AF",
-      bgColor: "#F3F4F6",
-      textColor: "#000000ff",
-      icon: (color: string) => (
-        <HoldIcon width={20} height={20} fill={color} stroke={color} />
-      ),
-    },
-    매수: {
-      dotColor: "#EF4444",
-      labelColor: "#EF4444",
-      barColor: "#EF4444",
-      bgColor: "#FFE4E5",
-      textColor: "#B91C1C",
-      icon: (color: string) => (
-        <BuyIcon width={20} height={20} fill={color} stroke={color} />
-      ),
-    },
   };
-
-  const opinionBgColors: Record<string, string> = {
-    매도: "#EDF3FF",
-    보유: "#F3F4F6",
-    매수: "#FEE2E2",
-  };
-
-  const pollBgColor = "#F4F5F7";
 
   // ----------------- UI 렌더링 ---------------------
 
@@ -473,21 +552,23 @@ export default function PostScreen() {
             <TopicDetail
               isList={false}
               hasNews
-              liked={likedPost}
-              setLiked={setLikedPost}
-              updatePost={(likeCountUpdater) =>
-                setPost((prev) =>
-                  prev
-                    ? {
-                        ...prev,
-                        likeCount:
-                          typeof likeCountUpdater === "function"
-                            ? likeCountUpdater(prev.likeCount)
-                            : likeCountUpdater,
-                      }
-                    : prev
-                )
-              }
+              liked={likedPost} // likedPost 상태를 그대로 전달
+              // setLiked={setLikedPost} // 삭제: handlePostLike로 대체
+              // updatePost={(likeCountUpdater) => // 삭제: handlePostLike로 대체
+              //   setPost((prev) =>
+              //     prev
+              //       ? {
+              //           ...prev,
+              //           likeCount:
+              //             typeof likeCountUpdater === "function"
+              //               ? likeCountUpdater(prev.likeCount)
+              //               : likeCountUpdater,
+              //         }
+              //       : prev
+              //   )
+              // }
+              // 추가: 게시물 좋아요 토글 함수 전달
+              onTogglePostLike={handlePostLike}
               item={{
                 postId: post.postId,
                 nickname: post.nickname,
@@ -498,6 +579,7 @@ export default function PostScreen() {
                 likeCount: post.likeCount,
                 viewCount: post.viewCount,
                 commentCount: post.commentCount,
+                isLiked: likedPost, // 추가: TopicDetail에 현재 좋아요 상태 전달
               }}
             />
           </View>
@@ -514,10 +596,7 @@ export default function PostScreen() {
                   opinionTheme={opinionTheme}
                   selectedPoll={selectedPoll}
                   hasVoted={hasVoted}
-                  onSelectPoll={(idx) => {
-                    setSelectedPoll(idx);
-                    setHasVoted(true);
-                  }}
+                  onSelectPoll={handleVote}
                 />
               </View>
               <HorizontalLine height={8} />
@@ -531,202 +610,219 @@ export default function PostScreen() {
                 <Text style={styles.commentCount}>{post.commentCount}</Text>
               </View>
 
-              {comments.map((comment) => (
-                <View key={comment.commentId} style={styles.commentBox}>
-                  <View style={styles.commentHeader}>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        flex: 1,
-                      }}
-                    >
-                      <View style={styles.commentUserIcon} />
-                      <View>
-                        <Text style={styles.commentUser}>
-                          {comment.nickname}
-                        </Text>
-                        <Text style={styles.commentTime}>
-                          {getTimeAgo(comment.createdAt)}
-                        </Text>
-                      </View>
-                      {comment.voteType ? (
-                        <View
-                          style={[
-                            styles.positiveTag,
-                            {
-                              backgroundColor:
-                                opinionBgColors[comment.voteType] ||
-                                pollBgColor,
-                            },
-                          ]}
-                        >
-                          <Text
-                            style={{
-                              color: opinionTheme[comment.voteType].textColor,
-                              fontSize: 12,
-                              fontWeight: "400",
-                              fontFamily: "Pretendard",
-                              lineHeight: 14,
-                            }}
-                          >
-                            {comment.voteType}
+              {comments.map((comment) => {
+                const korVoteType =
+                  comment.voteType ?? convertEngToKorVoteType(comment.voteType);
+                return (
+                  <View key={comment.commentId} style={styles.commentBox}>
+                    <View style={styles.commentHeader}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          flex: 1,
+                        }}
+                      >
+                        <View style={styles.commentUserIcon} />
+                        <View>
+                          <Text style={styles.commentUser}>
+                            {comment.nickname}
+                          </Text>
+                          <Text style={styles.commentTime}>
+                            {getTimeAgo(comment.createdAt)}
                           </Text>
                         </View>
-                      ) : null}
-                    </View>
-                  </View>
-
-                  <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
-                    {comment.commentContent}
-                  </Text>
-
-                  <View style={[styles.commentActions, { paddingLeft: 40 }]}>
-                    <View style={{ flexDirection: "row", gap: 8 }}>
-                      <View style={styles.iconWithText}>
-                        <TouchableOpacity
-                          onPress={() => handleCommentLike(comment.commentId)}
-                        >
-                          <IcHeart
-                            width={24}
-                            height={24}
-                            stroke={
-                              likedComments[`comment-${comment.commentId}`]
-                                ? "#FF5A5F"
-                                : "#C4C4C4"
-                            }
-                          />
-                        </TouchableOpacity>
-                        <Text style={styles.commentActionText}>
-                          {comment.likeCount}
-                        </Text>
-                      </View>
-                      <View style={styles.iconWithText}>
-                        <IcComment width={24} height={24} />
-                        <TouchableOpacity
-                          onPress={() => setReplyTargetId(comment.commentId)}
-                        >
-                          <Text style={styles.commentActionText}>
-                            답글 달기
-                          </Text>
-                        </TouchableOpacity>
-                      </View>
-                    </View>
-                    <TouchableOpacity
-                      style={{ marginLeft: "auto" }}
-                      onPress={() => {
-                        setReportTargetCommentId(comment.commentId);
-                        if (comment.nickname === myNickname) {
-                          setModalType("comment");
-                        } else {
-                          setModalType("commentReport");
-                        }
-                        setIsVisible(true);
-                      }}
-                    >
-                      <IcComntEtc width={20} height={20} />
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* -------------------- 대댓글 -------------------- */}
-                  {comment.replies && comment.replies.length > 0 && (
-                    <View
-                      style={{
-                        backgroundColor: "#F4F5F7",
-                        borderRadius: 4,
-                        paddingHorizontal: 16,
-                        paddingTop: 16,
-                        paddingBottom: 12,
-                        marginTop: 12,
-                      }}
-                    >
-                      {comment.replies.map((reply: Reply) => (
-                        <View key={reply.replyId} style={styles.replyBox}>
-                          <View style={styles.commentHeader}>
-                            <View style={styles.commentUserIcon} />
-                            <View>
-                              <Text style={styles.commentUser}>
-                                {reply.nickname}
-                              </Text>
-                              <Text style={styles.commentTime}>
-                                {getTimeAgo(reply.createdAt)}
-                              </Text>
-                            </View>
-                            {reply.voteType ? (
-                              <View
-                                style={[
-                                  styles.positiveTag,
-                                  {
-                                    backgroundColor:
-                                      opinionBgColors[reply.voteType] ||
-                                      pollBgColor,
-                                  },
-                                ]}
-                              >
-                                <Text
-                                  style={{
-                                    color:
-                                      opinionTheme[reply.voteType].textColor,
-                                    fontSize: 12,
-                                    fontWeight: "400",
-                                    fontFamily: "Pretendard",
-                                    lineHeight: 14,
-                                  }}
-                                >
-                                  {reply.voteType}
-                                </Text>
-                              </View>
-                            ) : null}
-                          </View>
-                          <Text
-                            style={[styles.commentContent, { paddingLeft: 40 }]}
+                        {comment.voteType ? (
+                          <View
+                            style={[
+                              styles.positiveTag,
+                              {
+                                backgroundColor:
+                                  opinionBgColors[korVoteType] || pollBgColor,
+                              },
+                            ]}
                           >
-                            {reply.replyContent}
-                          </Text>
-
-                          <View style={styles.commentActions}>
-                            <View
-                              style={[styles.iconWithText, { paddingLeft: 36 }]}
-                            >
-                              <TouchableOpacity
-                                onPress={() => handleReplyLike(reply.replyId)}
-                              >
-                                <IcHeart
-                                  width={24}
-                                  height={24}
-                                  stroke={
-                                    likedComments[`reply-${reply.replyId}`]
-                                      ? "#FF5A5F"
-                                      : "#C4C4C4"
-                                  }
-                                />
-                              </TouchableOpacity>
-
-                              <Text style={styles.commentActionText}>
-                                {reply.likeCount}
-                              </Text>
-                            </View>
-                            <TouchableOpacity
-                              style={{ marginLeft: "auto" }}
-                              onPress={() => {
-                                setReportTargetReplyId(reply.replyId);
-                                if (reply.nickname === myNickname) {
-                                  setModalType("reply");
-                                } else {
-                                  setModalType("replyReport");
-                                }
-                                setIsVisible(true);
+                            <Text
+                              style={{
+                                color: opinionTheme[korVoteType].textColor,
+                                fontSize: 12,
+                                fontWeight: "400",
+                                fontFamily: "Pretendard",
+                                lineHeight: 14,
                               }}
                             >
-                              <IcComntEtc width={20} height={20} />
-                            </TouchableOpacity>
+                              {comment.voteType && korVoteType}
+                            </Text>
                           </View>
-                        </View>
-                      ))}
+                        ) : null}
+                      </View>
                     </View>
-                  )}
-                </View>
-              ))}
+
+                    <Text style={[styles.commentContent, { paddingLeft: 40 }]}>
+                      {comment.commentContent}
+                    </Text>
+
+                    <View style={[styles.commentActions, { paddingLeft: 40 }]}>
+                      <View style={{ flexDirection: "row", gap: 8 }}>
+                        <View style={styles.iconWithText}>
+                          <TouchableOpacity
+                            onPress={() => handleCommentLike(comment.commentId)}
+                          >
+                            <IcHeart
+                              width={24}
+                              height={24}
+                              stroke={
+                                likedComments[`comment-${comment.commentId}`]
+                                  ? "#FF5A5F"
+                                  : "#C4C4C4"
+                              }
+                            />
+                          </TouchableOpacity>
+                          <Text style={styles.commentActionText}>
+                            {comment.likeCount}
+                          </Text>
+                        </View>
+                        <View style={styles.iconWithText}>
+                          <IcComment width={24} height={24} />
+                          <TouchableOpacity
+                            onPress={() => setReplyTargetId(comment.commentId)}
+                          >
+                            <Text style={styles.commentActionText}>
+                              답글 달기
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                      <TouchableOpacity
+                        style={{ marginLeft: "auto" }}
+                        onPress={() => {
+                          setReportTargetCommentId(comment.commentId);
+                          if (comment.nickname === myNickname) {
+                            setModalType("comment");
+                          } else {
+                            setModalType("commentReport");
+                          }
+                          setIsVisible(true);
+                        }}
+                      >
+                        <IcComntEtc width={20} height={20} />
+                      </TouchableOpacity>
+                    </View>
+
+                    {/* -------------------- 대댓글 -------------------- */}
+                    {comment.replies && comment.replies.length > 0 && (
+                      <View
+                        style={{
+                          backgroundColor: "#F4F5F7",
+                          borderRadius: 4,
+                          paddingHorizontal: 16,
+                          paddingTop: 16,
+                          paddingBottom: 12,
+                          marginTop: 12,
+                        }}
+                      >
+                        {comment.replies.map((reply: Reply) => {
+                          const korVoteType =
+                            reply.voteType ??
+                            convertEngToKorVoteType(reply.voteType);
+
+                          return (
+                            <View key={reply.replyId} style={styles.replyBox}>
+                              <View style={styles.commentHeader}>
+                                <View style={styles.commentUserIcon} />
+                                <View>
+                                  <Text style={styles.commentUser}>
+                                    {reply.nickname}
+                                  </Text>
+                                  <Text style={styles.commentTime}>
+                                    {getTimeAgo(reply.createdAt)}
+                                  </Text>
+                                </View>
+                                {reply.voteType ? (
+                                  <View
+                                    style={[
+                                      styles.positiveTag,
+                                      {
+                                        backgroundColor:
+                                          opinionBgColors[korVoteType] ||
+                                          pollBgColor,
+                                      },
+                                    ]}
+                                  >
+                                    <Text
+                                      style={{
+                                        color:
+                                          opinionTheme[korVoteType].textColor,
+                                        fontSize: 12,
+                                        fontWeight: "400",
+                                        fontFamily: "Pretendard",
+                                        lineHeight: 14,
+                                      }}
+                                    >
+                                      {reply.voteType && korVoteType}
+                                    </Text>
+                                  </View>
+                                ) : null}
+                              </View>
+                              <Text
+                                style={[
+                                  styles.commentContent,
+                                  { paddingLeft: 40 },
+                                ]}
+                              >
+                                {reply.replyContent}
+                              </Text>
+
+                              <View style={styles.commentActions}>
+                                <View
+                                  style={[
+                                    styles.iconWithText,
+                                    { paddingLeft: 36 },
+                                  ]}
+                                >
+                                  <TouchableOpacity
+                                    onPress={() =>
+                                      handleReplyLike(reply.replyId)
+                                    }
+                                  >
+                                    <IcHeart
+                                      width={24}
+                                      height={24}
+                                      stroke={
+                                        likedComments[`reply-${reply.replyId}`]
+                                          ? "#FF5A5F"
+                                          : "#C4C4C4"
+                                      }
+                                    />
+                                  </TouchableOpacity>
+
+                                  <Text style={styles.commentActionText}>
+                                    {reply.likeCount}
+                                  </Text>
+                                </View>
+                                <TouchableOpacity
+                                  style={{ marginLeft: "auto" }}
+                                  onPress={() => {
+                                    setReportTargetReplyId(reply.replyId);
+                                    if (reply.nickname === myNickname) {
+                                      setModalType("reply");
+                                    } else {
+                                      setModalType("replyReport");
+                                    }
+                                    setIsVisible(true);
+                                  }}
+                                >
+                                  <IcComntEtc width={20} height={20} />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                          );
+                        })}
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
             </View>
           </View>
         </ScrollView>
