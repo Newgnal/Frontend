@@ -102,6 +102,7 @@ export default function PostScreen() {
   // const [vote, setVote] = useState<any | null>(null); // 사용되지 않아 주석 처리
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasEnteredPost, setHasEnteredPost] = useState(false);
 
   const [likedPost, setLikedPost] = useState<boolean>(false);
 
@@ -243,6 +244,20 @@ export default function PostScreen() {
         //         setSelectedPoll(res.data.vote.myVoteType);
         //       }
 
+        // 화면에 표시될 조회수만 1 증가
+        if (!hasEnteredPost) {
+          setPost((prevPost) => {
+            if (prevPost) {
+              return {
+                ...prevPost,
+                viewCount: prevPost.viewCount + 1,
+              };
+            }
+            return null;
+          });
+          setHasEnteredPost(true);
+        }
+
         setLikedPost(res.data.post.isLiked || false);
       } catch (err) {
         Toast.show({
@@ -256,7 +271,7 @@ export default function PostScreen() {
     };
 
     fetchDetail();
-  }, [numericPostId]);
+  }, [numericPostId, hasEnteredPost]);
 
   // ----------------- 핸들러 함수 ---------------------
 
