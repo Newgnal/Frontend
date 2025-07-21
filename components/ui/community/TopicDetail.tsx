@@ -2,6 +2,7 @@ import DotIcon from "@/assets/images/ic_dot.svg";
 import EmptyProfileIcon from "@/assets/images/ic_ellipse.svg";
 import ViewIcon from "@/assets/images/ic_eyes.svg";
 import HeartIcon from "@/assets/images/ic_hrt_emt.svg";
+import HeartFilledIcon from "@/assets/images/ic_hrt_filled.svg";
 import MessageIcon from "@/assets/images/ic_message.svg";
 import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
@@ -28,7 +29,6 @@ interface TopicDetailProps {
     commentCount: number;
     updatedAt?: string;
     postId: number;
-    isLiked?: boolean;
   };
   isList?: boolean;
   hasNews?: boolean;
@@ -117,7 +117,7 @@ export default function TopicDetail({
       <View style={styles.buttonContainer}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <TouchableOpacity onPress={onTogglePostLike}>
-            <HeartIcon />
+            {liked ? <HeartFilledIcon /> : <HeartIcon />}
           </TouchableOpacity>
           <Text
             style={[

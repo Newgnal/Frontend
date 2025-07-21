@@ -102,7 +102,7 @@ export default function PostScreen() {
   // const [vote, setVote] = useState<any | null>(null); // 사용되지 않아 주석 처리
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [hasEnteredPost, setHasEnteredPost] = useState(false);
+  const [hasEnteredPost, setHasEnteredPost] = useState(false); // useRef로 변경 고려
 
   const [likedPost, setLikedPost] = useState<boolean>(false);
 
@@ -258,7 +258,8 @@ export default function PostScreen() {
           setHasEnteredPost(true);
         }
 
-        setLikedPost(res.data.post.isLiked || false);
+        // setLikedPost(res.data.post.isLiked || false);
+        setLikedPost(false);
       } catch (err) {
         Toast.show({
           type: "error",
@@ -279,17 +280,26 @@ export default function PostScreen() {
     if (!post?.postId) return;
     try {
       const res = await togglePostLikeById(post.postId);
-      // likedPost 상태 업데이트
-      setLikedPost(res.liked);
+
       // post의 likeCount 업데이트
-      setPost((prev) =>
-        prev
-          ? {
-              ...prev,
-              likeCount: res.liked ? prev.likeCount + 1 : prev.likeCount - 1,
-            }
-          : prev
-      );
+      // 좋아요 증가 UI상으로만 반영(백엔드에 해당 로직 부재)
+      setPost((prevPost) => {
+        if (!prevPost) return null;
+
+        const isCurrentlyLiked = likedPost;
+        const newLikeCount = isCurrentlyLiked
+          ? Math.max(prevPost.likeCount - 1, 0)
+          : prevPost.likeCount + 1;
+
+        return {
+          ...prevPost,
+          likeCount: newLikeCount,
+        };
+      });
+
+      // likedPost 상태 업데이트
+      // setLikedPost(res.liked);
+      setLikedPost((prevLiked) => !prevLiked);
     } catch (err) {
       Toast.show({ type: "error", text1: "게시글 좋아요 실패" });
     }
@@ -567,22 +577,7 @@ export default function PostScreen() {
             <TopicDetail
               isList={false}
               hasNews
-              liked={likedPost} // likedPost 상태를 그대로 전달
-              // setLiked={setLikedPost} // 삭제: handlePostLike로 대체
-              // updatePost={(likeCountUpdater) => // 삭제: handlePostLike로 대체
-              //   setPost((prev) =>
-              //     prev
-              //       ? {
-              //           ...prev,
-              //           likeCount:
-              //             typeof likeCountUpdater === "function"
-              //               ? likeCountUpdater(prev.likeCount)
-              //               : likeCountUpdater,
-              //         }
-              //       : prev
-              //   )
-              // }
-              // 추가: 게시물 좋아요 토글 함수 전달
+              liked={likedPost}
               onTogglePostLike={handlePostLike}
               item={{
                 postId: post.postId,
@@ -594,7 +589,6 @@ export default function PostScreen() {
                 likeCount: post.likeCount,
                 viewCount: post.viewCount,
                 commentCount: post.commentCount,
-                isLiked: likedPost, // 추가: TopicDetail에 현재 좋아요 상태 전달
               }}
             />
           </View>
