@@ -9,11 +9,13 @@ import SearchIcon from "@/assets/images/ic_search.svg";
 import BackIcon from "@/assets/images/icon_next_lg.svg";
 import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
-import { KeywordNewsResponse, NewsItem, ServerKeyword } from "@/types/keyword";
+import { NewsItem, ServerKeyword } from "@/types/keyword";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   FlatList,
+  Image,
   Modal,
   Pressable,
   StyleSheet,
@@ -35,12 +37,15 @@ export default function KeywordNewsScreen() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
+  const [lastId, setLastId] = useState<number | null>(null);
+  const [hasNext, setHasNext] = useState<boolean>(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         const keywordList = await getKeywords();
-
-        const convertedList: ServerKeyword[] = keywordList.map((k) => ({
+        const convertedList = keywordList.map((k) => ({
           id: k.keywordId,
           keyword: k.keywordName,
           createdAt: "",
@@ -52,14 +57,38 @@ export default function KeywordNewsScreen() {
         const matched = convertedList.find((k) => k.keyword === keyword);
         if (!matched) return;
 
-        const newsRes: KeywordNewsResponse = await getKeywordNews(matched.id);
-        setNewsList(newsRes.newsData.content);
+        const res = await getKeywordNews(matched.id, undefined, 10);
+
+        setNewsList(res.newsData.content);
+        setLastId(res.newsData.nextLastId);
+        setHasNext(res.newsData.hasNext);
       } catch (err) {
         console.error("키워드 뉴스 로드 실패:", err);
       }
     };
+
     fetchData();
   }, [keyword]);
+
+  const loadMore = async () => {
+    if (!hasNext || isLoadingMore) return;
+    setIsLoadingMore(true);
+
+    try {
+      const matched = keywords.find((k) => k.keyword === keyword);
+      if (!matched) return;
+
+      const res = await getKeywordNews(matched.id, lastId ?? undefined, 10);
+
+      setNewsList((prev) => [...prev, ...res.newsData.content]);
+      setLastId(res.newsData.nextLastId);
+      setHasNext(res.newsData.hasNext);
+    } catch (err) {
+      console.error("더 불러오기 실패:", err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  };
 
   const getCurrentTimeString = () => {
     const now = new Date();
@@ -70,10 +99,25 @@ export default function KeywordNewsScreen() {
 
   const renderItem = ({ item }: { item: NewsItem }) => {
     const isSelected = selectedId === String(item.id);
+    const sentiment = parseFloat(item.sentiment.toFixed(2));
+
+    let sentimentColor = "#484F56";
+    let sentimentBgColor = "#EDEEEF";
+
+    if (sentiment > 0) {
+      sentimentColor = "#E31B3E";
+      sentimentBgColor = "#FFE4E5";
+    } else if (sentiment < 0) {
+      sentimentColor = "#497AFA";
+      sentimentBgColor = "#E7EDFF";
+    }
 
     return (
       <Pressable
-        onPress={() => setSelectedId(isSelected ? null : String(item.id))}
+        onPress={() => {
+          setSelectedId(isSelected ? null : String(item.id));
+          router.push(`/news/${item.id}`);
+        }}
         style={[
           styles.card,
           {
@@ -82,15 +126,24 @@ export default function KeywordNewsScreen() {
         ]}
       >
         <View style={styles.header}>
-          <Text style={styles.category}>#{item.thema || "기타"}</Text>
-          <Text style={styles.sentiment}>{item.sentiment}</Text>
+          <Text style={styles.category}>
+            #{convertThemaToKor(item.thema) || "기타"}
+          </Text>
+          <Text
+            style={[
+              styles.sentiment,
+              { color: sentimentColor, backgroundColor: sentimentBgColor },
+            ]}
+          >
+            {sentiment > 0 ? `+${sentiment}` : sentiment}
+          </Text>
         </View>
 
         <View style={styles.contentRow}>
           <View style={styles.textContent}>
             <Text style={styles.title}>{item.title}</Text>
             <Text style={styles.subtitle}>
-              {item.source} | {item.date}
+              {item.source} | {item.date.split("T")[0]}
             </Text>
 
             <View style={styles.metaRow}>
@@ -98,16 +151,19 @@ export default function KeywordNewsScreen() {
                 조회 {Math.floor(item.view / 10000)}만
               </Text>
               <View style={styles.iconWithText}>
-                <IcComnt width={24} height={24} />
-                <Text style={styles.meta}>{item.commentNum}</Text>
+                <IcComnt width={16} height={16} />
+                <Text style={styles.meta}>{item.commentNum ?? 0}</Text>
               </View>
               <View style={styles.iconWithText}>
-                <IcPoll width={24} height={24} />
-                <Text style={styles.meta}>{item.voteNum}</Text>
+                <IcPoll width={16} height={16} />
+                <Text style={styles.meta}>{item.voteNum ?? 0}</Text>
               </View>
             </View>
           </View>
-          <View style={styles.imagePlaceholder} />
+
+          {item.imageUrl && (
+            <Image source={{ uri: item.imageUrl }} style={styles.image} />
+          )}
         </View>
 
         <HorizontalLine />
@@ -154,7 +210,13 @@ export default function KeywordNewsScreen() {
         data={newsList}
         keyExtractor={(item) => String(item.id)}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 80 }}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 12,
+          paddingBottom: 50,
+        }}
       />
 
       <Modal
@@ -203,7 +265,7 @@ export default function KeywordNewsScreen() {
 const styles = StyleSheet.create({
   topTitle: { fontSize: 18, fontWeight: "700", color: "#000" },
   timeText: { fontSize: 11, color: "#888", marginTop: 2 },
-  card: { paddingVertical: 16, gap: 8, borderRadius: 8, marginBottom: 8 },
+  card: { paddingVertical: 8, gap: 8, borderRadius: 8, marginBottom: 4 },
   header: { flexDirection: "row", gap: 8, alignItems: "center" },
   category: {
     fontSize: 12,
@@ -215,8 +277,6 @@ const styles = StyleSheet.create({
   },
   sentiment: {
     fontSize: 12,
-    backgroundColor: "#E7EDFF",
-    color: "#214DEF",
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
@@ -232,11 +292,11 @@ const styles = StyleSheet.create({
   metaRow: { flexDirection: "row", alignItems: "center", gap: 13 },
   iconWithText: { flexDirection: "row", alignItems: "center", gap: 4 },
   meta: { fontSize: 12, color: "#777" },
-  imagePlaceholder: {
-    width: 76,
-    height: 76,
-    backgroundColor: "#dcdcdc",
+  image: {
+    width: 60,
+    height: 60,
     borderRadius: 4,
+    backgroundColor: "#ddd",
   },
   modalOverlay: {
     flex: 1,
