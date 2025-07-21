@@ -22,6 +22,7 @@ type Reply = {
   user: string;
   time: string;
   content: string;
+  voteType?: string;
   opinion: string;
 };
 
@@ -31,6 +32,7 @@ type Comment = {
   time: string;
   content: string;
   opinion: string;
+  voteType?: string;
   replies: Reply[];
 };
 
@@ -47,7 +49,7 @@ type Props = {
 
   commentInput: string;
   setCommentInput: (value: string) => void;
-  onPostComment: () => void;
+  onPostComment: (newsId: number, comment: string, voteType: string) => void;
 
   isEditing: boolean;
   selectedCommentId: string | null;
@@ -59,7 +61,12 @@ type Props = {
 
   setIsEditing: (value: boolean) => void;
   onDeleteComment?: (commentId: string) => Promise<void>;
-  onPostReply?: (newsId: number, parentId: number, reply: string) => void;
+  onPostReply?: (
+    newsId: number,
+    parentId: number,
+    reply: string,
+    voteType: string
+  ) => void;
 };
 
 const CommentSection = forwardRef<View, Props>(
@@ -86,6 +93,7 @@ const CommentSection = forwardRef<View, Props>(
   ) => {
     const [replyTargetId, setReplyTargetId] = useState<number | null>(null);
     const [replyInput, setReplyInput] = useState("");
+    const [selectedVoteType, setSelectedVoteType] = useState("NEUTRAL");
 
     return (
       <KeyboardAvoidingView
@@ -231,7 +239,12 @@ const CommentSection = forwardRef<View, Props>(
               onPress={() => {
                 if (replyTargetId !== null) {
                   if (replyInput.trim() && onPostReply) {
-                    onPostReply(newsId, replyTargetId, replyInput);
+                    onPostReply(
+                      newsId,
+                      replyTargetId,
+                      replyInput,
+                      selectedVoteType
+                    );
                     setReplyInput("");
                     setReplyTargetId(null);
                   }
@@ -239,7 +252,8 @@ const CommentSection = forwardRef<View, Props>(
                   if (isEditing && selectedCommentId !== null) {
                     onEditComment(selectedCommentId, commentInput, newsId);
                   } else {
-                    onPostComment();
+                    onPostComment(newsId, commentInput, selectedVoteType);
+                    setCommentInput("");
                   }
                 }
               }}

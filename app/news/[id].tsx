@@ -176,24 +176,6 @@ export default function NewsDetail() {
     replies: (item.replies ?? []).map(adaptComment),
   });
 
-  const handlePostComment = async () => {
-    try {
-      if (!id) return;
-      const numericId = Number(Array.isArray(id) ? id[0] : id);
-      if (isNaN(numericId)) return;
-
-      await postComment(numericId, commentInput);
-      const res = await getComments(numericId);
-      const commentArray = res.data?.data?.comments ?? [];
-      const adapted = commentArray.map(adaptComment);
-
-      setComments(adapted);
-      setCommentInput("");
-    } catch (e) {
-      console.error("댓글 작성 실패", e);
-    }
-  };
-
   const handleEditComment = async (
     commentId: string,
     newContent: string,
@@ -317,22 +299,56 @@ export default function NewsDetail() {
     });
   };
 
+  const handlePostComment = (
+    newsId: number,
+    comment: string,
+    voteType: string = "NEUTRAL"
+  ) => {
+    const payload = {
+      newsId,
+      comment,
+      voteType,
+    };
+
+    console.log(" 댓글 요청 바디:", payload);
+
+    postComment(newsId, comment, voteType ?? "NEUTRAL")
+      .then(async () => {
+        const res = await getComments(newsId);
+        const adapted = (res.data?.data?.comments ?? []).map(adaptComment);
+        setComments(adapted);
+        setCommentInput("");
+      })
+      .catch((err) => {
+        console.error("댓글 등록 실패", err);
+        console.log(" 서버 응답:", err.response?.data);
+      });
+  };
+
   const handlePostReply = async (
     newsId: number,
     parentId: number,
-    reply: string
+    reply: string,
+    voteType: string = "NEUTRAL"
   ) => {
+    const payload = {
+      newsId,
+      comment: reply,
+      voteType,
+      parentId,
+    };
+
+    console.log("📝 답글 요청 바디:", payload);
+
     try {
-      console.log("답글 요청", { newsId, reply, parentId });
-      await postComment(newsId, reply, Number(parentId));
+      await postComment(newsId, reply, voteType ?? "NEUTRAL", parentId);
 
       const res = await getComments(newsId);
-      console.log("댓글 목록", JSON.stringify(res.data, null, 2));
-      const commentArray = res.data?.data?.comments ?? [];
-      const adapted = commentArray.map(adaptComment);
+      const adapted = (res.data?.data?.comments ?? []).map(adaptComment);
       setComments(adapted);
-    } catch (e) {
-      console.error("답글 등록 실패", e);
+    } catch (e: any) {
+      console.error(" 답글 등록 실패", e);
+      console.log("서버 응답:", e.response?.data);
     }
   };
 
