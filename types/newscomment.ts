@@ -21,6 +21,12 @@ export interface CommentItem {
 export interface PostCommentRequest {
   newsId: number;
   comment: string;
+  voteType:
+    | "STRONGLY_POSITIVE"
+    | "POSITIVE"
+    | "NEUTRAL"
+    | "NEGATIVE"
+    | "STRONGLY_NEGATIVE";
   parentId?: number; // 있으면 답글
 }
 

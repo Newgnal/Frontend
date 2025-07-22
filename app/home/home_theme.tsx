@@ -4,7 +4,7 @@ import IcVector from "@/assets/images/Vector.svg";
 import CategoryInfoBox from "@/components/CategoryInfoBox";
 import NewsVolumeChart from "@/components/chart/NewsVolumeChart";
 import SentimentChart from "@/components/chart/SentimentChart";
-import { sentimentData } from "@/data/sentimentDummy";
+
 import { typography } from "@/styles/typography";
 import { NewsItem } from "@/types/news";
 import { useRouter } from "expo-router";
@@ -19,6 +19,8 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
+
+import { getSentimentScores } from "@/api/useSentimentApi";
 
 interface Props {
   selectedCategoryId: string;
@@ -48,25 +50,24 @@ export default function HomeMain({ selectedCategoryId }: Props) {
     semiconductor: "SEMICONDUCTOR_AI",
     it: "IT_INTERNET",
     finance: "FINANCE_INSURANCE",
-    bond: "BOND_INTEREST",
-    green: "SECONDARY_GREEN",
-    forex: "FOREX_EXCHANGE",
-    commodity: "RAW_MATERIAL",
-    realestate: "REAL_ESTATE_REIT",
-    health: "HEALTH_BIO",
-    etc: "ETC",
+    defense: "DEFENSE_AEROSPACE",
+    green: "SECONDARY_BATTERY_ENVIRONMENT",
     mobility: "MOBILITY",
-    defense: "DEFENSE_AERO",
+    realestate: "REAL_ESTATE_REIT",
+    bond: "BOND_INTEREST",
+    health: "HEALTHCARE_BIO",
+    forex: "EXCHANGE_RATE",
+    commodity: "RAW_MATERIAL_METALS",
+    etc: "ETC",
   };
 
   const displayName = categoryDisplayNames[selectedCategoryId] ?? "카테고리";
 
-  const averageSentiment =
-    sentimentData.reduce((sum, val) => sum + val, 0) / sentimentData.length;
-  const sentimentColor = averageSentiment >= 0 ? "#F63D55" : "#497AFA";
+  const [avgSentiment, setAvgSentiment] = useState<number>(0);
+  const sentimentColor = avgSentiment >= 0 ? "#F63D55" : "#497AFA";
   const sentimentDisplay = `${
-    averageSentiment >= 0 ? "+" : ""
-  }${averageSentiment.toFixed(1)}`;
+    avgSentiment >= 0 ? "+" : ""
+  }${avgSentiment.toFixed(2)}`;
 
   useEffect(() => {
     const fetchNews = async () => {
@@ -79,6 +80,21 @@ export default function HomeMain({ selectedCategoryId }: Props) {
         if (!data?.content || !Array.isArray(data.content)) return;
 
         setMainNews(data.content.slice(0, 2));
+        const topNews = data.content.slice(0, 2);
+        setMainNews(topNews);
+
+        const titles = topNews.map((n) => n.title);
+        console.log("요청 타이틀", titles);
+        if (titles.length) {
+          const scores = await getSentimentScores(titles);
+          console.log("응답 스코어", scores);
+          if (scores.length) {
+            const avg =
+              scores.reduce((acc, cur) => acc + cur, 0) / scores.length;
+            console.log("평균 감성 점수", avg);
+            setAvgSentiment(parseFloat(avg.toFixed(2)));
+          }
+        }
       } catch (err) {
         console.error("주요 뉴스 불러오기 실패:", err);
       }

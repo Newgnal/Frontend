@@ -114,10 +114,11 @@ export default function FilterChipList({
   const visibleChips = (() => {
     const base = chips.slice(0, 4);
     const selectedItem = chips.find((c) => c.key === selectedKey);
-    if (selectedItem && !base.includes(selectedItem)) {
-      return [selectedItem, ...base.slice(0, 3)];
-    }
-    return base;
+    if (!selectedItem) return base;
+
+    if (base.some((item) => item.key === selectedItem.key)) return base;
+
+    return [selectedItem, ...base.slice(0, 3)];
   })();
 
   return (

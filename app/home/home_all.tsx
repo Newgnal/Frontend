@@ -3,6 +3,7 @@ import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { NewsItem } from "@/types/news";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -63,13 +64,24 @@ export default function HomeAll({ order }: HomeAllProps) {
 
   const renderItem = ({ item }: { item: NewsItem }) => {
     const isSelected = selectedId === item.id;
-    const sentimentColor = item.sentiment >= 0 ? "#E31B3E" : "#214DEF";
-    const sentimentBgColor = item.sentiment >= 0 ? "#FFE4E5" : "#E7EDFF";
+    const sentiment = parseFloat(item.sentiment.toFixed(2));
+
+    let sentimentColor = "#484F56";
+    let sentimentBgColor = "#EDEEEF";
+
+    if (sentiment > 0) {
+      sentimentColor = "#E31B3E";
+      sentimentBgColor = "#FFE4E5";
+    } else if (sentiment < 0) {
+      sentimentColor = "#497AFA";
+      sentimentBgColor = "#E7EDFF";
+    }
 
     return (
       <Pressable
-        onPress={() => {
+        onPress={async () => {
           setSelectedId((prev) => (prev === item.id ? null : item.id));
+
           router.push(`/news/${item.id}`);
         }}
         style={[
@@ -82,7 +94,7 @@ export default function HomeAll({ order }: HomeAllProps) {
         ]}
       >
         <View style={styles.header}>
-          <Text style={styles.category}>{item.thema}</Text>
+          <Text style={styles.category}>{convertThemaToKor(item.thema)}</Text>
           <Text
             style={[
               styles.sentiment,
@@ -92,7 +104,7 @@ export default function HomeAll({ order }: HomeAllProps) {
               },
             ]}
           >
-            {item.sentiment > 0 ? `+${item.sentiment}` : item.sentiment}
+            {sentiment > 0 ? `+${sentiment}` : sentiment}
           </Text>
         </View>
 
@@ -118,7 +130,6 @@ export default function HomeAll({ order }: HomeAllProps) {
               </View>
             </View>
           </View>
-
           {item.imageUrl && (
             <Image source={{ uri: item.imageUrl }} style={styles.image} />
           )}
@@ -132,7 +143,7 @@ export default function HomeAll({ order }: HomeAllProps) {
   return (
     <FlatList
       data={newsList}
-      keyExtractor={(item) => item.id.toString()}
+      keyExtractor={(item, index) => `${item.id}-${index}`}
       renderItem={renderItem}
       contentContainerStyle={styles.container}
       onEndReached={handleLoadMore}
@@ -221,5 +232,11 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: 4,
     backgroundColor: "#dcdcdc",
+  },
+  imagePlaceholder: {
+    width: 76,
+    height: 76,
+    backgroundColor: "#dcdcdc",
+    borderRadius: 4,
   },
 });
