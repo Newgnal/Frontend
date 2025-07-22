@@ -22,7 +22,10 @@ import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
 import HoldIcon from "@/assets/images/ic_com_poll.svg";
 import BuyIcon from "@/assets/images/ic_com_poll_buy.svg";
+import SelectedBuyIcon from "@/assets/images/ic_com_poll_buy_selected.svg";
+import SelectedHoldIcon from "@/assets/images/ic_com_poll_hold_selected.svg";
 import SellIcon from "@/assets/images/ic_com_poll_sell.svg";
+import SelectedSellIcon from "@/assets/images/ic_com_poll_sell_selected.svg";
 import ShareIcon from "@/assets/images/ic_header.svg";
 import IcHeart from "@/assets/images/ic_hrt.svg";
 import IcSend from "@/assets/images/ic_send.svg";
@@ -198,7 +201,8 @@ export default function PostScreen() {
       barColor: string;
       bgColor: string;
       textColor: string;
-      icon: (color: string) => React.ReactNode;
+      selectedIcon: () => React.ReactNode;
+      unselectedIcon: () => React.ReactNode;
     }
   > = {
     매도: {
@@ -207,9 +211,8 @@ export default function PostScreen() {
       barColor: "#4880EE",
       bgColor: "#EDF3FF",
       textColor: "#3366CC",
-      icon: (color: string) => (
-        <SellIcon width={20} height={20} fill={color} stroke={color} />
-      ),
+      selectedIcon: () => <SelectedSellIcon width={20} height={20} />,
+      unselectedIcon: () => <SellIcon width={20} height={20} />,
     },
     보유: {
       dotColor: "#9CA3AF",
@@ -217,8 +220,16 @@ export default function PostScreen() {
       barColor: "#9CA3AF",
       bgColor: "#F3F4F6",
       textColor: "#000000ff",
-      icon: (color: string) => (
-        <HoldIcon width={20} height={20} fill={color} stroke={color} />
+      selectedIcon: () => (
+        <SelectedHoldIcon
+          width={20}
+          height={20}
+          fill="#000000ff"
+          stroke="#000000ff"
+        />
+      ),
+      unselectedIcon: () => (
+        <HoldIcon width={20} height={20} fill="#9CA3AF" stroke="#9CA3AF" />
       ),
     },
     매수: {
@@ -227,8 +238,16 @@ export default function PostScreen() {
       barColor: "#EF4444",
       bgColor: "#FFE4E5",
       textColor: "#B91C1C",
-      icon: (color: string) => (
-        <BuyIcon width={20} height={20} fill={color} stroke={color} />
+      selectedIcon: () => (
+        <SelectedBuyIcon
+          width={20}
+          height={20}
+          fill="#B91C1C"
+          stroke="#B91C1C"
+        />
+      ),
+      unselectedIcon: () => (
+        <BuyIcon width={20} height={20} fill="#9CA3AF" stroke="#9CA3AF" />
       ),
     },
   };
