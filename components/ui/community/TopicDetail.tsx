@@ -82,7 +82,7 @@ export default function TopicDetail({
           source,
           category: convertThemaToKor(thema),
           date: formatDate(date),
-          sentiment: String(sentiment),
+          sentiment: String(Math.round(sentiment * 100) / 100),
           imageUrl,
         });
       } catch (err) {
