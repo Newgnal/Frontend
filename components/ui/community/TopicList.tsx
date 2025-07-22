@@ -1,4 +1,4 @@
-import { togglePostLikeById } from "@/api/postApi";
+import { getPostById, togglePostLikeById } from "@/api/postApi";
 import { useEffect, useState } from "react";
 import { View } from "react-native";
 import Toast from "react-native-toast-message";
@@ -23,7 +23,7 @@ export default function TopicList({ order, hasNews, data }: TopciListProps) {
 
     data.forEach((item) => {
       initialLikes[item.postId] = item.likeCount;
-      initialLiked[item.postId] = item.isLiked || false; // API 응답의 isLiked로 초기화
+      initialLiked[item.postId] = item.isLiked || false;
     });
 
     setLikes(initialLikes);
@@ -31,22 +31,37 @@ export default function TopicList({ order, hasNews, data }: TopciListProps) {
   }, [data]);
 
   const handleToggleLike = async (postId: number) => {
+    // const isCurrentlyLiked = liked[postId] ?? false;
+
+    // // 좋아요 상태 업데이트
+    // setLiked((prev) => ({
+    //   ...prev,
+    //   [postId]: !isCurrentlyLiked,
+    // }));
+
+    // // 좋아요 카운트 업데이트
+    // setLikes((prev) => ({
+    //   ...prev,
+    //   [postId]: isCurrentlyLiked
+    //     ? Math.max((prev[postId] || 1) - 1, 0)
+    //     : (prev[postId] || 0) + 1,
+    // }));
     try {
-      const res = await togglePostLikeById(postId);
-
-      // 좋아요 상태 업데이트
-      setLiked((prev) => ({
-        ...prev,
-        [postId]: res.liked, // API 응답의 liked 값으로 업데이트
-      }));
-
-      // 좋아요 카운트 업데이트
+      await togglePostLikeById(postId);
+      const res = await getPostById(postId);
+      const updatedPost = res.data.post;
       setLikes((prev) => ({
         ...prev,
-        [postId]: res.liked ? (prev[postId] || 0) + 1 : (prev[postId] || 0) - 1,
+        [postId]: updatedPost.likeCount,
+      }));
+
+      setLiked((prev) => ({
+        ...prev,
+        [postId]: updatedPost.isLiked,
       }));
     } catch (err) {
       Toast.show({ type: "error", text1: "좋아요 처리 실패" });
+      console.log("좋아요 처리 실패", err);
     }
   };
 

@@ -2,7 +2,7 @@ import IcMoveActive from "@/assets/images/ic_move_active.svg";
 import IcThemeModalActive from "@/assets/images/ic_them_modal-1.svg";
 import IcThemeModal from "@/assets/images/ic_them_modal.svg";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import DraggableFlatList, {
   ScaleDecorator,
@@ -66,14 +66,14 @@ const initialChipOptions = [
   { key: "semiconductor", label: "반도체/AI" },
   { key: "it", label: "IT/인터넷" },
   { key: "finance", label: "금융/보험" },
-  { key: "mobility", label: "모빌리티" },
-  { key: "defense", label: "방산/항공우주" },
-  { key: "green", label: "2차전지/친환경E" },
-  { key: "realestate", label: "부동산/리츠" },
   { key: "bond", label: "채권/금리" },
-  { key: "health", label: "헬스케어/바이오" },
+  { key: "green", label: "2차전지/친환경E" },
   { key: "forex", label: "환율/외환" },
   { key: "commodity", label: "원자재/귀금속" },
+  { key: "realestate", label: "부동산/리츠" },
+  { key: "health", label: "헬스케어/바이오" },
+  { key: "defense", label: "방산/항공우주" },
+  { key: "mobility", label: "모빌리티" },
   { key: "etc", label: "기타" },
 ];
 
@@ -82,13 +82,26 @@ export default function CategoryFilterModal({
   onClose,
   selectedKey,
   onSelect,
+  isPost = false,
 }: {
   isVisible: boolean;
   onClose: () => void;
   selectedKey: string;
   onSelect: (key: string) => void;
+  isPost?: boolean;
 }) {
-  const [chips, setChips] = useState(initialChipOptions);
+  const [chips, setChips] = useState<{ key: string; label: string }[]>([]);
+
+  // 모달 열릴 때마다 chips 업데이트
+  useEffect(() => {
+    if (isVisible) {
+      setChips(
+        isPost
+          ? [{ key: "all", label: "전체" }, ...initialChipOptions]
+          : [...initialChipOptions]
+      );
+    }
+  }, [isVisible, isPost]);
   const [isSortMode, setSortMode] = useState(false);
 
   const handleSelect = (key: string) => {

@@ -18,6 +18,16 @@ export default function News({
   category,
   sentiment,
 }: NewsProps) {
+  let sentimentColor = "#484F56";
+  let sentimentBgColor = "#EDEEEF";
+
+  if (Number(sentiment) > 0) {
+    sentimentColor = "#E31B3E";
+    sentimentBgColor = "#FFE4E5";
+  } else if (Number(sentiment) < 0) {
+    sentimentColor = "#497AFA";
+    sentimentBgColor = "#E7EDFF";
+  }
   return (
     <View style={styles.container}>
       <View style={styles.leftContent}>
@@ -32,7 +42,17 @@ export default function News({
               {category}
             </Text>
           </View>
-          <Text style={styles.sentiment}>{sentiment}</Text>
+          <Text
+            style={[
+              styles.sentiment,
+              {
+                color: sentimentColor,
+                backgroundColor: sentimentBgColor,
+              },
+            ]}
+          >
+            {sentiment}
+          </Text>
         </View>
 
         <View style={styles.contentRow}>
@@ -79,13 +99,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   sentiment: {
-    fontSize: 10,
-    color: "#214DEF",
-    backgroundColor: "#E7EDFF",
+    ...typography.caption_c1_12_semi_bold,
+
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
-    fontWeight: "400",
   },
   contentRow: {
     flexDirection: "row",

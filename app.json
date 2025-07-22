@@ -4,7 +4,7 @@
     "slug": "newgnal-fe",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/push_logo.png",
     "scheme": "newgnalfe",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,

@@ -4,7 +4,7 @@ import axiosInstance from "@/lib/axiosInstance";
 interface CreatePostRequest {
   postTitle: string;
   postContent: string;
-  newsId?: number;
+  newsId?: number | null;
   thema: string;
   hasVote: boolean;
 }
@@ -20,7 +20,7 @@ export const updatePost = async (
   data: {
     postTitle?: string;
     postContent?: string;
-    newsId?: number;
+    newsId?: number | null;
     thema?: string;
     hasVote?: boolean;
   }
@@ -69,7 +69,7 @@ interface ReportPostResponse {
 export const reportPostById = async (
   postId: number
 ): Promise<ReportPostResponse> => {
-  const res = await axiosInstance.patch(`/post/v1/${postId}/report`);
+  const res = await axiosInstance.patch(`/report/v1/${postId}`);
   return res.data;
 };
 
@@ -84,5 +84,23 @@ export const togglePostLikeById = async (
   postId: number
 ): Promise<TogglePostLikeResponse> => {
   const res = await axiosInstance.patch(`/post/v1/${postId}/likes`);
+  return res.data;
+};
+
+// 게시글 테마별 조회
+export const getPostByThema = async ({
+  thema,
+  page = 0,
+  size = 10,
+  sortType = "LATEST",
+}: {
+  thema: string;
+  page?: number;
+  size?: number;
+  sortType?: "LATEST" | "POPULAR";
+}) => {
+  const res = await axiosInstance.get(
+    `/post/v1/list/thema/${thema}?page=${page}&size=${size}&sortType=${sortType}`
+  );
   return res.data;
 };

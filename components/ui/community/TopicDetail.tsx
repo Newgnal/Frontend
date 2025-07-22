@@ -1,3 +1,4 @@
+import { getNewsById } from "@/api/useNewsApi";
 import DotIcon from "@/assets/images/ic_dot.svg";
 import EmptyProfileIcon from "@/assets/images/ic_ellipse.svg";
 import ViewIcon from "@/assets/images/ic_eyes.svg";
@@ -8,6 +9,7 @@ import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   Pressable,
   StyleSheet,
@@ -29,6 +31,7 @@ interface TopicDetailProps {
     commentCount: number;
     updatedAt?: string;
     postId: number;
+    newsId?: string;
   };
   isList?: boolean;
   hasNews?: boolean;
@@ -38,6 +41,22 @@ interface TopicDetailProps {
   // updatePost: (likeCount: number | ((prev: number) => number)) => void;
 }
 
+interface NewsData {
+  id: string;
+  title: string;
+  date: string;
+  category: string;
+  sentiment: string;
+  source: string;
+}
+const formatDate = (iso: string) => {
+  const date = new Date(iso);
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}.${String(date.getDate()).padStart(2, "0")}`;
+};
+
 export default function TopicDetail({
   item,
   isList = false,
@@ -46,7 +65,31 @@ export default function TopicDetail({
   onTogglePostLike,
 }: TopicDetailProps) {
   const router = useRouter();
+  const [newsData, setNewsData] = useState<NewsData | null>(null);
 
+  useEffect(() => {
+    const fetchNews = async () => {
+      if (!item.newsId) return;
+
+      try {
+        const res = await getNewsById(item.newsId);
+        if (!res) return;
+        const { id, title, source, thema, date, sentiment } = res;
+        setNewsData({
+          id: String(id),
+          title,
+          source,
+          category: convertThemaToKor(thema),
+          date: formatDate(date),
+          sentiment: String(sentiment),
+        });
+      } catch (err) {
+        console.warn("뉴스 불러오기 실패:", err);
+      }
+    };
+
+    fetchNews();
+  }, [item.newsId]);
   return (
     <View>
       <View style={styles.header}>
@@ -101,17 +144,20 @@ export default function TopicDetail({
         </Text>
       </Pressable>
 
-      {hasNews && (
-        <View style={{ marginTop: 12 }}>
+      {newsData && (
+        <Pressable
+          style={{ marginTop: 12 }}
+          onPress={() => router.push(`/news/${newsData.id}`)}
+        >
           <News
-            id="1"
-            title="삼성, 2028년부터 반도체 유리기판 쓴다"
-            date="2025.05.28"
-            category="반도체/AI"
-            sentiment="-0.8"
-            source="매일경제"
+            id={newsData.id}
+            title={newsData.title}
+            date={newsData.date}
+            category={newsData.category}
+            sentiment={newsData.sentiment}
+            source={newsData.source}
           />
-        </View>
+        </Pressable>
       )}
 
       <View style={styles.buttonContainer}>
