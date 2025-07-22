@@ -33,6 +33,16 @@ export default function NewsCard({
   isSelected,
   onPress,
 }: NewsItem) {
+  let sentimentColor = "#484F56";
+  let sentimentBgColor = "#EDEEEF";
+
+  if (Number(sentiment) > 0) {
+    sentimentColor = "#E31B3E";
+    sentimentBgColor = "#FFE4E5";
+  } else if (Number(sentiment) < 0) {
+    sentimentColor = "#497AFA";
+    sentimentBgColor = "#E7EDFF";
+  }
   return (
     <Pressable
       onPress={onPress}
@@ -45,7 +55,17 @@ export default function NewsCard({
     >
       <View style={styles.header}>
         <Text style={styles.category}>{thema}</Text>
-        <Text style={styles.sentiment}>{sentiment}</Text>
+        <Text
+          style={[
+            styles.sentiment,
+            {
+              color: sentimentColor,
+              backgroundColor: sentimentBgColor,
+            },
+          ]}
+        >
+          {sentiment}
+        </Text>
       </View>
 
       <View style={styles.contentRow}>

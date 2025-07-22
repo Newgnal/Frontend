@@ -5,7 +5,8 @@ type OpinionTheme = {
   bgColor: string;
   textColor: string;
   barColor: string;
-  icon?: (color: string) => React.ReactNode;
+  selectedIcon: () => React.ReactNode;
+  unselectedIcon: () => React.ReactNode;
 };
 
 type PollSectionProps = {
@@ -57,7 +58,7 @@ export const PollSection = ({
                 }}
                 disabled={userVoted}
               >
-                {theme.icon?.(isSelected ? theme.textColor : "#9CA3AF")}
+                {isSelected ? theme.selectedIcon() : theme.unselectedIcon()}
                 <Text
                   style={[
                     styles.pollLabel,
