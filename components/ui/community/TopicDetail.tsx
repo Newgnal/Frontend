@@ -48,6 +48,7 @@ interface NewsData {
   category: string;
   sentiment: string;
   source: string;
+  imageUrl: string;
 }
 const formatDate = (iso: string) => {
   const date = new Date(iso);
@@ -74,7 +75,7 @@ export default function TopicDetail({
       try {
         const res = await getNewsById(item.newsId);
         if (!res) return;
-        const { id, title, source, thema, date, sentiment } = res;
+        const { id, title, source, thema, date, sentiment, imageUrl } = res;
         setNewsData({
           id: String(id),
           title,
@@ -82,6 +83,7 @@ export default function TopicDetail({
           category: convertThemaToKor(thema),
           date: formatDate(date),
           sentiment: String(sentiment),
+          imageUrl,
         });
       } catch (err) {
         console.warn("뉴스 불러오기 실패:", err);
@@ -156,6 +158,7 @@ export default function TopicDetail({
             category={newsData.category}
             sentiment={newsData.sentiment}
             source={newsData.source}
+            imageUrl={newsData.imageUrl}
           />
         </Pressable>
       )}

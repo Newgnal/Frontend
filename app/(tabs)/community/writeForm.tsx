@@ -42,6 +42,7 @@ export default function WriteFormScreen() {
     title: newsTitle,
     newsCategory,
     newsSource,
+    newsImageUrl,
     date: newsDate,
     sentiment: newsSentiment,
     formTitle: initialTitle,
@@ -58,6 +59,7 @@ export default function WriteFormScreen() {
     category?: string;
     newsSource?: string;
     newsCategory?: string;
+    newsImageUrl?: string;
     id?: string;
     title?: string;
     date?: string;
@@ -160,6 +162,7 @@ export default function WriteFormScreen() {
         content,
         newsId: newsId ?? "",
         voteEnabled: voteEnabled.toString(),
+        newsImageUrl: newsImageUrl,
       },
     });
   };
@@ -239,6 +242,7 @@ export default function WriteFormScreen() {
                     category={newsCategory ?? ""}
                     sentiment={newsSentiment ?? ""}
                     source={newsSource ?? ""}
+                    imageUrl={newsImageUrl ?? ""}
                   />
                   <Pressable
                     onPress={handleRemoveNews}

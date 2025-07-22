@@ -1,5 +1,5 @@
 import { typography } from "@/styles/typography";
-import { StyleSheet, Text, View } from "react-native";
+import { Image, StyleSheet, Text, View } from "react-native";
 
 type NewsProps = {
   id: string;
@@ -8,6 +8,7 @@ type NewsProps = {
   category: string;
   sentiment: string;
   source: string;
+  imageUrl: string;
 };
 
 export default function News({
@@ -17,6 +18,7 @@ export default function News({
   date,
   category,
   sentiment,
+  imageUrl,
 }: NewsProps) {
   let sentimentColor = "#484F56";
   let sentimentBgColor = "#EDEEEF";
@@ -68,7 +70,15 @@ export default function News({
           </View>
         </View>
       </View>
-      <View style={styles.imagePlaceholder} />
+      {imageUrl ? (
+        <Image
+          source={{ uri: imageUrl }}
+          style={styles.imagePlaceholder}
+          resizeMode="cover"
+        />
+      ) : (
+        <View style={styles.imagePlaceholder} />
+      )}
     </View>
   );
 }

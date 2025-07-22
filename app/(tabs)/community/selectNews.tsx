@@ -24,6 +24,7 @@ type NewsItem = {
   thema: string;
   sentiment: string;
   source: string;
+  imageUrl: string;
   voteNum: string;
   view: number;
   commentNum: string;
@@ -76,6 +77,7 @@ export default function SelectNewsScreen() {
           thema: item.thema,
           date: item.date,
           sentiment: String(item.sentiment),
+          imageUrl: item.imageUrl,
           view: item.view,
           commentNum: String(item.commentNum),
           voteNum: String(item.voteNum),
@@ -112,6 +114,7 @@ export default function SelectNewsScreen() {
         date: news.date,
         newsSource: news.source,
         newsCategory: news.thema,
+        newsImageUrl: news.imageUrl,
         source: news.source,
         sentiment: news.sentiment,
         formTitle: formTitle ?? "",
