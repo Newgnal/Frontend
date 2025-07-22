@@ -5,6 +5,7 @@ import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import NewsCard from "@/components/NewsCard";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -82,7 +83,7 @@ export default function SelectNewsScreen() {
           id: String(item.id),
           title: item.title,
           source: item.source,
-          thema: item.thema,
+          thema: convertThemaToKor(item.thema),
           date: formatDate(item.date),
           sentiment: String(Math.round(item.sentiment * 100) / 100),
           imageUrl: item.imageUrl,

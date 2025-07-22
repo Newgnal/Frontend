@@ -10,6 +10,7 @@ import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { ToggleSwitch } from "@/components/ui/mypage/ToggleSwitch";
 import { typography } from "@/styles/typography";
+import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -160,7 +161,7 @@ export default function WriteFormScreen() {
         category: thema,
         formTitle: title,
         content,
-        newsId: newsId ?? "",
+        newsId: "",
         voteEnabled: voteEnabled.toString(),
         newsImageUrl: newsImageUrl,
       },
@@ -239,7 +240,9 @@ export default function WriteFormScreen() {
                     id={newsId ?? ""}
                     title={newsTitle ?? ""}
                     date={newsDate ?? ""}
-                    category={newsCategory ?? ""}
+                    category={
+                      newsCategory ? convertThemaToKor(newsCategory) : ""
+                    }
                     sentiment={newsSentiment ?? ""}
                     source={newsSource ?? ""}
                     imageUrl={newsImageUrl ?? ""}
