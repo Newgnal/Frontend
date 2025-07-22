@@ -76,7 +76,7 @@ export default function SelectNewsScreen() {
           source: item.source,
           thema: item.thema,
           date: item.date,
-          sentiment: String(item.sentiment),
+          sentiment: String(Math.round(item.sentiment * 100) / 100),
           imageUrl: item.imageUrl,
           view: item.view,
           commentNum: String(item.commentNum),
