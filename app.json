@@ -4,7 +4,7 @@
     "slug": "newgnal-fe",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/push_logo.png",
+    "icon": "./assets/images/newgnalIcon.png",
     "scheme": "newgnalfe",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -15,7 +15,7 @@
       "package": "com.daheejang.newgnalfe",
       "googleServicesFile": "./android/app/google-services.json",
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/newgnalIcon.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true
