@@ -83,7 +83,13 @@ export default function SearchScreen() {
       </View>
       <View style={styles.divider} />
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={{ ...typography.title_t2_18_semi_bold, color: "#111" }}>
+        <Text
+          style={{
+            ...typography.title_t2_18_semi_bold,
+            color: "#111",
+            marginBottom: 16,
+          }}
+        >
           최근 검색어
         </Text>
         <View style={styles.tagContainer}>

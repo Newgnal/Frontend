@@ -73,13 +73,15 @@ export default function NewsCard({ item }: Props) {
         )}
       </View>
 
-      <HorizontalLine />
+      <View style={{ marginTop: 12 }}>
+        <HorizontalLine />
+      </View>
     </Pressable>
   );
 }
 const styles = StyleSheet.create({
   card: {
-    marginBottom: 16,
+    marginBottom: 8,
     paddingBottom: 12,
   },
   header: {
