@@ -2,7 +2,7 @@ import IcMoveActive from "@/assets/images/ic_move_active.svg";
 import IcThemeModalActive from "@/assets/images/ic_them_modal-1.svg";
 import IcThemeModal from "@/assets/images/ic_them_modal.svg";
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import DraggableFlatList, {
   ScaleDecorator,
@@ -82,13 +82,26 @@ export default function CategoryFilterModal({
   onClose,
   selectedKey,
   onSelect,
+  isPost = false,
 }: {
   isVisible: boolean;
   onClose: () => void;
   selectedKey: string;
   onSelect: (key: string) => void;
+  isPost?: boolean;
 }) {
-  const [chips, setChips] = useState(initialChipOptions);
+  const [chips, setChips] = useState<{ key: string; label: string }[]>([]);
+
+  // 모달 열릴 때마다 chips 업데이트
+  useEffect(() => {
+    if (isVisible) {
+      setChips(
+        isPost
+          ? [{ key: "all", label: "전체" }, ...initialChipOptions]
+          : [...initialChipOptions]
+      );
+    }
+  }, [isVisible, isPost]);
   const [isSortMode, setSortMode] = useState(false);
 
   const handleSelect = (key: string) => {

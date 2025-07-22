@@ -2,7 +2,7 @@ import IcComnt from "@/assets/images/ic_comnt.svg";
 import IcPoll from "@/assets/images/ic_poll.svg";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { typography } from "@/styles/typography";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 
 interface NewsItem {
   id: string;
@@ -11,6 +11,7 @@ interface NewsItem {
   thema: string;
   date: string;
   sentiment: string;
+  imageUrl: string;
   view: number;
   commentNum: string;
   voteNum: string;
@@ -24,6 +25,7 @@ export default function NewsCard({
   date,
   thema,
   sentiment,
+  imageUrl,
   view,
   source,
   voteNum,
@@ -66,7 +68,15 @@ export default function NewsCard({
           </View>
         </View>
 
-        <View style={styles.imagePlaceholder} />
+        {imageUrl ? (
+          <Image
+            source={{ uri: imageUrl }}
+            style={styles.imagePlaceholder}
+            resizeMode="cover"
+          />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
       </View>
       <HorizontalLine />
     </Pressable>

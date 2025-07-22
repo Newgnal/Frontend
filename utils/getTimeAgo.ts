@@ -1,5 +1,5 @@
 export function getTimeAgo(updatedAt?: string, createdAt?: string): string {
-  const baseTimeString = updatedAt || createdAt;
+  const baseTimeString = createdAt;
 
   if (!baseTimeString) return "";
 

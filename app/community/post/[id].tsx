@@ -39,7 +39,7 @@ import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
@@ -65,6 +65,7 @@ interface Reply {
 
 interface Post {
   postId: number;
+  newsId?: string;
   postTitle: string;
   postContent: string;
   articleUrl: string;
@@ -156,20 +157,34 @@ export default function PostScreen() {
     "BUY" | "HOLD" | "SELL" | null
   >(null);
 
-  const [hasVoted, setHasVoted] = useState(false);
+  const [hasVoted, setHasVoted] = useState(false); // 게시글이 투표 갖고있는지 여부
+  const [userVoted, setUserVoted] = useState(false); // 사용자 투표 여부
   const pollLabels = ["매도", "보유", "매수"];
 
-  const pollResults = vote
-    ? {
-        SELL: vote.sellCount,
-        HOLD: vote.holdCount,
-        BUY: vote.buyCount,
-      }
-    : {
-        SELL: 25,
-        HOLD: 40,
-        BUY: 35,
-      };
+  // const pollResults = vote
+  //   ? {
+  //       SELL: vote.sellCount ?? 0,
+  //       HOLD: vote.holdCount ?? 0,
+  //       BUY: vote.buyCount ?? 0,
+  //     }
+  //   : {
+  //       SELL: 25,
+  //       HOLD: 35,
+  //       BUY: 35,
+  //     };
+  const pollResults = useMemo(() => {
+    return vote
+      ? {
+          SELL: vote.sellCount ?? 0,
+          HOLD: vote.holdCount ?? 0,
+          BUY: vote.buyCount ?? 0,
+        }
+      : {
+          SELL: 25,
+          HOLD: 40,
+          BUY: 35,
+        };
+  }, [vote]);
 
   const pollTotalCount = pollResults.SELL + pollResults.HOLD + pollResults.BUY;
 
@@ -238,7 +253,20 @@ export default function PostScreen() {
 
         setPost(res.data.post);
         setComments(res.data.comments);
+
         setVote(res.data.vote);
+        if (res.data.vote) {
+          setHasVoted(true);
+          setSelectedPoll(res.data.vote.voteType);
+          setUserVoted(res.data.vote.voteType !== null);
+        }
+
+        console.log("post", post);
+        console.log("comment", comments);
+        console.log("vote", vote);
+        console.log("vote.holdCount", vote?.holdCount);
+        console.log("typeof", typeof vote?.holdCount);
+        console.log("userVoted", userVoted);
         // setHasVoted(res.data.vote?.isVoted || false);
         // if (res.data.vote?.myVoteType) { // API 응답에 내 투표 타입 필드가 있을 경우에 이 코드 사용
         //         setSelectedPoll(res.data.vote.myVoteType);
@@ -451,6 +479,7 @@ export default function PostScreen() {
   const handleCommentLike = async (commentId: number) => {
     try {
       const res = await toggleCommentLikeById(commentId);
+      console.log(commentId);
 
       setLikedComments((prev) => ({
         ...prev,
@@ -463,13 +492,19 @@ export default function PostScreen() {
           c.commentId === commentId
             ? {
                 ...c,
-                likeCount: res.liked ? c.likeCount + 1 : c.likeCount - 1,
+                likeCount: res.liked
+                  ? c.likeCount + 1
+                  : Math.max(0, c.likeCount - 1),
               }
             : c
         )
       );
     } catch (err) {
       Toast.show({ type: "error", text1: "댓글 좋아요 실패" });
+      console.log("댓글 좋아요 실패", err);
+      console.log(commentId);
+      console.log(typeof commentId);
+      // console.log("에러 응답:", err.response?.data);
     }
   };
 
@@ -492,7 +527,7 @@ export default function PostScreen() {
                   ...reply,
                   likeCount: res.liked
                     ? reply.likeCount + 1
-                    : reply.likeCount - 1,
+                    : Math.max(0, reply.likeCount - 1),
                 }
               : reply
           ),
@@ -512,6 +547,13 @@ export default function PostScreen() {
       } else {
         await writeComment(numericPostId, { comment: commentText });
       }
+      setPost((prevPost) => {
+        if (!prevPost) return null;
+        return {
+          ...prevPost,
+          commentCount: prevPost.commentCount + 1,
+        };
+      });
 
       setCommentText("");
       setReplyTargetId(null);
@@ -532,12 +574,23 @@ export default function PostScreen() {
 
   const handleVote = async (voteType: "BUY" | "HOLD" | "SELL") => {
     try {
-      const updatedVote = await votePost({ postId: numericPostId, voteType }); // 여기서 데이터 가져올 수 있나 보기
+      const updatedVote = await votePost({ postId: numericPostId, voteType });
       setVote(updatedVote);
-      setHasVoted(true);
+      console.log(vote);
+
       setSelectedPoll(voteType);
+      const newVotePost = await getPostById(numericPostId);
+      setVote(newVotePost.data.vote);
+      setUserVoted(true);
+      console.log("투표 타입:", voteType);
+
+      console.log("API 응답:", updatedVote);
+      console.log("selectedPoll:", selectedPoll);
+
+      console.log("hasVoted:", hasVoted);
     } catch (err) {
       Toast.show({ type: "error", text1: "투표 실패" });
+      console.log(err);
     }
   };
 
@@ -581,6 +634,7 @@ export default function PostScreen() {
               onTogglePostLike={handlePostLike}
               item={{
                 postId: post.postId,
+                newsId: post.newsId,
                 nickname: post.nickname,
                 createdAt: post.createdAt,
                 thema: post.thema,
@@ -605,6 +659,7 @@ export default function PostScreen() {
                   opinionTheme={opinionTheme}
                   selectedPoll={selectedPoll}
                   hasVoted={hasVoted}
+                  userVoted={userVoted}
                   onSelectPoll={handleVote}
                 />
               </View>
@@ -641,7 +696,7 @@ export default function PostScreen() {
                             {getTimeAgo(comment.createdAt)}
                           </Text>
                         </View>
-                        {comment.voteType && opinionTheme[comment.voteType] ? (
+                        {comment.voteType && opinionTheme[korVoteType] ? (
                           <View
                             style={[
                               styles.positiveTag,

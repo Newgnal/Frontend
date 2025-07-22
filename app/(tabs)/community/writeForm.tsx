@@ -42,6 +42,7 @@ export default function WriteFormScreen() {
     title: newsTitle,
     newsCategory,
     newsSource,
+    newsImageUrl,
     date: newsDate,
     sentiment: newsSentiment,
     formTitle: initialTitle,
@@ -58,6 +59,7 @@ export default function WriteFormScreen() {
     category?: string;
     newsSource?: string;
     newsCategory?: string;
+    newsImageUrl?: string;
     id?: string;
     title?: string;
     date?: string;
@@ -109,7 +111,7 @@ export default function WriteFormScreen() {
         await updatePost(Number(postId), {
           postTitle: title,
           postContent: content,
-          newsId: newsId ? Number(newsId) : undefined,
+          newsId: newsId ? Number(newsId) : 10000,
           thema: categoryMap[thema] ?? "UNKNOWN",
           hasVote: voteEnabled,
         });
@@ -119,7 +121,7 @@ export default function WriteFormScreen() {
         await createPost({
           postTitle: title,
           postContent: content,
-          newsId: !isNaN(parsedNewsId) ? parsedNewsId : undefined,
+          newsId: !isNaN(parsedNewsId) ? parsedNewsId : 10000,
           thema: categoryMap[thema] ?? "UNKNOWN",
           hasVote: voteEnabled,
         });
@@ -133,6 +135,7 @@ export default function WriteFormScreen() {
         text1: "등록 실패",
         text2: "다시 시도해주세요.",
       });
+      console.log("글 등록 실패", error);
     }
   };
 
@@ -159,6 +162,7 @@ export default function WriteFormScreen() {
         content,
         newsId: newsId ?? "",
         voteEnabled: voteEnabled.toString(),
+        newsImageUrl: newsImageUrl,
       },
     });
   };
@@ -238,6 +242,7 @@ export default function WriteFormScreen() {
                     category={newsCategory ?? ""}
                     sentiment={newsSentiment ?? ""}
                     source={newsSource ?? ""}
+                    imageUrl={newsImageUrl ?? ""}
                   />
                   <Pressable
                     onPress={handleRemoveNews}

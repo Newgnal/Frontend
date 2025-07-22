@@ -55,6 +55,6 @@ interface ReportReplyResponse {
 export const reportReplyById = async (
   replyId: number
 ): Promise<ReportReplyResponse> => {
-  const res = await axiosInstance.patch(`/post/v1/reply/${replyId}/report`);
+  const res = await axiosInstance.patch(`/report/v1/reply/${replyId}`);
   return res.data;
 };

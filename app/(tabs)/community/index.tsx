@@ -1,12 +1,12 @@
 import { getCommunityHomeData } from "@/api/communityHomeApi";
 import PlusIcon from "@/assets/images/ic_add.svg";
+import ArrowIcon from "@/assets/images/ic_arrow_down.svg";
 import NextSmIcon from "@/assets/images/ic_next_sm_600.svg";
-import SearchIcon from "@/assets/images/ic_search.svg";
 import FireIcon from "@/assets/images/mingcute_fire-fill.svg";
 import HotTopicList from "@/components/ui/community/HotTopicList";
 import TopicList from "@/components/ui/community/TopicList";
-import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
+import CategoryFilterModal from "@/components/ui/modal/categoryFilterModal";
 import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
 import { useRouter } from "expo-router";
@@ -19,6 +19,8 @@ export default function CommunityScreen() {
   const [topThemes, setTopThemes] = useState<string[]>([]);
   const [hotTopics, setHotTopics] = useState([]);
   const [recentPosts, setRecentPosts] = useState([]);
+  const [isChipVisible, setIsChipVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("all");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -39,16 +41,36 @@ export default function CommunityScreen() {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <Header
-          title="홈"
-          leftSlot={<View />}
-          rightSlot={
-            <>
-              <SearchIcon />
+        <View style={styles.header}>
+          <View style={styles.sideContainer}>
+            <Pressable onPress={() => router.back()}>
+              <View style={{ width: 30 }} />
+            </Pressable>
+          </View>
+
+          <Pressable
+            style={styles.titleContainer}
+            onPress={() => setIsChipVisible(true)}
+          >
+            <Text style={[typography.title_t2_18_semi_bold]}>홈</Text>
+            <ArrowIcon style={{ marginTop: 5 }} />
+          </Pressable>
+
+          <View
+            style={[
+              styles.sideContainer,
+              { justifyContent: "flex-end", gap: 12 },
+            ]}
+          >
+            <Pressable
+              onPress={() => {
+                setIsChipVisible(true);
+              }}
+            >
               <PlusIcon />
-            </>
-          }
-        />
+            </Pressable>
+          </View>
+        </View>
 
         <ScrollView contentContainerStyle={{ justifyContent: "center" }}>
           <View style={{ padding: 20 }}>
@@ -108,7 +130,10 @@ export default function CommunityScreen() {
                   alignItems: "center",
                 }}
                 onPress={() => {
-                  router.push("/(tabs)/community/detail");
+                  router.push({
+                    pathname: "/community/detail/[categoryid]",
+                    params: { categoryid: "all" },
+                  });
                 }}
               >
                 <Text
@@ -140,7 +165,12 @@ export default function CommunityScreen() {
             >
               더 많은 테마 이야기가 궁금하신가요?
             </Text>
-            <View style={{ backgroundColor: "#2E3439", borderRadius: 12 }}>
+            <Pressable
+              style={{ backgroundColor: "#2E3439", borderRadius: 12 }}
+              onPress={() => {
+                setIsChipVisible(true);
+              }}
+            >
               <Text
                 style={[
                   typography.subtitle_s3_15_semi_bold,
@@ -149,10 +179,27 @@ export default function CommunityScreen() {
               >
                 궁금한 테마 보러가기
               </Text>
-            </View>
+            </Pressable>
           </View>
         </ScrollView>
       </SafeAreaView>
+      {isChipVisible && (
+        <CategoryFilterModal
+          isVisible={isChipVisible}
+          onClose={() => setIsChipVisible(false)}
+          selectedKey={selectedCategory}
+          onSelect={(key) => {
+            setIsChipVisible(false);
+            setSelectedCategory(key);
+            if (key === "all") {
+              router.push(`/(tabs)/community/detail/all` as any);
+            } else {
+              router.push(`/(tabs)/community/detail/${key}` as any);
+            }
+          }}
+          isPost={true}
+        />
+      )}
     </>
   );
 }
@@ -185,5 +232,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 36,
     paddingVertical: 24,
     alignItems: "center",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    paddingVertical: 15,
+    width: "100%",
+  },
+  sideContainer: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  titleContainer: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    alignItems: "center",
+    zIndex: -1,
+    flexDirection: "row",
+    justifyContent: "center",
   },
 });

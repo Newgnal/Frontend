@@ -60,6 +60,6 @@ interface ReportCommentResponse {
 export const reportCommentById = async (
   commentId: number
 ): Promise<ReportCommentResponse> => {
-  const res = await axiosInstance.patch(`/post/v1/comment/${commentId}/report`);
+  const res = await axiosInstance.patch(`/report/v1/comment/${commentId}`);
   return res.data;
 };

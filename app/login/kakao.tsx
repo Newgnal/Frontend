@@ -27,11 +27,11 @@ export default function LoginScreen() {
           const { data } = await axiosInstance.post(
             `/auth/v1/login/kakao?code=${code}`
           );
-          // console.log("백엔드 응답:", data);
+          console.log("백엔드 응답:", data);
           const jwtToken = data?.data?.jwtAccessToken;
           if (jwtToken) {
             const pureToken = jwtToken.replace(/^Bearer\s/, "");
-            // console.log("Bearer 제거된 토큰:", pureToken);
+            console.log("Bearer 제거된 토큰:", pureToken);
             await AsyncStorage.setItem("access_token", pureToken);
             await checkAuth();
             router.replace("/(tabs)/home");

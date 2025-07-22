@@ -18,5 +18,5 @@ export const votePost = async (
   data: VotePostRequest
 ): Promise<VotePostResponse> => {
   const res = await axiosInstance.post("/post/v1/vote", data);
-  return res.data;
+  return res.data.vote;
 };

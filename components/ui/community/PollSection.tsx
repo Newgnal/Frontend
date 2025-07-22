@@ -15,6 +15,7 @@ type PollSectionProps = {
   opinionTheme: Record<string, OpinionTheme>; // 각 투표 항목 라벨별 스타일 테마 설정
   selectedPoll: "BUY" | "HOLD" | "SELL" | null; // 사용자가 선택한 항목 (투표 전에는 null)
   hasVoted: boolean; // 사용자 투표 여부
+  userVoted: boolean;
   onSelectPoll: (voteType: "BUY" | "HOLD" | "SELL") => void | Promise<void>; // 투표 항목 클릭 시 함수 호출
 };
 
@@ -25,6 +26,7 @@ export const PollSection = ({
   opinionTheme,
   selectedPoll,
   hasVoted,
+  userVoted,
   onSelectPoll,
 }: PollSectionProps) => {
   return (
@@ -49,11 +51,11 @@ export const PollSection = ({
                   },
                 ]}
                 onPress={() => {
-                  if (!hasVoted) {
+                  if (!userVoted) {
                     onSelectPoll(voteType);
                   }
                 }}
-                disabled={hasVoted}
+                disabled={userVoted}
               >
                 {theme.icon?.(isSelected ? theme.textColor : "#9CA3AF")}
                 <Text
@@ -74,7 +76,7 @@ export const PollSection = ({
         </View>
       </View>
 
-      {hasVoted && (
+      {userVoted && (
         <View style={styles.resultContainer}>
           <View style={styles.opinionHeader}>
             <Text style={{ fontWeight: "bold", fontSize: 15 }}>
