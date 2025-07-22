@@ -32,6 +32,14 @@ type NewsItem = {
   onPress?: () => void;
 };
 
+const formatDate = (iso: string) => {
+  const date = new Date(iso);
+  return `${date.getFullYear()}.${String(date.getMonth() + 1).padStart(
+    2,
+    "0"
+  )}.${String(date.getDate()).padStart(2, "0")}`;
+};
+
 export default function SelectNewsScreen() {
   const [searchText, setSearchText] = useState("");
   const router = useRouter();
@@ -75,7 +83,7 @@ export default function SelectNewsScreen() {
           title: item.title,
           source: item.source,
           thema: item.thema,
-          date: item.date,
+          date: formatDate(item.date),
           sentiment: String(Math.round(item.sentiment * 100) / 100),
           imageUrl: item.imageUrl,
           view: item.view,
@@ -142,7 +150,14 @@ export default function SelectNewsScreen() {
       onPress={() => handleSelectNews(item)}
     />
   );
+  const [currentTime, setCurrentTime] = useState("");
 
+  useEffect(() => {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, "0");
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    setCurrentTime(`${hours}:${minutes}`);
+  }, []);
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -166,7 +181,7 @@ export default function SelectNewsScreen() {
       </View>
 
       <HorizontalLine />
-      <Text style={styles.time}>18:49 기준</Text>
+      <Text style={styles.time}>{currentTime} 기준</Text>
 
       <FlatList
         data={newsList}
