@@ -13,6 +13,13 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AlarmScreen() {
+  const [isNewsKeywordEnabled, setIsNewsKeywordEnabled] = useState(false);
+  const [isCommentEnabled, setIsCommentEnabled] = useState(false);
+  const [isLikeEnabled, setIsLikeEnabled] = useState(false);
+  const [isVoteEndedEnabled, setIsVoteEndedEnabled] = useState(false);
+  const [isReplyEnabled, setIsReplyEnabled] = useState(false);
+  const [isNoticeEnabled, setIsNoticeEnabled] = useState(false);
+  const [isMarketingPushEnabled, setIsMarketingPushEnabled] = useState(false);
   const router = useRouter();
   // const [newsTime, setNewsTime] = useState(() => {
   //   const date = new Date();
@@ -71,7 +78,10 @@ export default function AlarmScreen() {
                 </Text>
               </View>
               <View>
-                <ToggleSwitch />
+                <ToggleSwitch
+                  value={isNewsKeywordEnabled}
+                  onToggle={setIsNewsKeywordEnabled}
+                />
               </View>
             </View>
             {/* <View style={styles.option}>
@@ -98,19 +108,28 @@ export default function AlarmScreen() {
             <Text style={typography.subtitle_s2_16_semi_bold}>커뮤니티</Text>
             <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>내 글에 댓글</Text>
-              <ToggleSwitch />
+              <ToggleSwitch
+                value={isCommentEnabled}
+                onToggle={setIsCommentEnabled}
+              />
             </View>
             <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>내 글에 좋아요</Text>
-              <ToggleSwitch />
+              <ToggleSwitch value={isLikeEnabled} onToggle={setIsLikeEnabled} />
             </View>
             <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>내 글 투표 마감</Text>
-              <ToggleSwitch />
+              <ToggleSwitch
+                value={isVoteEndedEnabled}
+                onToggle={setIsVoteEndedEnabled}
+              />
             </View>
             <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>답글 알림 받기</Text>
-              <ToggleSwitch />
+              <ToggleSwitch
+                value={isReplyEnabled}
+                onToggle={setIsReplyEnabled}
+              />
             </View>
           </View>
           <HorizontalLine style={{ marginBottom: 20, marginTop: 12 }} />
@@ -118,7 +137,10 @@ export default function AlarmScreen() {
             <Text style={typography.subtitle_s2_16_semi_bold}>공지사항</Text>
             <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>공지사항</Text>
-              <ToggleSwitch />
+              <ToggleSwitch
+                value={isNoticeEnabled}
+                onToggle={setIsNoticeEnabled}
+              />
             </View>
           </View>
           <HorizontalLine style={{ marginBottom: 20, marginTop: 12 }} />
@@ -128,7 +150,10 @@ export default function AlarmScreen() {
             </Text>
             <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>앱 푸시</Text>
-              <ToggleSwitch />
+              <ToggleSwitch
+                value={isMarketingPushEnabled}
+                onToggle={setIsMarketingPushEnabled}
+              />
             </View>
             <View style={[styles.option, { paddingVertical: 8 }]}>
               <Text style={typography.body_b3_14_regular}>
