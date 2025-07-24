@@ -20,7 +20,7 @@ import {
   View,
 } from "react-native";
 
-import { getSentimentScores } from "@/api/useSentimentApi";
+import { getHomeAnalytics } from "@/api/useHomeChart";
 
 interface Props {
   selectedCategoryId: string;
@@ -30,6 +30,10 @@ export default function HomeMain({ selectedCategoryId }: Props) {
   const router = useRouter();
   const [mainNews, setMainNews] = useState<NewsItem[]>([]);
   const [showTooltip, setShowTooltip] = useState(false);
+
+  const [sentimentLabels, setSentimentLabels] = useState<string[]>([]);
+  const [sentimentData, setSentimentData] = useState<number[]>([]);
+  const [volumeData, setVolumeData] = useState<number[]>([]);
 
   const categoryDisplayNames: Record<string, string> = {
     semiconductor: "반도체/AI",
@@ -70,37 +74,36 @@ export default function HomeMain({ selectedCategoryId }: Props) {
   }${avgSentiment.toFixed(2)}`;
 
   useEffect(() => {
-    const fetchNews = async () => {
+    const fetchData = async () => {
       try {
         const code = categoryCodeMap[selectedCategoryId];
         if (!code) return;
 
-        const data = await getThemeNews(code, "views");
-
-        if (!data?.content || !Array.isArray(data.content)) return;
-
-        setMainNews(data.content.slice(0, 2));
-        const topNews = data.content.slice(0, 2);
+        // 주요 뉴스 가져오기
+        const newsData = await getThemeNews(code, "views");
+        const topNews = newsData.content?.slice(0, 2) || [];
         setMainNews(topNews);
 
-        const titles = topNews.map((n) => n.title);
-        console.log("요청 타이틀", titles);
-        if (titles.length) {
-          const scores = await getSentimentScores(titles);
-          console.log("응답 스코어", scores);
-          if (scores.length) {
-            const avg =
-              scores.reduce((acc, cur) => acc + cur, 0) / scores.length;
-            console.log("평균 감성 점수", avg);
-            setAvgSentiment(parseFloat(avg.toFixed(2)));
-          }
-        }
+        // 감성/뉴스량 통합 데이터 가져오기
+        const analytics = await getHomeAnalytics(code);
+
+        const labels = analytics.map((d) => d.date.slice(5).replace("-", ".")); // 예: "07.24"
+        const sentiment = analytics.map((d) => d.avgSentiment);
+        const volume = analytics.map((d) => d.newsCount);
+
+        setSentimentLabels(labels);
+        setSentimentData(sentiment);
+        setVolumeData(volume);
+
+        const avg =
+          sentiment.reduce((acc, cur) => acc + cur, 0) / sentiment.length;
+        setAvgSentiment(parseFloat(avg.toFixed(2)));
       } catch (err) {
-        console.error("주요 뉴스 불러오기 실패:", err);
+        console.error("홈 차트 데이터 로딩 실패:", err);
       }
     };
 
-    fetchNews();
+    fetchData();
   }, [selectedCategoryId]);
 
   return (
@@ -129,44 +132,51 @@ export default function HomeMain({ selectedCategoryId }: Props) {
             </TouchableOpacity>
           </View>
 
-          <FlatList
-            horizontal
-            data={mainNews}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={{ paddingRight: 0 }}
-            ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
-            showsHorizontalScrollIndicator={false}
-            renderItem={({ item }) => {
-              const formattedDate = new Date(item.date)
-                .toISOString()
-                .slice(0, 10)
-                .replace(/-/g, ".");
-
-              return (
-                <TouchableOpacity
-                  onPress={() =>
-                    router.push({
-                      pathname: "/news/[id]",
-                      params: { id: item.id },
-                    })
-                  }
-                >
-                  <View style={styles.newsCard}>
-                    {item.imageUrl && (
-                      <Image
-                        source={{ uri: item.imageUrl }}
-                        style={styles.newsImage}
-                      />
-                    )}
-                    <Text numberOfLines={2} style={styles.newsTitle}>
-                      {item.title}
-                    </Text>
-                    <Text style={styles.newsMeta}>{formattedDate}</Text>
-                  </View>
-                </TouchableOpacity>
-              );
-            }}
-          />
+          {mainNews.length > 0 ? (
+            <FlatList
+              horizontal
+              data={mainNews}
+              keyExtractor={(item) => item.id.toString()}
+              contentContainerStyle={{ paddingRight: 0 }}
+              ItemSeparatorComponent={() => <View style={{ width: 12 }} />}
+              showsHorizontalScrollIndicator={false}
+              renderItem={({ item }) => {
+                const formattedDate = new Date(item.date)
+                  .toISOString()
+                  .slice(0, 10)
+                  .replace(/-/g, ".");
+                return (
+                  <TouchableOpacity
+                    onPress={() =>
+                      router.push({
+                        pathname: "/news/[id]",
+                        params: { id: item.id },
+                      })
+                    }
+                  >
+                    <View style={styles.newsCard}>
+                      <View style={styles.newsImageWrapper}>
+                        {item.imageUrl ? (
+                          <Image
+                            source={{ uri: item.imageUrl }}
+                            style={styles.newsImage}
+                          />
+                        ) : (
+                          <View style={styles.newsImage} />
+                        )}
+                      </View>
+                      <Text numberOfLines={2} style={styles.newsTitle}>
+                        {item.title}
+                      </Text>
+                      <Text style={styles.newsMeta}>{formattedDate}</Text>
+                    </View>
+                  </TouchableOpacity>
+                );
+              }}
+            />
+          ) : (
+            <View style={{ height: 160 }} />
+          )}
         </View>
 
         <View style={styles.sectionContainer}>
@@ -194,7 +204,11 @@ export default function HomeMain({ selectedCategoryId }: Props) {
           </View>
 
           <View style={styles.chartBox}>
-            <SentimentChart color={sentimentColor} />
+            <SentimentChart
+              color={sentimentColor}
+              labels={sentimentLabels}
+              data={sentimentData}
+            />
           </View>
 
           <View
@@ -204,7 +218,11 @@ export default function HomeMain({ selectedCategoryId }: Props) {
             ]}
           >
             <Text style={styles.newsVolumeTitle}>뉴스 수</Text>
-            <NewsVolumeChart color={sentimentColor} />
+            <NewsVolumeChart
+              color={sentimentColor}
+              labels={sentimentLabels}
+              data={volumeData}
+            />
           </View>
         </View>
       </View>
@@ -290,5 +308,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
     color: "#FFFFFF",
     ...typography.caption_c2_12_regular,
+  },
+  newsImageWrapper: {
+    height: 100,
+    width: 182,
+    backgroundColor: "#dcdcdc",
+    borderRadius: 8,
+    marginBottom: 8,
+    overflow: "hidden",
   },
 });
