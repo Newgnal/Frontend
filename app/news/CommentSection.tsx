@@ -101,7 +101,7 @@ const CommentSection = forwardRef<View, Props>(
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={90}
       >
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1 }} ref={ref}>
           <ScrollView
             contentContainerStyle={styles.commentSection}
             showsVerticalScrollIndicator={false}
