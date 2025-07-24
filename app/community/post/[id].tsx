@@ -17,6 +17,7 @@ import {
   toggleReplyLikeById,
   writeReply,
 } from "@/api/replyPostApi";
+import { getNewsById } from "@/api/useNewsApi";
 import { votePost } from "@/api/votePostApi";
 import IcComntEtc from "@/assets/images/ic_cmnt_etc (1).svg";
 import EtcVerIcon from "@/assets/images/ic_cmnt_etc_ver.svg";
@@ -40,6 +41,7 @@ import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
 import { useAuth } from "@/context/authContext";
 import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
+import { formatDate } from "@/utils/formatDate";
 import { getTimeAgo } from "@/utils/getTimeAgo";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
@@ -81,6 +83,12 @@ interface Post {
   hasVote: boolean;
   viewCount: number;
   commentCount: number;
+  editNewsSource?: string;
+  editNewsSentiment?: string;
+  editNewsCategory?: string;
+  editNewsImageUrl?: string;
+  editNewsTitle?: string;
+  editNewsDate?: string;
   isLiked?: boolean; // 현재 사용자가 게시물에 좋아요를 눌렀는지 여부
 }
 
@@ -103,6 +111,7 @@ export default function PostScreen() {
   // ----------------- 상태 관리 ---------------------
 
   const [post, setPost] = useState<Post | null>(null);
+  const [news, setNews] = useState<any | null>(null);
   // const [vote, setVote] = useState<any | null>(null); // 사용되지 않아 주석 처리
   const [comments, setComments] = useState<Comment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -280,6 +289,15 @@ export default function PostScreen() {
           setUserVoted(res.data.vote.voteType !== null);
         }
 
+        if (res.data.post.newsId) {
+          try {
+            const newsRes = await getNewsById(res.data.post.newsId);
+            setNews(newsRes);
+          } catch (e) {
+            console.warn("뉴스 정보 불러오기 실패", e);
+          }
+        }
+
         console.log("post", post);
         console.log("comment", comments);
         console.log("vote", vote);
@@ -360,12 +378,19 @@ export default function PostScreen() {
         postId: post.postId.toString(),
         editTitle: post.postTitle,
         editContent: post.postContent,
-        editArticleUrl: post.articleUrl,
+        editNewsId: post.newsId,
         editThema: convertThemaToKor(post.thema),
         editVoteEnabled: post.hasVote.toString(),
+        editNewsSource: news.source,
+        editNewsSentiment: String(Math.round(news.sentiment * 100) / 100),
+        editNewsCategory: news.thema,
+        editNewsImageUrl: news.imageUrl,
+        editNewsTitle: news.title,
+        editNewsDate: formatDate(news.date),
         mode: "edit",
       },
     });
+    console.log(post.newsId);
   };
 
   const handlePostDelete = async () => {

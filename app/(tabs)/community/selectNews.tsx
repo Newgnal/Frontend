@@ -137,8 +137,14 @@ export default function SelectNewsScreen() {
           editTitle: formTitle ?? "",
           editContent: content ?? "",
           editHasVoted: hasVoted === "true" ? "true" : "false",
-          // editArticleUrl: news.url, -> Id로 수정
+          editNewsId: news.id,
           editThema: category ?? "",
+          editNewsSource: news.source,
+          editNewsSentiment: news.sentiment,
+          editNewsCategory: news.thema,
+          editNewsImageUrl: news.imageUrl,
+          editNewsTitle: news.title,
+          editNewsDate: news.date,
         }),
       },
     });

@@ -38,6 +38,12 @@ export default function WriteFormScreen() {
     editVoteEnabled,
     editNewsId,
     editThema,
+    editNewsSource,
+    editNewsSentiment,
+    editNewsCategory,
+    editNewsImageUrl,
+    editNewsTitle,
+    editNewsDate,
 
     id,
     title: newsTitle,
@@ -70,6 +76,12 @@ export default function WriteFormScreen() {
     content?: string;
     formTitle?: string;
     voteEnabled?: string;
+    editNewsSource?: string;
+    editNewsSentiment?: string;
+    editNewsCategory?: string;
+    editNewsImageUrl?: string;
+    editNewsTitle?: string;
+    editNewsDate?: string;
   }>();
 
   const isEdit = !!postId;
@@ -109,10 +121,11 @@ export default function WriteFormScreen() {
     if (!title || !content) return;
     try {
       if (isEdit) {
+        const parsedNewsId = parseInt(newsId ?? "", 10);
         await updatePost(Number(postId), {
           postTitle: title,
           postContent: content,
-          newsId: newsId ? Number(newsId) : 10000,
+          newsId: !isNaN(parsedNewsId) ? parsedNewsId : 10000,
           thema: categoryMap[thema] ?? "UNKNOWN",
           hasVote: voteEnabled,
         });
@@ -122,7 +135,7 @@ export default function WriteFormScreen() {
         await createPost({
           postTitle: title,
           postContent: content,
-          newsId: !isNaN(parsedNewsId) ? parsedNewsId : 10000,
+          newsId: !isNaN(parsedNewsId) ? parsedNewsId : null,
           thema: categoryMap[thema] ?? "UNKNOWN",
           hasVote: voteEnabled,
         });
@@ -155,17 +168,6 @@ export default function WriteFormScreen() {
 
   const handleRemoveNews = () => {
     setNewsId("");
-    router.replace({
-      pathname: "/(tabs)/community/writeForm",
-      params: {
-        category: thema,
-        formTitle: title,
-        content,
-        newsId: "",
-        voteEnabled: voteEnabled.toString(),
-        newsImageUrl: newsImageUrl,
-      },
-    });
   };
 
   return (
@@ -236,17 +238,33 @@ export default function WriteFormScreen() {
                     position: "relative",
                   }}
                 >
-                  <News
-                    id={newsId ?? ""}
-                    title={newsTitle ?? ""}
-                    date={newsDate ?? ""}
-                    category={
-                      newsCategory ? convertThemaToKor(newsCategory) : ""
-                    }
-                    sentiment={newsSentiment ?? ""}
-                    source={newsSource ?? ""}
-                    imageUrl={newsImageUrl ?? ""}
-                  />
+                  {isEdit ? (
+                    <News
+                      id={editNewsId ?? ""}
+                      title={editNewsTitle ?? ""}
+                      date={editNewsDate ?? ""}
+                      category={
+                        editNewsCategory
+                          ? convertThemaToKor(editNewsCategory)
+                          : ""
+                      }
+                      sentiment={editNewsSentiment ?? ""}
+                      source={editNewsSource ?? ""}
+                      imageUrl={editNewsImageUrl ?? ""}
+                    />
+                  ) : (
+                    <News
+                      id={newsId ?? ""}
+                      title={newsTitle ?? ""}
+                      date={newsDate ?? ""}
+                      category={
+                        newsCategory ? convertThemaToKor(newsCategory) : ""
+                      }
+                      sentiment={newsSentiment ?? ""}
+                      source={newsSource ?? ""}
+                      imageUrl={newsImageUrl ?? ""}
+                    />
+                  )}
                   <Pressable
                     onPress={handleRemoveNews}
                     style={{
