@@ -1,12 +1,25 @@
-import { sentimentData } from "@/data/sentimentDummy";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { LineChart } from "react-native-chart-kit";
 import Svg, { Line } from "react-native-svg";
 
 const screenWidth = Dimensions.get("window").width;
-const visibleLabels = ["05.01", "05.08", "05.15", "05.22", "05.31"];
 
-export default function SentimentChart({ color }: { color: string }) {
+interface Props {
+  color: string;
+  labels: string[];
+  data: number[];
+}
+
+export default function SentimentChart({ color, labels, data }: Props) {
+  const filteredLabels = labels.filter((_, i) => i % 7 === 0);
+  const displayLabels = filteredLabels.slice(-5);
+
+  const minFiller = Array(data.length).fill(null);
+  minFiller[0] = -1;
+
+  const maxFiller = Array(data.length).fill(null);
+  maxFiller[0] = 1;
+
   return (
     <View style={styles.container}>
       <View style={styles.chartWrapper}>
@@ -14,22 +27,38 @@ export default function SentimentChart({ color }: { color: string }) {
           <LineChart
             data={{
               labels: [],
-              datasets: [{ data: sentimentData }],
+              datasets: [
+                {
+                  data: minFiller,
+                  withDots: false,
+                  color: () => "transparent",
+                },
+                {
+                  data: maxFiller,
+                  withDots: false,
+                  color: () => "transparent",
+                },
+                {
+                  data,
+                  color: () => color,
+                  withDots: false,
+                },
+              ],
             }}
             width={screenWidth}
             height={126}
+            fromZero={false}
             withDots={false}
             withShadow={false}
             withInnerLines={true}
             withOuterLines={false}
-            withVerticalLines={true}
-            withHorizontalLines={true}
+            withVerticalLines={false}
+            withHorizontalLines={false}
             yAxisInterval={1}
             yLabelsOffset={-6}
             xLabelsOffset={-4}
             formatYLabel={() => ""}
-            segments={2}
-            yAxisSuffix=""
+            segments={2} // y축 기준선을 +1, -1에 맞춰줌
             chartConfig={{
               backgroundColor: "#fff",
               backgroundGradientFrom: "#fff",
@@ -38,7 +67,7 @@ export default function SentimentChart({ color }: { color: string }) {
               color: () => color,
               labelColor: () => "#666",
               propsForBackgroundLines: {
-                strokeWidth: 1,
+                strokeWidth: 0,
                 stroke: "#e5e5e5",
               },
             }}
@@ -55,7 +84,7 @@ export default function SentimentChart({ color }: { color: string }) {
             width={screenWidth}
             style={{ position: "absolute", top: 0, left: 0 }}
           >
-            {visibleLabels.map((_, idx) => {
+            {displayLabels.map((_, idx) => {
               const x = (screenWidth / 5) * idx + screenWidth / 10 - 16;
               return (
                 <Line
@@ -65,7 +94,7 @@ export default function SentimentChart({ color }: { color: string }) {
                   x2={x}
                   y2="126"
                   stroke="#999"
-                  strokeWidth="1.5"
+                  strokeWidth={1.5}
                   strokeDasharray="2 2"
                 />
               );
@@ -81,8 +110,17 @@ export default function SentimentChart({ color }: { color: string }) {
       </View>
 
       <View style={styles.xAxisBox}>
-        {visibleLabels.map((label, idx) => (
-          <Text key={idx} style={styles.xLabel}>
+        {displayLabels.map((label, idx) => (
+          <Text
+            key={idx}
+            style={[
+              styles.xLabel,
+              {
+                width: screenWidth / 5,
+                textAlign: "center",
+              },
+            ]}
+          >
             {label}
           </Text>
         ))}
@@ -115,7 +153,6 @@ const styles = StyleSheet.create({
   },
   xAxisBox: {
     flexDirection: "row",
-    justifyContent: "space-between",
     backgroundColor: "transparent",
     paddingVertical: 4,
     paddingHorizontal: 0,
@@ -128,6 +165,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#717D89",
     textAlign: "center",
-    width: screenWidth / 5,
   },
 });

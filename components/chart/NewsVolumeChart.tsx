@@ -1,18 +1,22 @@
-import { displayLabels, newsVolumeData } from "@/data/sentimentDummy";
 import { Dimensions, StyleSheet, Text, View } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
-const MAX_Y_VALUE = 1400;
 
-export default function NewsVolumeChart({ color }: { color: string }) {
+interface Props {
+  color: string;
+  labels: string[];
+  data: number[];
+}
+
+export default function NewsVolumeChart({ color, labels, data }: Props) {
   return (
     <View style={styles.chartWrapper}>
       <View style={{ flex: 1 }}>
         <BarChart
           data={{
-            labels: displayLabels,
-            datasets: [{ data: newsVolumeData }],
+            labels,
+            datasets: [{ data }],
           }}
           width={screenWidth - 65}
           height={70}
