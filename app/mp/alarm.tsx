@@ -9,9 +9,15 @@ import { ToggleSwitch } from "@/components/ui/mypage/ToggleSwitch";
 import { usePushTokenSetup } from "@/hooks/usePushTokenSetup";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+
+import {
+  getNotificationSettings,
+  setDoNotDisturb,
+  updateNotificationType,
+} from "@/api/personalNotification";
 
 export default function AlarmScreen() {
   const [isNewsKeywordEnabled, setIsNewsKeywordEnabled] = useState(false);
@@ -44,6 +50,76 @@ export default function AlarmScreen() {
   });
 
   usePushTokenSetup(isNewsKeywordEnabled);
+
+  useEffect(() => {
+    const fetchNotificationSettings = async () => {
+      try {
+        const res = await getNotificationSettings();
+        const data = res.data.data;
+
+        setIsNewsKeywordEnabled(data.keywordNewsEnabled);
+        setIsCommentEnabled(data.communityCommentEnabled);
+        setIsLikeEnabled(data.communityLikeEnabled);
+        setIsReplyEnabled(data.communityReplyEnabled);
+        setIsNoticeEnabled(data.announcementEnabled);
+
+        setIsDoNotDisturbEnabled(data.doNotDisturbEnabled);
+
+        if (
+          data.doNotDisturbEnabled &&
+          data.doNotDisturbStartTime &&
+          data.doNotDisturbEndTime
+        ) {
+          const start = new Date();
+          start.setHours(data.doNotDisturbStartTime.hour);
+          start.setMinutes(data.doNotDisturbStartTime.minute);
+          setDndStart(start);
+
+          const end = new Date();
+          end.setHours(data.doNotDisturbEndTime.hour);
+          end.setMinutes(data.doNotDisturbEndTime.minute);
+          setDndEnd(end);
+        }
+      } catch (err) {
+        console.error("알림 설정 조회 실패", err);
+      }
+    };
+
+    fetchNotificationSettings();
+  }, []);
+
+  //방해금지
+  const [isDoNotDisturbEnabled, setIsDoNotDisturbEnabled] = useState(false);
+
+  useEffect(() => {
+    const updateDoNotDisturb = async () => {
+      const formatTime = (date: Date) =>
+        `${date.getHours().toString().padStart(2, "0")}:${date
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}:00`;
+
+      try {
+        console.log(" 방해 금지 시간 설정 요청", {
+          enabled: isDoNotDisturbEnabled,
+          start: formatTime(dndStart),
+          end: formatTime(dndEnd),
+        });
+
+        await setDoNotDisturb(
+          isDoNotDisturbEnabled,
+          formatTime(dndStart),
+          formatTime(dndEnd)
+        );
+
+        console.log(" 방해 금지 설정 완료");
+      } catch (error) {
+        console.error(" 방해 금지 설정 실패", error);
+      }
+    };
+
+    updateDoNotDisturb();
+  }, [isDoNotDisturbEnabled, dndStart, dndEnd]);
 
   return (
     <>
@@ -83,7 +159,11 @@ export default function AlarmScreen() {
               <View>
                 <ToggleSwitch
                   value={isNewsKeywordEnabled}
-                  onToggle={setIsNewsKeywordEnabled}
+                  onToggle={async (value) => {
+                    setIsNewsKeywordEnabled(value);
+                    await updateNotificationType("KEYWORD_NEWS", value);
+                    console.log("서버에 반영됨:", value);
+                  }}
                 />
               </View>
             </View>
@@ -91,6 +171,13 @@ export default function AlarmScreen() {
               <Text style={typography.body_b3_14_regular}>뉴스 알림 시간</Text>
               <TimePickerBox value={newsTime} onChange={setNewsTime} />
             </View> */}
+            <View style={styles.option}>
+              <Text style={typography.body_b3_14_regular}>방해 금지</Text>
+              <ToggleSwitch
+                value={isDoNotDisturbEnabled}
+                onToggle={setIsDoNotDisturbEnabled}
+              />
+            </View>
             <View style={styles.option}>
               <Text style={typography.body_b3_14_regular}>방해 금지 시간</Text>
               <View
@@ -105,70 +192,95 @@ export default function AlarmScreen() {
                 <TimePickerBox value={dndEnd} onChange={setDndEnd} />
               </View>
             </View>
-          </View>
-          <HorizontalLine style={{ marginBottom: 20, marginTop: 12 }} />
-          <View style={styles.section}>
-            <Text style={typography.subtitle_s2_16_semi_bold}>커뮤니티</Text>
-            <View style={styles.option}>
-              <Text style={typography.body_b3_14_regular}>내 글에 댓글</Text>
-              <ToggleSwitch
-                value={isCommentEnabled}
-                onToggle={setIsCommentEnabled}
-              />
-            </View>
-            <View style={styles.option}>
-              <Text style={typography.body_b3_14_regular}>내 글에 좋아요</Text>
-              <ToggleSwitch value={isLikeEnabled} onToggle={setIsLikeEnabled} />
-            </View>
-            <View style={styles.option}>
-              <Text style={typography.body_b3_14_regular}>내 글 투표 마감</Text>
-              <ToggleSwitch
-                value={isVoteEndedEnabled}
-                onToggle={setIsVoteEndedEnabled}
-              />
-            </View>
-            <View style={styles.option}>
-              <Text style={typography.body_b3_14_regular}>답글 알림 받기</Text>
-              <ToggleSwitch
-                value={isReplyEnabled}
-                onToggle={setIsReplyEnabled}
-              />
-            </View>
-          </View>
-          <HorizontalLine style={{ marginBottom: 20, marginTop: 12 }} />
-          <View style={styles.section}>
-            <Text style={typography.subtitle_s2_16_semi_bold}>공지사항</Text>
-            <View style={styles.option}>
-              <Text style={typography.body_b3_14_regular}>공지사항</Text>
-              <ToggleSwitch
-                value={isNoticeEnabled}
-                onToggle={setIsNoticeEnabled}
-              />
-            </View>
-          </View>
-          <HorizontalLine style={{ marginBottom: 20, marginTop: 12 }} />
-          <View style={styles.section}>
-            <Text style={typography.subtitle_s2_16_semi_bold}>
-              이벤트 및 혜택 알림
-            </Text>
-            <View style={styles.option}>
-              <Text style={typography.body_b3_14_regular}>앱 푸시</Text>
-              <ToggleSwitch
-                value={isMarketingPushEnabled}
-                onToggle={setIsMarketingPushEnabled}
-              />
-            </View>
-            <View style={[styles.option, { paddingVertical: 8 }]}>
-              <Text style={typography.body_b3_14_regular}>
-                마케팅 정보 수신 동의
-              </Text>
-              <View style={{ flexDirection: "row" }}>
-                <Text
-                  style={[typography.body_b3_14_regular, { color: "#5E6974" }]}
-                >
-                  철회함
+
+            <HorizontalLine style={{ marginBottom: 20, marginTop: 12 }} />
+            <View style={styles.section}>
+              <Text style={typography.subtitle_s2_16_semi_bold}>커뮤니티</Text>
+              <View style={styles.option}>
+                <Text style={typography.body_b3_14_regular}>내 글에 댓글</Text>
+                <ToggleSwitch
+                  value={isCommentEnabled}
+                  onToggle={async (value) => {
+                    setIsCommentEnabled(value);
+                    await updateNotificationType("COMMUNITY_COMMENT", value);
+                  }}
+                />
+              </View>
+              <View style={styles.option}>
+                <Text style={typography.body_b3_14_regular}>
+                  내 글에 좋아요
                 </Text>
-                <NextSmIcon />
+                <ToggleSwitch
+                  value={isLikeEnabled}
+                  onToggle={async (value) => {
+                    setIsLikeEnabled(value);
+                    await updateNotificationType("COMMUNITY_LIKE", value);
+                  }}
+                />
+              </View>
+              <View style={styles.option}>
+                <Text style={typography.body_b3_14_regular}>
+                  내 글 투표 마감
+                </Text>
+                <ToggleSwitch
+                  value={isVoteEndedEnabled}
+                  onToggle={setIsVoteEndedEnabled}
+                />
+              </View>
+              <View style={styles.option}>
+                <Text style={typography.body_b3_14_regular}>
+                  답글 알림 받기
+                </Text>
+                <ToggleSwitch
+                  value={isReplyEnabled}
+                  onToggle={async (value) => {
+                    setIsReplyEnabled(value);
+                    await updateNotificationType("COMMUNITY_REPLY", value);
+                  }}
+                />
+              </View>
+            </View>
+            <HorizontalLine style={{ marginBottom: 20, marginTop: 12 }} />
+            <View style={styles.section}>
+              <Text style={typography.subtitle_s2_16_semi_bold}>공지사항</Text>
+              <View style={styles.option}>
+                <Text style={typography.body_b3_14_regular}>공지사항</Text>
+                <ToggleSwitch
+                  value={isNoticeEnabled}
+                  onToggle={async (value) => {
+                    setIsNoticeEnabled(value);
+                    await updateNotificationType("ANNOUNCEMENT", value);
+                  }}
+                />
+              </View>
+            </View>
+            <HorizontalLine style={{ marginBottom: 20, marginTop: 12 }} />
+            <View style={styles.section}>
+              <Text style={typography.subtitle_s2_16_semi_bold}>
+                이벤트 및 혜택 알림
+              </Text>
+              <View style={styles.option}>
+                <Text style={typography.body_b3_14_regular}>앱 푸시</Text>
+                <ToggleSwitch
+                  value={isMarketingPushEnabled}
+                  onToggle={setIsMarketingPushEnabled}
+                />
+              </View>
+              <View style={[styles.option, { paddingVertical: 8 }]}>
+                <Text style={typography.body_b3_14_regular}>
+                  마케팅 정보 수신 동의
+                </Text>
+                <View style={{ flexDirection: "row" }}>
+                  <Text
+                    style={[
+                      typography.body_b3_14_regular,
+                      { color: "#5E6974" },
+                    ]}
+                  >
+                    철회함
+                  </Text>
+                  <NextSmIcon />
+                </View>
               </View>
             </View>
           </View>
