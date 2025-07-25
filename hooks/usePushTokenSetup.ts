@@ -39,7 +39,25 @@ export function usePushTokenSetup() {
         console.error("FCM 토큰 등록 실패:", error);
       }
     };
+    // 알림 수신 리스너
+    const receivedSubscription = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("알림 수신됨:", notification);
+      }
+    );
+
+    const responseSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log("알림 탭됨:", response);
+        // 알림 클릭 시 이동 처리 추가 가능
+      });
 
     if (userId) registerPushToken();
+
+    // 컴포넌트 언마운트 시 리스너 제거
+    return () => {
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
   }, [userId]);
 }
