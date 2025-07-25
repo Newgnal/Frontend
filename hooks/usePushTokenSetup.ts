@@ -7,6 +7,16 @@ import { useEffect } from "react";
 export function usePushTokenSetup() {
   const { userId } = useAuth();
 
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+
   useEffect(() => {
     const registerPushToken = async () => {
       try {
@@ -24,6 +34,7 @@ export function usePushTokenSetup() {
 
         const { data: devicePushToken } =
           await Notifications.getDevicePushTokenAsync();
+        await AsyncStorage.setItem("fcm_token", devicePushToken);
         console.log("[FCM Native Device Token]:", devicePushToken);
 
         if (!userId) {
@@ -43,6 +54,8 @@ export function usePushTokenSetup() {
     const receivedSubscription = Notifications.addNotificationReceivedListener(
       (notification) => {
         console.log("알림 수신됨:", notification);
+
+        const { title, body, data } = notification.request.content;
       }
     );
 
