@@ -21,8 +21,20 @@ export const getKeywords = async (): Promise<KeywordCountResponse[]> => {
 
 // 키워드 등록
 export const postKeyword = async (keyword: string): Promise<ServerKeyword> => {
-  const res = await axiosInstance.post("/newsroom/v1/keywords", { keyword });
-  return res.data.data as ServerKeyword;
+  try {
+    console.log(" 요청 보냄 → /keywords");
+    console.log(" 보낼 keyword:", keyword);
+
+    const res = await axiosInstance.post("/newsroom/v1/keywords", { keyword });
+
+    console.log(" 서버 응답:", res.data);
+    return res.data.data as ServerKeyword;
+  } catch (err: any) {
+    console.error(" 키워드 등록 실패");
+    console.error(" 상태 코드:", err.response?.status);
+    console.error(" 서버 메시지:", err.response?.data);
+    throw err;
+  }
 };
 
 // 키워드 삭제
@@ -72,4 +84,16 @@ export const getKeywordNews = async (
   );
 
   return res.data?.data;
+};
+
+// 키워드 개별 알림 설정 토글
+export const toggleKeywordNotification = async (keywordId: number) => {
+  try {
+    console.log(" 알림 설정 토글 요청 →", keywordId);
+    await axiosInstance.patch(`/newsroom/v1/${keywordId}/notification`);
+    console.log(" 알림 설정 성공 ");
+  } catch (err: any) {
+    console.error(" 알림 설정 토글 실패", err.response?.data || err);
+    throw err;
+  }
 };
