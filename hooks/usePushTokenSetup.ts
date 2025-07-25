@@ -1,5 +1,6 @@
 import { postAlarmToken } from "@/api/fcmAlarmApi";
 import { useAuth } from "@/context/authContext";
+import { notificationEvent } from "@/utils/notificationEvent";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
@@ -56,7 +57,8 @@ export function usePushTokenSetup(enabled: boolean) {
       (notification) => {
         console.log("알림 수신됨:", notification);
 
-        const { title, body, data } = notification.request.content;
+        const { title, body } = notification.request.content;
+        notificationEvent.emit("foregroundNotification", { title, body });
       }
     );
 

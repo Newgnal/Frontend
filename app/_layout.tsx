@@ -1,3 +1,4 @@
+import ForegroundNotification from "@/components/ForegroundNotification";
 import { toastConfig } from "@/components/ui/Toast/toastConfig";
 import { AuthProvider } from "@/context/authContext";
 import { useColorScheme } from "@/hooks/useColorScheme";
@@ -27,6 +28,7 @@ export default function RootLayout() {
         <ThemeProvider
           value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
         >
+          <ForegroundNotification />
           <Stack>
             <Stack.Screen name="login/index" options={{ headerShown: false }} />
             <Stack.Screen name="login/kakao" options={{ headerShown: false }} />
