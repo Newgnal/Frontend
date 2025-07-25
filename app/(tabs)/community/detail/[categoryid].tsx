@@ -93,7 +93,7 @@ export default function ComDetailScreen() {
         let result;
         if (selectedCategory === "all") {
           // 전체 게시글 조회
-          result = await getPostList({ sortType: order });
+          result = await getPostList({ sortType: order, page, size: 10 });
         } else {
           // 카테고리별 게시글 조회
           const themaCode = categoryCodeMap[selectedCategory];
@@ -104,10 +104,16 @@ export default function ComDetailScreen() {
             sortType: order,
           });
           //   console.log("응답 결과:", result);
-          result = result.data.content;
-          console.log(result);
+          result = result.data.content ?? [];
+          // console.log(result);
         }
-        setPostList(result ?? []);
+        setPostList((prev) => {
+          const existingIds = new Set(prev.map((p) => p.postId));
+          const newPosts = result.filter(
+            (p: Post) => !existingIds.has(p.postId)
+          );
+          return [...prev, ...newPosts];
+        });
       } catch (err) {
         console.error("게시글 불러오기 실패:", err);
         setPostList([]);
@@ -119,6 +125,12 @@ export default function ComDetailScreen() {
     fetchPosts();
   }, [order, selectedCategory, page]);
 
+  useEffect(() => {
+    setPage(0);
+    setPostList([]);
+    setHasMore(true);
+  }, [selectedCategory, order]);
+
   const handleCategorySelect = (category: string) => {
     setIsVisible(false);
     router.push({
@@ -126,6 +138,7 @@ export default function ComDetailScreen() {
       params: { category },
     });
   };
+
   return (
     <>
       <SafeAreaView style={styles.container}>
@@ -180,7 +193,21 @@ export default function ComDetailScreen() {
           <OrderChangeIcon />
         </TouchableOpacity>
 
-        <ScrollView contentContainerStyle={{ justifyContent: "center" }}>
+        <ScrollView
+          onScroll={({ nativeEvent }) => {
+            const paddingToBottom = 100;
+            const isBottomReached =
+              nativeEvent.layoutMeasurement.height +
+                nativeEvent.contentOffset.y >=
+              nativeEvent.contentSize.height - paddingToBottom;
+
+            if (isBottomReached && hasMore && !loading) {
+              setPage((prev) => prev + 1);
+            }
+          }}
+          scrollEventThrottle={400}
+          contentContainerStyle={{ justifyContent: "center" }}
+        >
           <View style={{ paddingHorizontal: 20 }}>
             <TopicList data={postList} order={order} hasNews={true} />
           </View>
