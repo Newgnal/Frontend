@@ -3,7 +3,8 @@ import FilterChipList from "@/components/ui/FilterChipList";
 import HeaderIcons from "@/components/ui/HeaderIcon/HeaderIcons";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { usePushTokenSetup } from "@/hooks/usePushTokenSetup";
-import { useState } from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Line } from "react-native-svg";
@@ -13,6 +14,18 @@ import HomeMain from "../../home/home_theme";
 
 export default function HomeScreen() {
   usePushTokenSetup();
+  useEffect(() => {
+    const logFCMToken = async () => {
+      const token = await AsyncStorage.getItem("fcm_token");
+      if (token) {
+        console.log("저장된 FCM 토큰:", token);
+      } else {
+        console.log("저장된 FCM 토큰이 없습니다.");
+      }
+    };
+
+    logFCMToken();
+  }, []);
   const [selectedTab, setSelectedTab] = useState<"theme" | "all">("theme");
   const [order, setOrder] = useState<"latest" | "views">("latest");
   const [selectedCategory, setSelectedCategory] = useState("semiconductor");

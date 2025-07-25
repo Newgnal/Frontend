@@ -7,6 +7,16 @@ import { useEffect } from "react";
 export function usePushTokenSetup() {
   const { userId } = useAuth();
 
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: true,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+
   useEffect(() => {
     const registerPushToken = async () => {
       try {
@@ -24,6 +34,7 @@ export function usePushTokenSetup() {
 
         const { data: devicePushToken } =
           await Notifications.getDevicePushTokenAsync();
+        await AsyncStorage.setItem("fcm_token", devicePushToken);
         console.log("[FCM Native Device Token]:", devicePushToken);
 
         if (!userId) {
@@ -39,7 +50,27 @@ export function usePushTokenSetup() {
         console.error("FCM 토큰 등록 실패:", error);
       }
     };
+    // 알림 수신 리스너
+    const receivedSubscription = Notifications.addNotificationReceivedListener(
+      (notification) => {
+        console.log("알림 수신됨:", notification);
+
+        const { title, body, data } = notification.request.content;
+      }
+    );
+
+    const responseSubscription =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log("알림 탭됨:", response);
+        // 알림 클릭 시 이동 처리 추가 가능
+      });
 
     if (userId) registerPushToken();
+
+    // 컴포넌트 언마운트 시 리스너 제거
+    return () => {
+      receivedSubscription.remove();
+      responseSubscription.remove();
+    };
   }, [userId]);
 }
