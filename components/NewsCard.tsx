@@ -19,6 +19,13 @@ interface NewsItem {
   onPress: () => void;
 }
 
+const formatSentiment = (value: number | string | undefined) => {
+  if (value === undefined || value === null) return "";
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num)) return "";
+  return `${num > 0 ? "+" : ""}${num}`;
+};
+
 export default function NewsCard({
   title,
   id,
@@ -64,7 +71,7 @@ export default function NewsCard({
             },
           ]}
         >
-          {sentiment}
+          {formatSentiment(sentiment)}
         </Text>
       </View>
 
