@@ -68,6 +68,7 @@ interface Reply {
   createdAt: string;
   voteType?: "BUY" | "SELL" | "HOLD";
   likeCount: number;
+  liked?: boolean | undefined;
 }
 
 interface Post {
@@ -91,7 +92,7 @@ interface Post {
   editNewsImageUrl?: string;
   editNewsTitle?: string;
   editNewsDate?: string;
-  isLiked?: boolean; // 현재 사용자가 게시물에 좋아요를 눌렀는지 여부
+  liked?: boolean; // 현재 사용자가 게시물에 좋아요를 눌렀는지 여부
 }
 
 interface Comment {
@@ -101,6 +102,7 @@ interface Comment {
   voteType: "BUY" | "SELL" | "HOLD" | null | undefined;
   nickname: string;
   createdAt: string;
+  liked?: boolean | undefined;
   replies?: Reply[];
 }
 
@@ -122,7 +124,7 @@ export default function PostScreen() {
   const [likedPost, setLikedPost] = useState<boolean>(false);
 
   const [likedComments, setLikedComments] = useState<{
-    [key: string]: boolean;
+    [key: string]: boolean | undefined;
   }>({});
 
   const [isVisible, setIsVisible] = useState(false);
@@ -284,6 +286,16 @@ export default function PostScreen() {
         setPost(res.data.post);
         setComments(res.data.comments);
 
+        const initialLikedComments: { [key: string]: boolean | undefined } = {};
+        res.data.comments.forEach((comment: Comment) => {
+          initialLikedComments[`comment-${comment.commentId}`] = comment.liked;
+
+          comment.replies?.forEach((reply: Reply) => {
+            initialLikedComments[`reply-${reply.replyId}`] = reply.liked;
+          });
+        });
+        setLikedComments(initialLikedComments);
+
         setVote(res.data.vote);
         if (res.data.vote) {
           setHasVoted(true);
@@ -325,8 +337,7 @@ export default function PostScreen() {
           setHasEnteredPost(true);
         }
 
-        // setLikedPost(res.data.post.isLiked || false);
-        setLikedPost(false);
+        setLikedPost(res.data.post.liked || false);
       } catch (err) {
         Toast.show({
           type: "error",
@@ -339,14 +350,14 @@ export default function PostScreen() {
     };
 
     fetchDetail();
-  }, [numericPostId, hasEnteredPost]);
+  }, [numericPostId]);
 
   // ----------------- 핸들러 함수 ---------------------
 
   const handlePostLike = async () => {
     if (!post?.postId) return;
     try {
-      const res = await togglePostLikeById(post.postId);
+      await togglePostLikeById(post.postId);
 
       // post의 likeCount 업데이트
       // 좋아요 증가 UI상으로만 반영(백엔드에 해당 로직 부재)
@@ -525,13 +536,11 @@ export default function PostScreen() {
   const handleCommentLike = async (commentId: number) => {
     try {
       const res = await toggleCommentLikeById(commentId);
-      // console.log(commentId);
-
-      const isCurrentlyLiked = likedComments[`comment-${commentId}`] ?? false;
+      const newLiked = res.liked;
 
       setLikedComments((prev) => ({
         ...prev,
-        [`comment-${commentId}`]: !isCurrentlyLiked,
+        [`comment-${commentId}`]: newLiked,
       }));
 
       // likeCount 업데이트
@@ -540,9 +549,9 @@ export default function PostScreen() {
           c.commentId === commentId
             ? {
                 ...c,
-                likeCount: isCurrentlyLiked
-                  ? Math.max(0, c.likeCount - 1)
-                  : c.likeCount + 1,
+                likeCount: newLiked
+                  ? c.likeCount + 1
+                  : Math.max(0, c.likeCount - 1),
               }
             : c
         )
@@ -560,11 +569,11 @@ export default function PostScreen() {
   const handleReplyLike = async (replyId: number) => {
     try {
       const res = await toggleReplyLikeById(replyId);
-      const isCurrentlyLiked = likedComments[`reply-${replyId}`] ?? false;
+      const newLiked = res.liked;
 
       setLikedComments((prev) => ({
         ...prev,
-        [`reply-${replyId}`]: !isCurrentlyLiked,
+        [`reply-${replyId}`]: newLiked,
       }));
 
       // 대댓글의 likeCount 업데이트
@@ -575,9 +584,9 @@ export default function PostScreen() {
             reply.replyId === replyId
               ? {
                   ...reply,
-                  likeCount: isCurrentlyLiked
-                    ? Math.max(0, reply.likeCount - 1)
-                    : reply.likeCount + 1,
+                  likeCount: newLiked
+                    ? reply.likeCount + 1
+                    : Math.max(0, reply.likeCount - 1),
                 }
               : reply
           ),
@@ -681,7 +690,9 @@ ${post?.postTitle}\n\n
       <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
         <Header
           title=""
-          leftSlot={<NextLgIcon onPress={() => router.back()} />}
+          leftSlot={
+            <NextLgIcon onPress={() => router.push("/(tabs)/community")} />
+          }
           rightSlot={
             <>
               <Pressable onPress={handleShare}>
@@ -708,7 +719,7 @@ ${post?.postTitle}\n\n
             <TopicDetail
               isList={false}
               hasNews
-              liked={likedPost}
+              // liked={likedPost}
               onTogglePostLike={handlePostLike}
               item={{
                 postId: post.postId,
@@ -721,6 +732,7 @@ ${post?.postTitle}\n\n
                 likeCount: post.likeCount,
                 viewCount: post.viewCount,
                 commentCount: post.commentCount,
+                liked: likedPost,
               }}
             />
           </View>

@@ -1,6 +1,7 @@
 import DotIcon from "@/assets/images/ic_dot.svg";
 import ViewIcon from "@/assets/images/ic_eyes.svg";
 import HeartIcon from "@/assets/images/ic_hrt_emt.svg";
+import HeartFilledIcon from "@/assets/images/ic_hrt_filled.svg";
 import CommentIcon from "@/assets/images/ic_message.svg";
 import { typography } from "@/styles/typography";
 import { convertThemaToKor } from "@/utils/convertThemaToKor";
@@ -92,7 +93,7 @@ const HotTopicList = ({ data }: { data: any[] }) => {
                     <Text style={styles.titleText}>{item.postTitle}</Text>
                     <View style={styles.meta}>
                       <View style={styles.iconContainer}>
-                        <HeartIcon />
+                        {item.liked ? <HeartFilledIcon /> : <HeartIcon />}
                         <Text style={styles.itemText}>{item.likeCount}</Text>
                       </View>
                       <View style={{ flexDirection: "row" }}>
