@@ -10,17 +10,29 @@ import {
 export const postComment = (
   newsId: number,
   comment: string,
-  voteType: string = "NEUTRAL",
-  parentId?: number
+  voteType: string = "NEUTRAL"
 ) => {
-  const payload = {
+  return axiosInstance.post("/news/v1/comment", {
     newsId,
     comment,
-    voteType: voteType ?? "NEUTRAL",
-    ...(parentId !== undefined && { parentId }),
-  };
-  console.log(" postComment 최종 payload", payload);
-  return axiosInstance.post("/news/v1/comment", payload);
+    voteType,
+  });
+};
+
+export const postReply = (payload: {
+  comment: string;
+  parentId: number;
+  newsId: number;
+  voteType?: string;
+}) => {
+  console.log(" 최종 postReply payload:", payload);
+
+  return axiosInstance.post("/news/v1/comment", {
+    comment: payload.comment,
+    parentId: payload.parentId,
+    voteType: payload.voteType ?? "NEUTRAL",
+    newsId: payload.newsId,
+  });
 };
 
 // 댓글 전체 조회
@@ -44,4 +56,15 @@ export const deleteComment = (commentId: number) => {
   return axiosInstance.delete<DeleteCommentResponse>(
     `/news/v1/comment/${commentId}`
   );
+};
+
+// 댓글 좋아요 추가/취소
+export const toggleLikeComment = async (commentId: number) => {
+  console.log("toggleLikeComment 호출:", commentId);
+  return axiosInstance.post(`/news/v1/comment/like/${commentId}`);
+};
+
+// 댓글 좋아요 상태 조회
+export const getLikeStatus = (commentId: number) => {
+  return axiosInstance.get(`/news/v1/comment/like/${commentId}/status`);
 };
