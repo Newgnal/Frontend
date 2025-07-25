@@ -32,10 +32,11 @@ interface TopicDetailProps {
     updatedAt?: string;
     postId: number;
     newsId?: string;
+    liked: boolean | undefined;
   };
   isList?: boolean;
   hasNews?: boolean;
-  liked: boolean;
+
   onTogglePostLike: () => void;
   // setLiked: (val: boolean) => void;
   // updatePost: (likeCount: number | ((prev: number) => number)) => void;
@@ -62,7 +63,6 @@ export default function TopicDetail({
   item,
   isList = false,
   hasNews = false,
-  liked,
   onTogglePostLike,
 }: TopicDetailProps) {
   const router = useRouter();
@@ -166,7 +166,7 @@ export default function TopicDetail({
       <View style={styles.buttonContainer}>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <TouchableOpacity onPress={onTogglePostLike}>
-            {liked ? <HeartFilledIcon /> : <HeartIcon />}
+            {item.liked ? <HeartFilledIcon /> : <HeartIcon />}
           </TouchableOpacity>
           <Text
             style={[

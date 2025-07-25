@@ -91,7 +91,7 @@ interface Post {
   editNewsImageUrl?: string;
   editNewsTitle?: string;
   editNewsDate?: string;
-  isLiked?: boolean; // 현재 사용자가 게시물에 좋아요를 눌렀는지 여부
+  liked?: boolean; // 현재 사용자가 게시물에 좋아요를 눌렀는지 여부
 }
 
 interface Comment {
@@ -325,8 +325,7 @@ export default function PostScreen() {
           setHasEnteredPost(true);
         }
 
-        // setLikedPost(res.data.post.isLiked || false);
-        setLikedPost(false);
+        setLikedPost(res.data.post.liked || false);
       } catch (err) {
         Toast.show({
           type: "error",
@@ -339,14 +338,14 @@ export default function PostScreen() {
     };
 
     fetchDetail();
-  }, [numericPostId, hasEnteredPost]);
+  }, [numericPostId]);
 
   // ----------------- 핸들러 함수 ---------------------
 
   const handlePostLike = async () => {
     if (!post?.postId) return;
     try {
-      const res = await togglePostLikeById(post.postId);
+      await togglePostLikeById(post.postId);
 
       // post의 likeCount 업데이트
       // 좋아요 증가 UI상으로만 반영(백엔드에 해당 로직 부재)
@@ -681,7 +680,9 @@ ${post?.postTitle}\n\n
       <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
         <Header
           title=""
-          leftSlot={<NextLgIcon onPress={() => router.back()} />}
+          leftSlot={
+            <NextLgIcon onPress={() => router.push("/(tabs)/community")} />
+          }
           rightSlot={
             <>
               <Pressable onPress={handleShare}>
@@ -708,7 +709,7 @@ ${post?.postTitle}\n\n
             <TopicDetail
               isList={false}
               hasNews
-              liked={likedPost}
+              // liked={likedPost}
               onTogglePostLike={handlePostLike}
               item={{
                 postId: post.postId,
@@ -721,6 +722,7 @@ ${post?.postTitle}\n\n
                 likeCount: post.likeCount,
                 viewCount: post.viewCount,
                 commentCount: post.commentCount,
+                liked: likedPost,
               }}
             />
           </View>

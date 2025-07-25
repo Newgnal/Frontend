@@ -23,7 +23,7 @@ export default function TopicList({ order, hasNews, data }: TopciListProps) {
 
     data.forEach((item) => {
       initialLikes[item.postId] = item.likeCount;
-      initialLiked[item.postId] = item.isLiked || false;
+      initialLiked[item.postId] = item.liked || false;
     });
 
     setLikes(initialLikes);
@@ -57,7 +57,7 @@ export default function TopicList({ order, hasNews, data }: TopciListProps) {
 
       setLiked((prev) => ({
         ...prev,
-        [postId]: updatedPost.isLiked,
+        [postId]: updatedPost.liked,
       }));
     } catch (err) {
       Toast.show({ type: "error", text1: "좋아요 처리 실패" });
@@ -78,11 +78,11 @@ export default function TopicList({ order, hasNews, data }: TopciListProps) {
               item={{
                 ...item,
                 likeCount: currentLikeCount,
-                isLiked: currentLiked,
+                liked: currentLiked,
               }}
               isList={true}
               hasNews={hasNews}
-              liked={currentLiked}
+              // liked={currentLiked}
               onTogglePostLike={() => handleToggleLike(postId)}
             />
             {index !== data.length - 1 && (
