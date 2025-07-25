@@ -49,6 +49,7 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   TextInput,
@@ -645,6 +646,30 @@ export default function PostScreen() {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      const result = await Share.share({
+        title: "🔗 이 게시글을 공유해보세요!",
+        message: `🌐 지금 읽고 있는 글:\n
+${post?.postTitle}\n\n
+
+📤 공유하기`,
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log("공유 활동:", result.activityType);
+        } else {
+          console.log("공유됨");
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log("공유 취소됨");
+      }
+    } catch (error) {
+      console.log("공유 실패:", error);
+    }
+  };
+
   // ----------------- UI 렌더링 ---------------------
 
   if (loading || !post) {
@@ -659,7 +684,9 @@ export default function PostScreen() {
           leftSlot={<NextLgIcon onPress={() => router.back()} />}
           rightSlot={
             <>
-              <ShareIcon />
+              <Pressable onPress={handleShare}>
+                <ShareIcon />
+              </Pressable>
               <Pressable
                 onPress={() => {
                   if (post.nickname === myNickname) {
