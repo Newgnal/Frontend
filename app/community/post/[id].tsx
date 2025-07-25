@@ -68,6 +68,7 @@ interface Reply {
   createdAt: string;
   voteType?: "BUY" | "SELL" | "HOLD";
   likeCount: number;
+  liked?: boolean | undefined;
 }
 
 interface Post {
@@ -101,6 +102,7 @@ interface Comment {
   voteType: "BUY" | "SELL" | "HOLD" | null | undefined;
   nickname: string;
   createdAt: string;
+  liked?: boolean | undefined;
   replies?: Reply[];
 }
 
@@ -122,7 +124,7 @@ export default function PostScreen() {
   const [likedPost, setLikedPost] = useState<boolean>(false);
 
   const [likedComments, setLikedComments] = useState<{
-    [key: string]: boolean;
+    [key: string]: boolean | undefined;
   }>({});
 
   const [isVisible, setIsVisible] = useState(false);
@@ -283,6 +285,16 @@ export default function PostScreen() {
 
         setPost(res.data.post);
         setComments(res.data.comments);
+
+        const initialLikedComments: { [key: string]: boolean | undefined } = {};
+        res.data.comments.forEach((comment: Comment) => {
+          initialLikedComments[`comment-${comment.commentId}`] = comment.liked;
+
+          comment.replies?.forEach((reply: Reply) => {
+            initialLikedComments[`reply-${reply.replyId}`] = reply.liked;
+          });
+        });
+        setLikedComments(initialLikedComments);
 
         setVote(res.data.vote);
         if (res.data.vote) {
@@ -524,13 +536,11 @@ export default function PostScreen() {
   const handleCommentLike = async (commentId: number) => {
     try {
       const res = await toggleCommentLikeById(commentId);
-      // console.log(commentId);
-
-      const isCurrentlyLiked = likedComments[`comment-${commentId}`] ?? false;
+      const newLiked = res.liked;
 
       setLikedComments((prev) => ({
         ...prev,
-        [`comment-${commentId}`]: !isCurrentlyLiked,
+        [`comment-${commentId}`]: newLiked,
       }));
 
       // likeCount 업데이트
@@ -539,9 +549,9 @@ export default function PostScreen() {
           c.commentId === commentId
             ? {
                 ...c,
-                likeCount: isCurrentlyLiked
-                  ? Math.max(0, c.likeCount - 1)
-                  : c.likeCount + 1,
+                likeCount: newLiked
+                  ? c.likeCount + 1
+                  : Math.max(0, c.likeCount - 1),
               }
             : c
         )
@@ -559,11 +569,11 @@ export default function PostScreen() {
   const handleReplyLike = async (replyId: number) => {
     try {
       const res = await toggleReplyLikeById(replyId);
-      const isCurrentlyLiked = likedComments[`reply-${replyId}`] ?? false;
+      const newLiked = res.liked;
 
       setLikedComments((prev) => ({
         ...prev,
-        [`reply-${replyId}`]: !isCurrentlyLiked,
+        [`reply-${replyId}`]: newLiked,
       }));
 
       // 대댓글의 likeCount 업데이트
@@ -574,9 +584,9 @@ export default function PostScreen() {
             reply.replyId === replyId
               ? {
                   ...reply,
-                  likeCount: isCurrentlyLiked
-                    ? Math.max(0, reply.likeCount - 1)
-                    : reply.likeCount + 1,
+                  likeCount: newLiked
+                    ? reply.likeCount + 1
+                    : Math.max(0, reply.likeCount - 1),
                 }
               : reply
           ),
