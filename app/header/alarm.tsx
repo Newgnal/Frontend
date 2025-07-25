@@ -1,7 +1,13 @@
+import {
+  getNotifications,
+  markNotificationAsRead,
+} from "@/api/homeNotificationApi";
 import AlarmIcon from "@/assets/images/icon_alarmalert.svg";
 import BackIcon from "@/assets/images/icon_next_lg.svg";
 import SettingIcon from "@/assets/images/setting.svg";
+import { useAuth } from "@/context/authContext";
 import { useRouter } from "expo-router";
+import { useEffect, useState } from "react";
 import {
   FlatList,
   StyleSheet,
@@ -11,39 +17,49 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const notifications = [
-  {
-    id: "1",
-    title: "삼성, 2028년부터 반도체 유리기판 쓴다",
-    subtitle: "📡 [삼성전자] - 뉴그널이 감지한 새로운 뉴스",
-    time: "3분전",
-    isRead: false,
-  },
-  {
-    id: "2",
-    title: "반도체 수출 5개월 연속 증가…삼성 실적 회복",
-    subtitle: "📡 [반도체] - 뉴그널이 감지한 새로운 뉴스",
-    time: "1시간 전",
-    isRead: false,
-  },
-  {
-    id: "3",
-    title: "삼성전자, 반도체 인재 확보 위해 대학과 협약 체결",
-    subtitle: "📡 [삼성전자] - 뉴그널이 감지한 새로운 뉴스",
-    time: "1시간 전",
-    isRead: true,
-  },
-  {
-    id: "4",
-    title: "TSMC 견제 나선 삼성전자…EUV 공정 고도화 발표",
-    subtitle: "📡 [삼성전자] - 뉴그널이 감지한 새로운 뉴스",
-    time: "2시간 전",
-    isRead: true,
-  },
-];
+type NotificationItem = {
+  id: number;
+  type: string;
+  typeName: string;
+  title: string;
+  body: string;
+  isRead: boolean;
+  timeAgo: string;
+  createdAt: string;
+  readAt: string | null;
+  relatedEntityId: number;
+  status: string;
+};
 
 export default function AlarmScreen() {
   const router = useRouter();
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const { userId } = useAuth();
+
+  useEffect(() => {
+    const fetchNotifications = async () => {
+      try {
+        if (typeof userId === "number") {
+          const res = await getNotifications(userId);
+          console.log(res);
+          setNotifications(res.data.notifications);
+        }
+      } catch (err) {
+        console.error("알림 조회 실패:", err);
+      }
+    };
+    fetchNotifications();
+  }, [userId]);
+
+  const handleMarkAsRead = async (id: number) => {
+    if (typeof userId === "number") {
+      try {
+        await markNotificationAsRead(id, userId);
+      } catch (err) {
+        console.error("읽음 처리 실패:", err);
+      }
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -61,27 +77,39 @@ export default function AlarmScreen() {
       <View style={styles.divider} />
       <FlatList
         data={notifications}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={styles.notificationItem}>
-            <View style={styles.textBlock}>
-              <Text style={styles.subtitle}>{item.subtitle}</Text>
-              <View style={styles.titleRow}>
-                <View style={styles.iconWrapper}>
-                  {!item.isRead && <AlarmIcon width={24} height={24} />}
+          <TouchableOpacity
+            onPress={async () => {
+              if (!item.isRead) {
+                await handleMarkAsRead(item.id);
+                setNotifications((prev) =>
+                  prev.map((n) =>
+                    n.id === item.id ? { ...n, isRead: true } : n
+                  )
+                );
+              }
+            }}
+          >
+            <View style={styles.notificationItem}>
+              <View style={styles.textBlock}>
+                <Text style={styles.subtitle}>📡 {item.title}</Text>
+                <View style={styles.titleRow}>
+                  <View style={styles.iconWrapper}>
+                    {!item.isRead && <AlarmIcon width={24} height={24} />}
+                  </View>
+                  <Text
+                    style={[styles.title, !item.isRead && styles.unreadTitle]}
+                  >
+                    {item.body}
+                  </Text>
                 </View>
-                <Text
-                  style={[styles.title, !item.isRead && styles.unreadTitle]}
-                >
-                  {item.title}
-                </Text>
+              </View>
+              <View style={styles.rightBlock}>
+                <Text style={styles.time}>{item.timeAgo}</Text>
               </View>
             </View>
-            <View style={styles.rightBlock}>
-              <Text style={styles.time}>{item.time}</Text>
-              {!item.isRead}
-            </View>
-          </View>
+          </TouchableOpacity>
         )}
         ItemSeparatorComponent={() => <View style={styles.separator} />}
       />
