@@ -2,7 +2,6 @@ import IcOrderChange from "@/assets/images/ic_orderchange.svg";
 import FilterChipList from "@/components/ui/FilterChipList";
 import HeaderIcons from "@/components/ui/HeaderIcon/HeaderIcons";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
-import { usePushTokenSetup } from "@/hooks/usePushTokenSetup";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -13,7 +12,6 @@ import HomeAll from "../../home/home_all";
 import HomeMain from "../../home/home_theme";
 
 export default function HomeScreen() {
-  usePushTokenSetup();
   useEffect(() => {
     const logFCMToken = async () => {
       const token = await AsyncStorage.getItem("fcm_token");

@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as Notifications from "expo-notifications";
 import { useEffect } from "react";
 
-export function usePushTokenSetup() {
+export function usePushTokenSetup(enabled: boolean) {
   const { userId } = useAuth();
 
   Notifications.setNotificationHandler({
@@ -18,6 +18,7 @@ export function usePushTokenSetup() {
   });
 
   useEffect(() => {
+    if (!enabled) return;
     const registerPushToken = async () => {
       try {
         const alreadyRegistered = await AsyncStorage.getItem("fcm_registered");
@@ -72,5 +73,5 @@ export function usePushTokenSetup() {
       receivedSubscription.remove();
       responseSubscription.remove();
     };
-  }, [userId]);
+  }, [userId, enabled]);
 }
