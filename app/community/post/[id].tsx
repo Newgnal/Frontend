@@ -29,6 +29,7 @@ import SellIcon from "@/assets/images/ic_com_poll_sell.svg";
 import SelectedSellIcon from "@/assets/images/ic_com_poll_sell_selected.svg";
 import ShareIcon from "@/assets/images/ic_header.svg";
 import IcHeart from "@/assets/images/ic_hrt.svg";
+import HeartFilledIcon from "@/assets/images/ic_hrt_filled.svg";
 import IcSend from "@/assets/images/ic_send.svg";
 import NextLgIcon from "@/assets/images/icon_next_lg.svg";
 import IcComment from "@/assets/images/material-symbols-light_reply-rounded.svg";
@@ -523,11 +524,13 @@ export default function PostScreen() {
   const handleCommentLike = async (commentId: number) => {
     try {
       const res = await toggleCommentLikeById(commentId);
-      console.log(commentId);
+      // console.log(commentId);
+
+      const isCurrentlyLiked = likedComments[`comment-${commentId}`] ?? false;
 
       setLikedComments((prev) => ({
         ...prev,
-        [`comment-${commentId}`]: res.liked,
+        [`comment-${commentId}`]: !isCurrentlyLiked,
       }));
 
       // likeCount 업데이트
@@ -536,9 +539,9 @@ export default function PostScreen() {
           c.commentId === commentId
             ? {
                 ...c,
-                likeCount: res.liked
-                  ? c.likeCount + 1
-                  : Math.max(0, c.likeCount - 1),
+                likeCount: isCurrentlyLiked
+                  ? Math.max(0, c.likeCount - 1)
+                  : c.likeCount + 1,
               }
             : c
         )
@@ -546,6 +549,7 @@ export default function PostScreen() {
     } catch (err) {
       Toast.show({ type: "error", text1: "댓글 좋아요 실패" });
       console.log("댓글 좋아요 실패", err);
+
       console.log(commentId);
       console.log(typeof commentId);
       // console.log("에러 응답:", err.response?.data);
@@ -555,10 +559,11 @@ export default function PostScreen() {
   const handleReplyLike = async (replyId: number) => {
     try {
       const res = await toggleReplyLikeById(replyId);
+      const isCurrentlyLiked = likedComments[`reply-${replyId}`] ?? false;
 
       setLikedComments((prev) => ({
         ...prev,
-        [`reply-${replyId}`]: res.liked,
+        [`reply-${replyId}`]: !isCurrentlyLiked,
       }));
 
       // 대댓글의 likeCount 업데이트
@@ -569,9 +574,9 @@ export default function PostScreen() {
             reply.replyId === replyId
               ? {
                   ...reply,
-                  likeCount: res.liked
-                    ? reply.likeCount + 1
-                    : Math.max(0, reply.likeCount - 1),
+                  likeCount: isCurrentlyLiked
+                    ? Math.max(0, reply.likeCount - 1)
+                    : reply.likeCount + 1,
                 }
               : reply
           ),
@@ -579,6 +584,8 @@ export default function PostScreen() {
       );
     } catch (err) {
       Toast.show({ type: "error", text1: "대댓글 좋아요 실패" });
+      console.log(replyId);
+      console.log(typeof replyId);
     }
   };
 
@@ -774,17 +781,15 @@ export default function PostScreen() {
                       <View style={{ flexDirection: "row", gap: 8 }}>
                         <View style={styles.iconWithText}>
                           <TouchableOpacity
-                            onPress={() => handleCommentLike(comment.commentId)}
+                            onPress={() => {
+                              handleCommentLike(comment.commentId);
+                            }}
                           >
-                            <IcHeart
-                              width={24}
-                              height={24}
-                              stroke={
-                                likedComments[`comment-${comment.commentId}`]
-                                  ? "#FF5A5F"
-                                  : "#C4C4C4"
-                              }
-                            />
+                            {likedComments[`comment-${comment.commentId}`] ? (
+                              <HeartFilledIcon />
+                            ) : (
+                              <IcHeart />
+                            )}
                           </TouchableOpacity>
                           <Text style={styles.commentActionText}>
                             {comment.likeCount}
@@ -894,15 +899,11 @@ export default function PostScreen() {
                                       handleReplyLike(reply.replyId)
                                     }
                                   >
-                                    <IcHeart
-                                      width={24}
-                                      height={24}
-                                      stroke={
-                                        likedComments[`reply-${reply.replyId}`]
-                                          ? "#FF5A5F"
-                                          : "#C4C4C4"
-                                      }
-                                    />
+                                    {likedComments[`reply-${reply.replyId}`] ? (
+                                      <HeartFilledIcon />
+                                    ) : (
+                                      <IcHeart />
+                                    )}
                                   </TouchableOpacity>
 
                                   <Text style={styles.commentActionText}>
