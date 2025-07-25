@@ -726,8 +726,7 @@ export default function PostScreen() {
               </View>
 
               {comments.map((comment) => {
-                const korVoteType =
-                  comment.voteType ?? convertEngToKorVoteType(comment.voteType);
+                const korVoteType = convertEngToKorVoteType(comment.voteType);
                 return (
                   <View key={comment.commentId} style={styles.commentBox}>
                     <View style={styles.commentHeader}>
@@ -835,9 +834,9 @@ export default function PostScreen() {
                         }}
                       >
                         {comment.replies.map((reply: Reply) => {
-                          const korVoteType =
-                            reply.voteType ??
-                            convertEngToKorVoteType(reply.voteType);
+                          const korVoteType = convertEngToKorVoteType(
+                            reply.voteType
+                          );
 
                           return (
                             <View key={reply.replyId} style={styles.replyBox}>
@@ -851,8 +850,7 @@ export default function PostScreen() {
                                     {getTimeAgo(reply.createdAt)}
                                   </Text>
                                 </View>
-                                {reply.voteType &&
-                                opinionTheme[reply.voteType] ? (
+                                {korVoteType && opinionTheme[korVoteType] ? (
                                   <View
                                     style={[
                                       styles.positiveTag,
