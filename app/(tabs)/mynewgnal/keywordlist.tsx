@@ -20,6 +20,8 @@ import Toast from "react-native-toast-message";
 
 import { PopularKeyword } from "@/types/keyword";
 
+import { toggleKeywordNotification } from "@/api/useKeywordApi";
+
 export default function MyNewgnalScreen() {
   const [isModalVisible, setModalVisible] = useState(false);
   const { keywords, toggleAlert, setKeywords } = useKeywordStore();
@@ -154,16 +156,27 @@ export default function MyNewgnalScreen() {
                 <View style={styles.keywordRight}>
                   <View style={styles.iconWithCount}>
                     <TouchableOpacity
-                      onPress={() => {
+                      onPress={async () => {
                         const isCurrentlyOn = item.alertOn;
-                        toggleAlert(item.id);
-                        Toast.show({
-                          type: "success",
-                          text1: isCurrentlyOn
-                            ? "알림이 해제됐어요"
-                            : "관련 뉴스가 뜨면 알려드릴게요!",
-                          position: "top",
-                        });
+
+                        try {
+                          await toggleKeywordNotification(Number(item.id));
+
+                          toggleAlert(item.id);
+
+                          Toast.show({
+                            type: "success",
+                            text1: isCurrentlyOn
+                              ? "알림이 해제됐어요"
+                              : "관련 뉴스가 뜨면 알려드릴게요!",
+                            position: "top",
+                          });
+                        } catch (err) {
+                          Toast.show({
+                            type: "error",
+                            text1: "알림 설정에 실패했어요",
+                          });
+                        }
                       }}
                     >
                       {item.alertOn ? (
@@ -208,10 +221,13 @@ export default function MyNewgnalScreen() {
                   keyword,
                 });
 
+                const keywordId = res.data?.data?.id;
+
+                await toggleKeywordNotification(keywordId);
+
                 const keywordRes = await axiosInstance.get(
                   "/newsroom/v1/keywords"
                 );
-
                 const keywordCounts = keywordRes.data?.data?.keywordCounts;
 
                 if (!Array.isArray(keywordCounts)) {
