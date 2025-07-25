@@ -6,6 +6,7 @@ import { Header } from "@/components/ui/Header";
 import { HorizontalLine } from "@/components/ui/HorizontalLine";
 import { TimePickerBox } from "@/components/ui/mypage/TimePickerBox";
 import { ToggleSwitch } from "@/components/ui/mypage/ToggleSwitch";
+import { usePushTokenSetup } from "@/hooks/usePushTokenSetup";
 import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -41,6 +42,8 @@ export default function AlarmScreen() {
     date.setMinutes(20);
     return date;
   });
+
+  usePushTokenSetup(isNewsKeywordEnabled);
 
   return (
     <>
