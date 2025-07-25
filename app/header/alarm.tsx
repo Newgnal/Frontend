@@ -6,6 +6,7 @@ import AlarmIcon from "@/assets/images/icon_alarmalert.svg";
 import BackIcon from "@/assets/images/icon_next_lg.svg";
 import SettingIcon from "@/assets/images/setting.svg";
 import { useAuth } from "@/context/authContext";
+import { typography } from "@/styles/typography";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -75,44 +76,54 @@ export default function AlarmScreen() {
         </View>
       </View>
       <View style={styles.divider} />
-      <FlatList
-        data={notifications}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <TouchableOpacity
-            onPress={async () => {
-              if (!item.isRead) {
-                await handleMarkAsRead(item.id);
-                setNotifications((prev) =>
-                  prev.map((n) =>
-                    n.id === item.id ? { ...n, isRead: true } : n
-                  )
-                );
-              }
-            }}
-          >
-            <View style={styles.notificationItem}>
-              <View style={styles.textBlock}>
-                <Text style={styles.subtitle}>📡 {item.title}</Text>
-                <View style={styles.titleRow}>
-                  <View style={styles.iconWrapper}>
-                    {!item.isRead && <AlarmIcon width={24} height={24} />}
+      <View style={styles.listContainer}>
+        <FlatList
+          data={notifications}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={async () => {
+                if (!item.isRead) {
+                  await handleMarkAsRead(item.id);
+                  setNotifications((prev) =>
+                    prev.map((n) =>
+                      n.id === item.id ? { ...n, isRead: true } : n
+                    )
+                  );
+                }
+              }}
+            >
+              <View style={styles.notificationItem}>
+                <View style={styles.iconWrapper}>
+                  {!item.isRead && <AlarmIcon width={24} height={24} />}
+                </View>
+                <View style={styles.textBlock}>
+                  <View style={styles.headerBlock}>
+                    <Text style={styles.textTitle}>
+                      <Text style={styles.highlight}>
+                        📡 {item.title.match(/\[.*?\]/)?.[0] || ""}
+                      </Text>
+                      {item.title.replace(/\[.*?\]/, "")}
+                    </Text>
+                    <Text style={styles.time}>{item.timeAgo}</Text>
                   </View>
-                  <Text
-                    style={[styles.title, !item.isRead && styles.unreadTitle]}
-                  >
-                    {item.body}
-                  </Text>
+                  <View style={styles.titleRow}>
+                    <Text
+                      style={[
+                        styles.textBody,
+                        !item.isRead && styles.unreadTitle,
+                      ]}
+                    >
+                      {item.body}
+                    </Text>
+                  </View>
                 </View>
               </View>
-              <View style={styles.rightBlock}>
-                <Text style={styles.time}>{item.timeAgo}</Text>
-              </View>
-            </View>
-          </TouchableOpacity>
-        )}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
+            </TouchableOpacity>
+          )}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+      </View>
     </SafeAreaView>
   );
 }
@@ -126,8 +137,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 15,
+    paddingBottom: 15,
     justifyContent: "space-between",
   },
   headerTitle: {
@@ -151,20 +162,23 @@ const styles = StyleSheet.create({
   notificationItem: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    alignItems: "center",
+    // paddingHorizontal: 20,
+    paddingVertical: 16,
+    gap: 12,
   },
   textBlock: {
     flex: 1,
-
-    marginRight: 12,
   },
-  subtitle: {
+  textTitle: {
     fontSize: 11,
     color: "#7A7A7A",
-    marginBottom: 8,
-    marginTop: 20,
-    marginLeft: 35,
+    fontWeight: 400,
+  },
+  highlight: {
+    fontSize: 11,
+    color: "#7A7A7A",
+    fontWeight: 700,
   },
   titleRow: {
     flexDirection: "row",
@@ -175,11 +189,9 @@ const styles = StyleSheet.create({
     height: 20,
     marginRight: 0,
   },
-  title: {
-    fontSize: 15,
-    color: "#000",
+  textBody: {
+    ...typography.body_b2_15_medium,
     marginTop: 8,
-    marginLeft: 17,
   },
   unreadTitle: {
     fontSize: 15,
@@ -188,18 +200,21 @@ const styles = StyleSheet.create({
   readIcon: {
     marginRight: 4,
   },
-  rightBlock: {
-    alignItems: "flex-end",
-    justifyContent: "center",
+  headerBlock: {
+    justifyContent: "space-between",
+    flexDirection: "row",
   },
   time: {
-    fontSize: 12,
-    color: "#7A7A7A",
+    fontSize: 11,
+    fontWeight: 400,
+    color: "#89939F",
   },
 
   separator: {
     height: 1,
-    backgroundColor: "#E5E5E5",
-    marginHorizontal: 20,
+    backgroundColor: "#EDEEEF",
+  },
+  listContainer: {
+    paddingHorizontal: 20,
   },
 });
