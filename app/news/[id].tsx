@@ -8,42 +8,38 @@ import {
   Platform,
   ScrollView,
   Text,
-  useWindowDimensions,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+// API
 import {
   deleteComment,
   getComments,
   postComment,
+  postReply,
+  toggleLikeComment,
   updateComment,
 } from "@/api/newscommentApi";
 import { getNewsById } from "@/api/useNewsApi";
-import { NewsItem } from "@/types/news";
-import { CommentItem } from "@/types/newscomment";
-import { VoteType } from "@/types/vote";
+import { postVote } from "@/api/useVoteApi";
 
+// Components
 import CommentSection from "@/app/news/CommentSection";
 import NewsContent from "@/app/news/NewsContent";
 import NewsHeader from "@/app/news/NewsHeader";
 import VoteSection from "@/app/news/PollSection";
-
-import { postVote } from "@/api/useVoteApi";
 import CommentOptionModal from "@/components/ui/modal/CommentOptionModal";
 import OptionSelectModal from "@/components/ui/modal/OptionSelectModal";
 import ReportOptionModal from "@/components/ui/modal/ReportConfirmModal";
 
-type Reply = {
-  id: string;
-  user: string;
-  time: string;
-  content: string;
-  opinion: string;
-};
+// Types
+import { NewsItem } from "@/types/news";
+import { CommentItem } from "@/types/newscomment";
+import { VoteType } from "@/types/vote";
 
 type Comment = {
-  id: string;
+  id: number;
   user: string;
   time: string;
   content: string;
@@ -51,13 +47,111 @@ type Comment = {
   replies: Comment[];
 };
 
+// ======== Constants ========
+const pollLabels = ["강한 부정", "약한 부정", "중립", "약한 긍정", "강한 긍정"];
+
+const opinionTheme = {
+  "강한 부정": {
+    dotColor: "#F99426",
+    labelColor: "#F99426",
+    barColor: "#F99426",
+    tagBgColor: "#FFF3E0",
+    tagTextColor: "#F99426",
+  },
+  "약한 부정": {
+    dotColor: "#FCCE8B",
+    labelColor: "#F99426",
+    barColor: "#FCCE8B",
+    tagBgColor: "#FFF3E0",
+    tagTextColor: "#F99426",
+  },
+  중립: {
+    dotColor: "#5E6974",
+    labelColor: "#484F56",
+    barColor: "#E4E6E7",
+    tagBgColor: "#E4E6E7",
+    tagTextColor: "#484F56",
+  },
+  "약한 긍정": {
+    dotColor: "#73FFCB",
+    labelColor: "#04E38F",
+    barColor: "#B0FFE1",
+    tagBgColor: "#E0FFF3",
+    tagTextColor: "#00BD73",
+  },
+  "강한 긍정": {
+    dotColor: "#04E38F",
+    labelColor: "#04E38F",
+    barColor: "#04E38F",
+    tagBgColor: "#D6FFEF",
+    tagTextColor: "#00BD73",
+  },
+};
+
+const opinionBgColors = {
+  "강한 부정": "#FFF1E6",
+  "약한 부정": "#FFF7E8",
+  중립: "#E4E6E7",
+  "약한 긍정": "#E0FFF3",
+  "강한 긍정": "#D6FFEF",
+};
+
+// ======== Util ========
+const mapVoteTypeToLabel = (voteType: string) => {
+  switch (voteType) {
+    case "STRONGLY_POSITIVE":
+      return "강한 긍정";
+    case "POSITIVE":
+      return "약한 긍정";
+    case "NEGATIVE":
+      return "약한 부정";
+    case "STRONGLY_NEGATIVE":
+      return "강한 부정";
+    default:
+      return "중립";
+  }
+};
+
+function nestComments(flat: CommentItem[]) {
+  const commentMap: {
+    [key: number]: CommentItem & { replies: CommentItem[] };
+  } = {};
+  const rootComments: CommentItem[] = [];
+
+  flat.forEach((comment) => {
+    commentMap[comment.commentId] = { ...comment, replies: [] };
+  });
+
+  flat.forEach((comment) => {
+    if (comment.parentId) {
+      commentMap[comment.parentId]?.replies.push(commentMap[comment.commentId]);
+    } else {
+      rootComments.push(commentMap[comment.commentId]);
+    }
+  });
+
+  return rootComments;
+}
+
+const adaptComment = (item: CommentItem): Comment => ({
+  id: Number(item.commentId),
+  user: item.nickName,
+  time: item.timeAgo,
+  content: item.comment,
+  opinion: mapVoteTypeToLabel(item.voteType),
+  replies: (item.replies ?? []).map(adaptComment),
+});
+
 export default function NewsDetail() {
   const { id } = useLocalSearchParams();
   const router = useRouter();
+  const safeId = Array.isArray(id) ? id[0] : id;
+  const newsId = Number(safeId);
+  const VOTE_KEY = `vote-${id}`;
 
+  // ========== State ==========
   const [news, setNews] = useState<NewsItem | null>(null);
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
-  const { width } = useWindowDimensions();
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
 
   const [hasVoted, setHasVoted] = useState(false);
@@ -65,59 +159,49 @@ export default function NewsDetail() {
   const [pollResults, setPollResults] = useState<number[]>([0, 0, 0, 0, 0]);
   const [isVoteLoaded, setIsVoteLoaded] = useState(false);
 
-  const [likedComments, setLikedComments] = useState<{
-    [key: string]: boolean;
+  const [comments, setComments] = useState<Comment[] | undefined>(undefined);
+  const [commentInput, setCommentInput] = useState("");
+  const [selectedCommentId, setSelectedCommentId] = useState<number | null>(
+    null
+  );
+  const [isEditing, setIsEditing] = useState(false);
+  const [expandedComments, setExpandedComments] = useState<{
+    [id: number]: boolean;
   }>({});
+  const [likedCounts, setLikedCounts] = useState<{ [key: number]: number }>({});
+  const [likedCommentIds, setLikedCommentIds] = useState<{
+    [key: number]: boolean;
+  }>({});
+
   const [isOptionModalVisible, setOptionModalVisible] = useState(false);
   const [isCommentOptionModalVisible, setCommentOptionModalVisible] =
     useState(false);
   const [isReportModalVisible, setReportModalVisible] = useState(false);
 
-  const [comments, setComments] = useState<Comment[] | undefined>(undefined);
-  const [commentInput, setCommentInput] = useState("");
-  const [selectedCommentId, setSelectedCommentId] = useState<string | null>(
-    null
-  );
-  const [isEditing, setIsEditing] = useState(false);
-
+  // ========== Ref ==========
   const scrollRef = useRef<ScrollView>(null);
   const pollRef = useRef<View>(null);
   const commentRef = useRef<View>(null);
-  const [likedCounts, setLikedCounts] = useState<{ [key: string]: number }>({});
-  const [likedCommentIds, setLikedCommentIds] = useState<{
-    [key: string]: boolean;
-  }>({});
 
-  const VOTE_KEY = `vote-${id}`;
-
-  const safeId = Array.isArray(id) ? id[0] : id;
-
+  // ========== useEffect ==========
   useEffect(() => {
-    console.log("뉴스 디테일 API 요청", safeId);
     getNewsById(safeId).then((res) => console.log("응답 view 수:", res?.view));
   }, [safeId]);
 
   useEffect(() => {
-    if (!id) return;
     const fetchNews = async () => {
-      const res = await getNewsById(id as string);
+      const res = await getNewsById(safeId);
       setNews(res);
     };
     fetchNews();
-  }, [id]);
+  }, [safeId]);
 
   useEffect(() => {
     if (!news?.contentUrl) return;
-    const fetchContentHtml = async () => {
-      try {
-        const res = await fetch(news.contentUrl);
-        const html = await res.text();
-        setHtmlContent(html);
-      } catch (e) {
-        console.error("본문 HTML 불러오기 실패", e);
-      }
-    };
-    fetchContentHtml();
+    fetch(news.contentUrl)
+      .then((res) => res.text())
+      .then(setHtmlContent)
+      .catch((e) => console.error("본문 HTML 불러오기 실패", e));
   }, [news]);
 
   useEffect(() => {
@@ -125,15 +209,11 @@ export default function NewsDetail() {
     Image.getSize(news.imageUrl, (w, h) => {
       const screenWidth = Dimensions.get("window").width - 32;
       const ratio = screenWidth / w;
-      setImageSize({
-        width: screenWidth,
-        height: h * ratio,
-      });
+      setImageSize({ width: screenWidth, height: h * ratio });
     });
   }, [news?.imageUrl]);
 
   useEffect(() => {
-    if (!id) return;
     const loadVoteStatus = async () => {
       try {
         const storedVote = await AsyncStorage.getItem(VOTE_KEY);
@@ -150,59 +230,48 @@ export default function NewsDetail() {
       }
     };
     loadVoteStatus();
-  }, [id]);
+  }, [VOTE_KEY]);
 
   useEffect(() => {
-    if (!id) return;
-    const fetchComments = async () => {
-      try {
-        const res = await getComments(Number(id));
-        const commentArray = res.data?.data?.comments ?? [];
-        const adapted = commentArray.map(adaptComment);
-        setComments(adapted);
-      } catch (e) {
-        console.error("댓글 불러오기 실패", e);
-      }
-    };
+    if (!newsId || isNaN(newsId)) return;
     fetchComments();
-  }, [id]);
+  }, [newsId]);
 
-  const adaptComment = (item: CommentItem): Comment => ({
-    id: item.commentId.toString(),
-    user: item.nickName,
-    time: item.timeAgo,
-    content: item.comment,
-    opinion: mapVoteTypeToLabel(item.voteType),
-    replies: (item.replies ?? []).map(adaptComment),
-  });
+  const fetchComments = async () => {
+    try {
+      const res = await getComments(newsId);
+      console.log("댓글 API 전체 응답:", JSON.stringify(res.data, null, 2));
 
-  const handleEditComment = async (
-    commentId: string,
-    newContent: string,
-    newsId: number
+      const raw = res.data.data.comments || [];
+
+      // 중첩 처리 함수 제거하고 바로 적응 함수만 적용
+      const adapted = raw.map(adaptComment);
+      setComments(adapted);
+    } catch (e) {
+      console.error("댓글 불러오기 실패", e);
+    }
+  };
+
+  const handlePostComment = async (
+    newsId: number,
+    content: string,
+    voteType: string = "NEUTRAL"
   ) => {
     try {
-      if (!newContent || newContent.trim() === "") {
-        console.error("댓글 내용이 비어 있음");
-        return;
-      }
-
-      if (!newsId || isNaN(newsId)) {
-        console.error("유효하지 않은 뉴스 ID", newsId);
-        return;
-      }
-
-      await updateComment(Number(commentId), {
-        comment: newContent,
-        newsId: newsId,
-      });
-
-      const refreshed = await getComments(newsId);
-      const commentArray = refreshed.data?.data?.comments ?? [];
-      const adapted = commentArray.map(adaptComment);
-      setComments(adapted);
-      setIsEditing(false);
+      await postComment(newsId, content, voteType);
+      fetchComments();
       setCommentInput("");
+    } catch (e) {
+      console.error(" 댓글 등록 실패", e);
+    }
+  };
+
+  const handleEditComment = async (commentId: number, newContent: string) => {
+    try {
+      await updateComment(commentId, { comment: newContent, newsId });
+      fetchComments();
+      setCommentInput("");
+      setIsEditing(false);
       setSelectedCommentId(null);
       setCommentOptionModalVisible(false);
     } catch (e) {
@@ -210,41 +279,59 @@ export default function NewsDetail() {
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
-    const currentNewsId = news?.newsId ?? Number(id);
-    if (!currentNewsId) {
-      return;
-    }
-
+  const handleDeleteComment = async (commentId: number) => {
     try {
-      await deleteComment(Number(commentId));
-
-      const res = await getComments(currentNewsId);
-      const commentArray = res.data?.data?.comments ?? [];
-      const adapted = commentArray.map(adaptComment);
-      setComments(adapted);
-
+      await deleteComment(commentId);
+      fetchComments();
       setCommentOptionModalVisible(false);
+      setCommentInput("");
       setSelectedCommentId(null);
       setIsEditing(false);
-      setCommentInput("");
-    } catch (e) {}
+    } catch (e) {
+      console.error(" 댓글 삭제 실패", e);
+    }
   };
 
-  const mapVoteTypeToLabel = (voteType: string) => {
-    switch (voteType) {
-      case "STRONGLY_POSITIVE":
-        return "강한 긍정";
-      case "POSITIVE":
-        return "약한 긍정";
-      case "NEUTRAL":
-        return "중립";
-      case "NEGATIVE":
-        return "약한 부정";
-      case "STRONGLY_NEGATIVE":
-        return "강한 부정";
-      default:
-        return "중립";
+  const handlePostReply = async (parentId: number, replyText: string) => {
+    try {
+      const payload = {
+        parentId,
+        comment: replyText,
+        newsId,
+        voteType: "NEUTRAL",
+      };
+      console.log("📨 postReply payload", payload);
+
+      await postReply(payload);
+      fetchComments();
+    } catch (e) {
+      console.error(" 답글 등록 실패", e);
+    }
+  };
+
+  const toggleLike = async (commentId: number) => {
+    try {
+      const res = await toggleLikeComment(commentId);
+
+      const { isLiked, likeCount } = res.data.data;
+      console.log("res.data:", res.data);
+      console.log("res.data.data:", res.data.data);
+
+      console.log(" 서버 응답 isLiked:", isLiked, "likeCount:", likeCount);
+
+      setLikedCommentIds((prev) => {
+        const updated = { ...prev, [commentId]: isLiked };
+        console.log(" setLikedCommentIds 결과:", updated);
+        return updated;
+      });
+
+      setLikedCounts((prev) => {
+        const updated = { ...prev, [commentId]: likeCount };
+        console.log(" setLikedCounts 결과:", updated);
+        return updated;
+      });
+    } catch (e) {
+      console.error(" 좋아요 토글 실패", e);
     }
   };
 
@@ -256,10 +343,11 @@ export default function NewsDetail() {
       "POSITIVE",
       "STRONGLY_POSITIVE",
     ];
-    const voteType = voteMap[selectedIndex];
-
     try {
-      const response = await postVote({ newsId: Number(id), voteType });
+      const response = await postVote({
+        newsId,
+        voteType: voteMap[selectedIndex],
+      });
       const resultArray = [
         response.stronglyNegativeCount,
         response.negativeCount,
@@ -270,7 +358,6 @@ export default function NewsDetail() {
       setPollResults(resultArray);
       setHasVoted(true);
       setSelectedPoll(selectedIndex);
-
       await AsyncStorage.setItem(
         VOTE_KEY,
         JSON.stringify({
@@ -278,132 +365,12 @@ export default function NewsDetail() {
           pollResults: resultArray,
         })
       );
-    } catch (error) {
-      console.error("투표 실패", error);
+    } catch (e) {
+      console.error("투표 실패", e);
     }
   };
 
-  const toggleLike = (commentId: string) => {
-    setLikedCommentIds((prevLiked) => {
-      const isLiked = prevLiked[commentId] ?? false;
-
-      setLikedCounts((prevCounts) => ({
-        ...prevCounts,
-        [commentId]: (prevCounts[commentId] ?? 0) + (isLiked ? -1 : 1),
-      }));
-
-      return {
-        ...prevLiked,
-        [commentId]: !isLiked,
-      };
-    });
-  };
-
-  const handlePostComment = (
-    newsId: number,
-    comment: string,
-    voteType: string = "NEUTRAL"
-  ) => {
-    const payload = {
-      newsId,
-      comment,
-      voteType,
-    };
-
-    console.log(" 댓글 요청 바디:", payload);
-
-    postComment(newsId, comment, voteType ?? "NEUTRAL")
-      .then(async () => {
-        const res = await getComments(newsId);
-        const adapted = (res.data?.data?.comments ?? []).map(adaptComment);
-        setComments(adapted);
-        setCommentInput("");
-      })
-      .catch((err) => {
-        console.error("댓글 등록 실패", err);
-        console.log(" 서버 응답:", err.response?.data);
-      });
-  };
-
-  const handlePostReply = async (
-    newsId: number,
-    parentId: number,
-    reply: string,
-    voteType: string = "NEUTRAL"
-  ) => {
-    const payload = {
-      newsId,
-      comment: reply,
-      voteType,
-      parentId,
-    };
-
-    console.log("📝 답글 요청 바디:", payload);
-
-    try {
-      await postComment(newsId, reply, voteType ?? "NEUTRAL", parentId);
-
-      const res = await getComments(newsId);
-      const adapted = (res.data?.data?.comments ?? []).map(adaptComment);
-      setComments(adapted);
-    } catch (e: any) {
-      console.error(" 답글 등록 실패", e);
-      console.log("서버 응답:", e.response?.data);
-    }
-  };
-
-  const pollLabels = [
-    "강한 부정",
-    "약한 부정",
-    "중립",
-    "약한 긍정",
-    "강한 긍정",
-  ];
-  const opinionTheme = {
-    "강한 부정": {
-      dotColor: "#F99426",
-      labelColor: "#F99426",
-      barColor: "#F99426",
-      tagBgColor: "#FFF3E0",
-      tagTextColor: "#F99426",
-    },
-    "약한 부정": {
-      dotColor: "#FCCE8B",
-      labelColor: "#F99426",
-      barColor: "#FCCE8B",
-      tagBgColor: "#FFF3E0",
-      tagTextColor: "#F99426",
-    },
-    중립: {
-      dotColor: "#5E6974",
-      labelColor: "#484F56",
-      barColor: "#E4E6E7",
-      tagBgColor: "#E4E6E7",
-      tagTextColor: "#484F56",
-    },
-    "약한 긍정": {
-      dotColor: "#73FFCB",
-      labelColor: "#04E38F",
-      barColor: "#B0FFE1",
-      tagBgColor: "#E0FFF3",
-      tagTextColor: "#00BD73",
-    },
-    "강한 긍정": {
-      dotColor: "#04E38F",
-      labelColor: "#04E38F",
-      barColor: "#04E38F",
-      tagBgColor: "#D6FFEF",
-      tagTextColor: "#00BD73",
-    },
-  };
-  const opinionBgColors = {
-    "강한 부정": "#FFF1E6",
-    "약한 부정": "#FFF7E8",
-    중립: "#E4E6E7",
-    "약한 긍정": "#E0FFF3",
-    "강한 긍정": "#D6FFEF",
-  };
-
+  // ========== UI ==========
   if (!news) return <Text>뉴스를 찾을 수 없습니다</Text>;
 
   return (
@@ -421,17 +388,17 @@ export default function NewsDetail() {
             source={news.source}
             title={news.title}
             date={news.date}
-            pollCount={pollResults.reduce((acc, val) => acc + val, 0)}
-            commentCount={(comments ?? []).length}
+            pollCount={pollResults.reduce((a, b) => a + b, 0)}
+            commentCount={comments?.length || 0}
             onBack={() => router.back()}
             onOpenOption={() => setOptionModalVisible(true)}
             onPressPoll={() =>
-              pollRef.current?.measure((_, __, ___, ____, px, py) => {
+              pollRef.current?.measure((_, __, ___, ____, ___px, py) => {
                 scrollRef.current?.scrollTo({ y: py - 60, animated: true });
               })
             }
             onPressComment={() =>
-              commentRef.current?.measure((_, __, ___, ____, px, py) => {
+              commentRef.current?.measure((_, __, ___, ____, ___px, py) => {
                 scrollRef.current?.scrollTo({ y: py - 60, animated: true });
               })
             }
@@ -459,30 +426,29 @@ export default function NewsDetail() {
           </View>
 
           <CommentSection
-            comments={comments ?? []}
-            likedCommentIds={likedComments}
-            onToggleLike={toggleLike}
-            opinionTheme={opinionTheme}
-            opinionBgColors={opinionBgColors}
             ref={commentRef}
+            comments={comments ?? []}
             commentInput={commentInput}
             setCommentInput={setCommentInput}
             onPostComment={handlePostComment}
             onOpenOption={() => setCommentOptionModalVisible(true)}
-            onSelectComment={(commentId) => setSelectedCommentId(commentId)}
+            onSelectComment={setSelectedCommentId}
             isEditing={isEditing}
             selectedCommentId={selectedCommentId}
             onEditComment={handleEditComment}
             setIsEditing={setIsEditing}
-            newsId={Number(id)}
+            newsId={newsId}
             onDeleteComment={handleDeleteComment}
-            onPostReply={(newsId, parentId, reply) =>
-              handlePostReply(newsId, parentId, reply)
-            }
+            onPostReply={handlePostReply}
+            onToggleLike={toggleLike}
             likedCounts={likedCounts}
+            likedCommentIds={likedCommentIds}
+            opinionTheme={opinionTheme}
+            opinionBgColors={opinionBgColors}
           />
         </ScrollView>
       </KeyboardAvoidingView>
+
       <OptionSelectModal
         isVisible={isOptionModalVisible}
         onClose={() => setOptionModalVisible(false)}
@@ -492,24 +458,18 @@ export default function NewsDetail() {
         isVisible={isCommentOptionModalVisible}
         onClose={() => setCommentOptionModalVisible(false)}
         onEdit={() => {
-          if (selectedCommentId !== null) {
-            const commentToEdit = comments?.find(
-              (c) => c.id === selectedCommentId.toString()
-            );
-            if (commentToEdit) {
-              setCommentInput(commentToEdit.content);
-              setIsEditing(true);
-              setCommentOptionModalVisible(false);
-              commentRef.current?.measure((_, __, ___, ____, px, py) => {
-                scrollRef.current?.scrollTo({ y: py - 60, animated: true });
-              });
-            }
+          const target = comments?.find((c) => c.id === selectedCommentId);
+          if (target) {
+            setCommentInput(target.content);
+            setIsEditing(true);
+            setCommentOptionModalVisible(false);
+            commentRef.current?.measure((_, __, ___, ____, ___px, py) => {
+              scrollRef.current?.scrollTo({ y: py - 60, animated: true });
+            });
           }
         }}
         onDelete={() => {
-          if (selectedCommentId !== null) {
-            handleDeleteComment(selectedCommentId);
-          }
+          if (selectedCommentId) handleDeleteComment(selectedCommentId);
         }}
       />
       <ReportOptionModal

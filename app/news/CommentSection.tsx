@@ -5,7 +5,7 @@ import Icfillheart from "@/assets/images/ic_hrt_filled.svg";
 import IcSend from "@/assets/images/ic_send.svg";
 import IcComment from "@/assets/images/material-symbols-light_reply-rounded.svg";
 import { typography } from "@/styles/typography";
-import { forwardRef, useState } from "react";
+import { forwardRef, useEffect, useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -18,7 +18,7 @@ import {
 } from "react-native";
 
 type Reply = {
-  id: string;
+  id: number;
   user: string;
   time: string;
   content: string;
@@ -27,46 +27,39 @@ type Reply = {
 };
 
 type Comment = {
-  id: string;
+  id: number;
   user: string;
   time: string;
   content: string;
   opinion: string;
   voteType?: string;
-  replies: Reply[];
+  replies: Comment[];
 };
 
 type Props = {
   comments: Comment[];
-  likedCounts: { [key: string]: number };
-  likedCommentIds: { [key: string]: boolean };
-  onToggleLike: (commentId: string) => void;
-  opinionTheme: Record<string, any>;
-  opinionBgColors: Record<string, string>;
-  onOpenOption: () => void;
-  newsId: number;
-  onSelectComment: (commentId: string) => void;
-
   commentInput: string;
-  setCommentInput: (value: string) => void;
-  onPostComment: (newsId: number, comment: string, voteType: string) => void;
-
+  setCommentInput: React.Dispatch<React.SetStateAction<string>>;
+  onPostComment: (newsId: number, comment: string, voteType?: string) => void;
+  onOpenOption: () => void;
+  onSelectComment: (commentId: number) => void;
   isEditing: boolean;
-  selectedCommentId: string | null;
+  selectedCommentId: number | null;
   onEditComment: (
-    commentId: string,
+    commentId: number,
     newContent: string,
     newsId: number
-  ) => Promise<void>;
-
-  setIsEditing: (value: boolean) => void;
-  onDeleteComment?: (commentId: string) => Promise<void>;
-  onPostReply?: (
-    newsId: number,
-    parentId: number,
-    reply: string,
-    voteType: string
   ) => void;
+  setIsEditing: React.Dispatch<React.SetStateAction<boolean>>;
+  newsId: number;
+  onDeleteComment: (commentId: number) => void;
+  onPostReply: (parentId: number, comment: string) => void;
+
+  likedCounts: { [key: number]: number };
+  likedCommentIds: { [key: number]: boolean };
+  onToggleLike: (commentId: number) => void;
+  opinionTheme: any;
+  opinionBgColors: any;
 };
 
 const CommentSection = forwardRef<View, Props>(
@@ -74,26 +67,32 @@ const CommentSection = forwardRef<View, Props>(
     {
       comments,
       likedCounts,
+      likedCommentIds,
       onToggleLike,
       opinionTheme,
       opinionBgColors,
       onOpenOption,
+      newsId,
+      onSelectComment,
       commentInput,
       setCommentInput,
       onPostComment,
       isEditing,
       selectedCommentId,
       onEditComment,
-      onSelectComment,
-      newsId,
+      setIsEditing,
       onPostReply,
-      likedCommentIds,
     },
     ref
   ) => {
     const [replyTargetId, setReplyTargetId] = useState<number | null>(null);
     const [replyInput, setReplyInput] = useState("");
     const [selectedVoteType, setSelectedVoteType] = useState("NEUTRAL");
+
+    useEffect(() => {
+      setReplyTargetId(null);
+      setReplyInput("");
+    }, [comments]);
 
     return (
       <KeyboardAvoidingView
@@ -155,7 +154,7 @@ const CommentSection = forwardRef<View, Props>(
                       {likedCommentIds[comment.id] ? (
                         <Icfillheart width={24} height={24} />
                       ) : (
-                        <IcHeart width={24} height={24} stroke="#C4C4C4" />
+                        <IcHeart width={24} height={24} />
                       )}
                       <Text style={styles.actionText}>
                         {likedCounts[comment.id] ?? 0}
@@ -164,7 +163,7 @@ const CommentSection = forwardRef<View, Props>(
 
                     <TouchableOpacity
                       onPress={() => {
-                        setReplyTargetId(Number(comment.id));
+                        setReplyTargetId(comment.id);
                         setReplyInput("");
                       }}
                       style={styles.iconWithText}
@@ -182,40 +181,86 @@ const CommentSection = forwardRef<View, Props>(
                     <IcComntEtc width={20} height={20} />
                   </TouchableOpacity>
                 </View>
-
-                {comment.replies.length > 0 && (
-                  <View style={styles.replyContainer}>
-                    {comment.replies.map((reply) => (
-                      <View key={reply.id} style={styles.replyBox}>
-                        <View style={styles.commentHeader}>
-                          <View style={styles.userIcon} />
-                          <View>
-                            <Text style={styles.user}>{reply.user}</Text>
-                            <Text style={styles.time}>{reply.time}</Text>
+                {Array.isArray(comment.replies) &&
+                  comment.replies.length > 0 && (
+                    <View style={styles.replyContainer}>
+                      {comment.replies.map((reply) => (
+                        <View key={reply.id} style={styles.replyBox}>
+                          <View style={styles.commentHeader}>
+                            <View style={styles.userIcon} />
+                            <View>
+                              <Text style={styles.user}>{reply.user}</Text>
+                              <Text style={styles.time}>{reply.time}</Text>
+                            </View>
+                            <View
+                              style={[
+                                styles.tag,
+                                {
+                                  backgroundColor:
+                                    opinionBgColors[reply.opinion],
+                                },
+                              ]}
+                            >
+                              <Text
+                                style={{
+                                  color:
+                                    opinionTheme[reply.opinion].tagTextColor,
+                                  fontSize: 12,
+                                }}
+                              >
+                                {reply.opinion}
+                              </Text>
+                            </View>
                           </View>
-                          <View
-                            style={[
-                              styles.tag,
-                              {
-                                backgroundColor: opinionBgColors[reply.opinion],
-                              },
-                            ]}
-                          >
+                          <Text style={styles.content}>
                             <Text
-                              style={{
-                                color: opinionTheme[reply.opinion].tagTextColor,
-                                fontSize: 12,
+                              style={{ color: "#497AFA", fontWeight: "bold" }}
+                            >
+                              @{comment.user}{" "}
+                            </Text>
+                            {reply.content}
+                          </Text>
+                          <View style={styles.actions}>
+                            <View style={styles.iconRow}>
+                              <TouchableOpacity
+                                onPress={() => onToggleLike(reply.id)}
+                                style={styles.iconWithText}
+                              >
+                                {likedCommentIds[reply.id] ? (
+                                  <Icfillheart width={24} height={24} />
+                                ) : (
+                                  <IcHeart width={24} height={24} />
+                                )}
+                                <Text style={styles.actionText}>
+                                  {likedCounts[reply.id] ?? 0}
+                                </Text>
+                              </TouchableOpacity>
+
+                              <TouchableOpacity
+                                onPress={() => {
+                                  setReplyTargetId(comment.id);
+                                  setReplyInput(`@${reply.user} `);
+                                }}
+                                style={styles.iconWithText}
+                              >
+                                <IcComment width={24} height={24} />
+                                <Text style={styles.actionText}>답글 달기</Text>
+                              </TouchableOpacity>
+                            </View>
+
+                            <TouchableOpacity
+                              onPress={() => {
+                                onSelectComment(reply.id);
+                                onOpenOption();
                               }}
                             >
-                              {reply.opinion}
-                            </Text>
+                              <IcComntEtc width={20} height={20} />
+                            </TouchableOpacity>
                           </View>
                         </View>
-                        <Text style={styles.content}>{reply.content}</Text>
-                      </View>
-                    ))}
-                  </View>
-                )}
+                      ))}
+                    </View>
+                  )}
               </View>
             ))}
           </ScrollView>
@@ -239,12 +284,8 @@ const CommentSection = forwardRef<View, Props>(
               onPress={() => {
                 if (replyTargetId !== null) {
                   if (replyInput.trim() && onPostReply) {
-                    onPostReply(
-                      newsId,
-                      replyTargetId,
-                      replyInput,
-                      selectedVoteType
-                    );
+                    onPostReply(replyTargetId, replyInput);
+
                     setReplyInput("");
                     setReplyTargetId(null);
                   }
@@ -351,18 +392,19 @@ const styles = StyleSheet.create({
   },
   replyContainer: {
     backgroundColor: "#F4F5F7",
-    borderRadius: 4,
+    borderRadius: 12,
     padding: 12,
     marginTop: 12,
-    marginLeft: 40,
+    marginLeft: 0,
+    gap: 12,
   },
+
   replyBox: {
-    backgroundColor: "#F4F5F7",
     borderRadius: 8,
     padding: 12,
-    marginBottom: 12,
-    marginLeft: 40,
+    paddingLeft: 25,
   },
+
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",

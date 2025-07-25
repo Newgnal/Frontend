@@ -17,6 +17,11 @@ export interface CommentItem {
   replyCount?: number;
 }
 
+export interface PostReplyRequest {
+  comment: string;
+  parentId: number;
+}
+
 // 댓글 또는 답글 작성 요청
 export interface PostCommentRequest {
   newsId: number;
@@ -49,8 +54,23 @@ export interface UpdateCommentRequest {
 
 // 삭제 응답
 export interface DeleteCommentResponse {
-  status?: string; // 예: "삭제 성공"
+  status?: string;
 }
 
 //수정 응답
 export type UpdateCommentResponse = CommentItem;
+
+// 댓글 좋아요 상태 조회 응답
+export interface CommentLikeStatusResponse {
+  commentId: number;
+  userId: number;
+  isLiked: boolean;
+  likeCount: number;
+}
+
+// 댓글 좋아요 토글 응답
+export interface ToggleLikeCommentResponse {
+  commentId: number;
+  isLiked: boolean;
+  likeCount: number;
+}
