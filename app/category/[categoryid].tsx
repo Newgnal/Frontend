@@ -58,6 +58,82 @@ const categoryCodeMap: Record<string, string> = {
   etc: "ETC",
 };
 
+interface NewsCardProps {
+  item: NewsItem;
+  displayName: string;
+  isSelected: boolean;
+  onPress: () => void;
+}
+
+function NewsCard({ item, displayName, isSelected, onPress }: NewsCardProps) {
+  const sentiment = parseFloat(item.sentiment.toFixed(2));
+  let sentimentColor = "#484F56";
+  let sentimentBgColor = "#EDEEEF";
+
+  if (sentiment > 0) {
+    sentimentColor = "#E31B3E";
+    sentimentBgColor = "#FFE4E5";
+  } else if (sentiment < 0) {
+    sentimentColor = "#497AFA";
+    sentimentBgColor = "#E7EDFF";
+  }
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.card,
+        { backgroundColor: isSelected ? "rgba(113,125,137,0.1)" : "#FFFFFF" },
+      ]}
+    >
+      <View style={styles.header}>
+        <Text style={styles.category}>{displayName}</Text>
+        <Text
+          style={[
+            styles.sentiment,
+            { color: sentimentColor, backgroundColor: sentimentBgColor },
+          ]}
+        >
+          {sentiment > 0 ? `+${sentiment.toFixed(2)}` : sentiment.toFixed(2)}
+        </Text>
+      </View>
+
+      <View style={styles.contentRow}>
+        <View style={styles.textContent}>
+          <Text style={styles.title}>{item.title}</Text>
+          <Text style={styles.subtitle}>
+            {item.source || "매일 경제"} | {item.date.split("T")[0]}
+          </Text>
+
+          <View style={styles.metaRow}>
+            <Text style={styles.meta}>
+              조회 {Math.floor(item.view / 10000)}만
+            </Text>
+
+            <View style={styles.iconWithText}>
+              <IcComnt width={24} height={24} />
+              <Text style={styles.meta}>{item.commentNum ?? 0}</Text>
+            </View>
+
+            <View style={styles.iconWithText}>
+              <IcPoll width={24} height={24} />
+              <Text style={styles.meta}>{item.voteNum ?? 0}</Text>
+            </View>
+          </View>
+        </View>
+
+        {item.imageUrl ? (
+          <Image source={{ uri: item.imageUrl }} style={styles.newsImage} />
+        ) : (
+          <View style={styles.imagePlaceholder} />
+        )}
+      </View>
+
+      <HorizontalLine />
+    </Pressable>
+  );
+}
+
 export default function CategoryScreen() {
   const [order, setOrder] = useState<OrderType>("latest");
   const [selectedId, setSelectedId] = useState<number | null>(null);
@@ -128,63 +204,17 @@ export default function CategoryScreen() {
 
   const renderItem = ({ item }: { item: NewsItem }) => {
     const isSelected = selectedId === item.id;
+
     return (
-      <Pressable
+      <NewsCard
+        item={item}
+        displayName={displayName}
+        isSelected={isSelected}
         onPress={() => {
-          router.push({
-            pathname: "/news/[id]",
-            params: { id: item.id },
-          });
+          setSelectedId(item.id);
+          router.push({ pathname: "/news/[id]", params: { id: item.id } });
         }}
-        style={[
-          styles.card,
-          {
-            backgroundColor: isSelected
-              ? "rgba(113, 125, 137, 0.10)"
-              : "#FFFFFF",
-          },
-        ]}
-      >
-        <View style={styles.header}>
-          <Text style={styles.category}>{displayName}</Text>
-          <Text style={styles.sentiment}>
-            {Number(item.sentiment).toFixed(1)}
-          </Text>
-        </View>
-
-        <View style={styles.contentRow}>
-          <View style={styles.textContent}>
-            <Text style={styles.title}>{item.title}</Text>
-            <Text style={styles.subtitle}>
-              {item.source || "매일 경제"} | {item.date.split("T")[0]}
-            </Text>
-
-            <View style={styles.metaRow}>
-              <Text style={styles.meta}>
-                조회 {Math.floor(item.view / 10000)}만
-              </Text>
-
-              <View style={styles.iconWithText}>
-                <IcComnt width={24} height={24} />
-                <Text style={styles.meta}>{item.commentNum ?? 0}</Text>
-              </View>
-
-              <View style={styles.iconWithText}>
-                <IcPoll width={24} height={24} />
-                <Text style={styles.meta}>{item.voteNum ?? 0}</Text>
-              </View>
-            </View>
-          </View>
-
-          {item.imageUrl ? (
-            <Image source={{ uri: item.imageUrl }} style={styles.newsImage} />
-          ) : (
-            <View style={styles.imagePlaceholder} />
-          )}
-        </View>
-
-        <HorizontalLine />
-      </Pressable>
+      />
     );
   };
 
@@ -208,11 +238,7 @@ export default function CategoryScreen() {
           </View>
         }
         leftSlot={
-          <TouchableOpacity
-            onPress={() => {
-              router.push("/home");
-            }}
-          >
+          <TouchableOpacity onPress={() => router.push("/home")}>
             <BackIcon width={24} height={24} />
           </TouchableOpacity>
         }
