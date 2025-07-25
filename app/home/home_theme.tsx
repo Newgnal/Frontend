@@ -81,15 +81,33 @@ export default function HomeMain({ selectedCategoryId }: Props) {
 
         // 주요 뉴스 가져오기
         const newsData = await getThemeNews(code, "views");
-        const topNews = newsData.content?.slice(0, 2) || [];
-        setMainNews(topNews);
+        setMainNews(newsData.content || []);
 
         // 감성/뉴스량 통합 데이터 가져오기
         const analytics = await getHomeAnalytics(code);
 
-        const labels = analytics.map((d) => d.date.slice(5).replace("-", ".")); // 예: "07.24"
-        const sentiment = analytics.map((d) => d.avgSentiment);
-        const volume = analytics.map((d) => d.newsCount);
+        // 날짜, 데이터 추출
+        let labels = analytics.map((d) => d.date.slice(5).replace("-", ".")); // 예: "07.24"
+        let sentiment = analytics.map((d) => d.avgSentiment);
+        let volume = analytics.map((d) => d.newsCount);
+
+        // ✅ 오늘 날짜 구하기
+        const today = new Date();
+        const todayLabel = `${String(today.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}.${String(today.getDate()).padStart(2, "0")}`;
+
+        // ✅ 오늘이 없다면 추가
+        if (!labels.includes(todayLabel)) {
+          labels.push(todayLabel);
+          sentiment.push(0); // 기본값 (혹은 null, 혹은 마지막 값 복사)
+          volume.push(0); // 기본값
+        }
+
+        setSentimentLabels(labels);
+        setSentimentData(sentiment);
+        setVolumeData(volume);
 
         setSentimentLabels(labels);
         setSentimentData(sentiment);
