@@ -59,6 +59,13 @@ const formatDate = (iso: string) => {
   )}.${String(date.getDate()).padStart(2, "0")}`;
 };
 
+const formatSentiment = (value: number | string | undefined) => {
+  if (value === undefined || value === null) return "";
+  const num = typeof value === "string" ? parseFloat(value) : value;
+  if (isNaN(num)) return "";
+  return `${num > 0 ? "+" : ""}${num}`;
+};
+
 export default function TopicDetail({
   item,
   isList = false,
@@ -156,7 +163,7 @@ export default function TopicDetail({
             title={newsData.title}
             date={newsData.date}
             category={newsData.category}
-            sentiment={newsData.sentiment}
+            sentiment={formatSentiment(newsData.sentiment)}
             source={newsData.source}
             imageUrl={newsData.imageUrl}
           />

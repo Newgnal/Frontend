@@ -91,9 +91,13 @@ export default function SelectNewsScreen() {
           commentNum: String(item.commentNum),
           voteNum: String(item.voteNum),
         }));
-        setNewsList((prev) =>
-          page === 0 ? mappedNews : [...prev, ...mappedNews]
-        );
+        setNewsList((prev) => {
+          const newIds = new Set(prev.map((item) => item.id));
+          const filtered = mappedNews.filter(
+            (item: NewsItem) => !newIds.has(item.id)
+          );
+          return page === 0 ? filtered : [...prev, ...filtered];
+        });
       } catch (err) {
         console.error("뉴스 로딩 실패:", err);
       } finally {
@@ -192,7 +196,7 @@ export default function SelectNewsScreen() {
 
       <FlatList
         data={newsList}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item, index) => `news-${item.id}-${index}`}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
         onEndReached={() => setPage((prev) => prev + 1)}
