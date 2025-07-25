@@ -147,15 +147,15 @@ export default function KeywordNewsScreen() {
             </Text>
 
             <View style={styles.metaRow}>
-              <Text style={styles.meta}>
+              <Text style={[styles.meta, { marginTop: -2.5 }]}>
                 조회 {Math.floor(item.view / 10000)}만
               </Text>
               <View style={styles.iconWithText}>
-                <IcComnt width={16} height={16} />
+                <IcComnt width={24} height={24} />
                 <Text style={styles.meta}>{item.commentNum ?? 0}</Text>
               </View>
               <View style={styles.iconWithText}>
-                <IcPoll width={16} height={16} />
+                <IcPoll width={24} height={24} />
                 <Text style={styles.meta}>{item.voteNum ?? 0}</Text>
               </View>
             </View>

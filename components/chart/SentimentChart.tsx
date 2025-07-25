@@ -11,7 +11,14 @@ interface Props {
 }
 
 export default function SentimentChart({ color, labels, data }: Props) {
-  const filteredLabels = labels.filter((_, i) => i % 7 === 0);
+  const todayLabel = labels[labels.length - 1];
+
+  let filteredLabels = labels.filter((_, i) => i % 7 === 0);
+
+  if (!filteredLabels.includes(todayLabel)) {
+    filteredLabels.push(todayLabel);
+  }
+
   const displayLabels = filteredLabels.slice(-5);
 
   const minFiller = Array(data.length).fill(null);
@@ -58,7 +65,7 @@ export default function SentimentChart({ color, labels, data }: Props) {
             yLabelsOffset={-6}
             xLabelsOffset={-4}
             formatYLabel={() => ""}
-            segments={2} // y축 기준선을 +1, -1에 맞춰줌
+            segments={2}
             chartConfig={{
               backgroundColor: "#fff",
               backgroundGradientFrom: "#fff",

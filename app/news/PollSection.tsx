@@ -91,23 +91,30 @@ export default function VoteSection({
             <Text style={styles.resultCount}>답변 {pollTotalCount}</Text>
           </View>
 
-          {pollLabels.map((label, idx) => (
-            <View key={idx} style={styles.resultBarRow}>
-              <Text style={styles.resultLabel}>{label}</Text>
-              <View style={styles.resultBarBg}>
-                <View
-                  style={[
-                    styles.resultBar,
-                    {
-                      backgroundColor: opinionTheme[label].barColor,
-                      width: `${pollResults[idx]}%`,
-                    },
-                  ]}
-                />
+          {pollLabels.map((label, idx) => {
+            const percent =
+              pollTotalCount === 0
+                ? 0
+                : Math.round((pollResults[idx] / pollTotalCount) * 100);
+
+            return (
+              <View key={idx} style={styles.resultBarRow}>
+                <Text style={styles.resultLabel}>{label}</Text>
+                <View style={styles.resultBarBg}>
+                  <View
+                    style={[
+                      styles.resultBar,
+                      {
+                        backgroundColor: opinionTheme[label].barColor,
+                        width: `${percent}%`,
+                      },
+                    ]}
+                  />
+                </View>
+                <Text style={styles.resultPercent}>{percent}%</Text>
               </View>
-              <Text style={styles.resultPercent}>{pollResults[idx]}%</Text>
-            </View>
-          ))}
+            );
+          })}
         </View>
       )}
     </View>
