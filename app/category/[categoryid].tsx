@@ -106,7 +106,7 @@ function NewsCard({ item, displayName, isSelected, onPress }: NewsCardProps) {
           </Text>
 
           <View style={styles.metaRow}>
-            <Text style={styles.meta}>
+            <Text style={[styles.meta, { marginTop: -2.5 }]}>
               조회 {Math.floor(item.view / 10000)}만
             </Text>
 
